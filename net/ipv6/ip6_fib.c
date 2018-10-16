@@ -567,9 +567,9 @@ static int fib6_dump_table(struct fib6_table *table, struct sk_buff *skb,
 static int inet6_dump_fib(struct sk_buff *skb, struct netlink_callback *cb)
 {
 	struct net *net = sock_net(skb->sk);
+	struct rt6_rtnl_dump_arg arg = {};
 	unsigned int h, s_h;
 	unsigned int e = 0, s_e;
-	struct rt6_rtnl_dump_arg arg;
 	struct fib6_walker *w;
 	struct fib6_table *tb;
 	struct hlist_head *head;

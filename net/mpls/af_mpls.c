@@ -2020,6 +2020,7 @@ static int mpls_dump_routes(struct sk_buff *skb, struct netlink_callback *cb)
 {
 	struct net *net = sock_net(skb->sk);
 	struct mpls_route __rcu **platform_label;
+	struct fib_dump_filter filter = {};
 	size_t platform_labels;
 	unsigned int index;
 
