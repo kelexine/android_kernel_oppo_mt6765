@@ -552,6 +552,8 @@ void bpf_jit_compile(struct bpf_prog *fp)
 				emit_skb_load32(hash, r_A);
 				break;
 			case BPF_ANC | SKF_AD_VLAN_TAG:
+				emit_skb_load16(vlan_tci, r_A);
+				break;
 			case BPF_ANC | SKF_AD_VLAN_TAG_PRESENT:
 				emit_skb_load16(vlan_tci, r_A);
 				if (code != (BPF_ANC | SKF_AD_VLAN_TAG)) {
