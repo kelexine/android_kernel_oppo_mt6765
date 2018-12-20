@@ -501,8 +501,8 @@ send_end:
 	return copied ? copied : ret;
 }
 
-int tls_sw_sendpage(struct sock *sk, struct page *page,
-		    int offset, size_t size, int flags)
+int tls_sw_do_sendpage(struct sock *sk, struct page *page,
+		       int offset, size_t size, int flags)
 {
 	struct tls_context *tls_ctx = tls_get_ctx(sk);
 	struct tls_sw_context_tx *ctx = tls_sw_ctx_tx(tls_ctx);
@@ -515,14 +515,8 @@ int tls_sw_sendpage(struct sock *sk, struct page *page,
 	bool full_record;
 	int record_room;
 
-	if (flags & ~(MSG_MORE | MSG_DONTWAIT | MSG_NOSIGNAL |
-		      MSG_SENDPAGE_NOTLAST))
-		return -ENOTSUPP;
-
 	/* No MSG_EOR from splice, only look at MSG_MORE */
 	eor = !(flags & (MSG_MORE | MSG_SENDPAGE_NOTLAST));
-
-	lock_sock(sk);
 
 	sk_clear_bit(SOCKWQ_ASYNC_NOSPACE, sk);
 
@@ -612,6 +606,30 @@ sendpage_end:
 	else
 		ret = sk_stream_error(sk, flags, ret);
 
+	return ret;
+}
+
+int tls_sw_sendpage_locked(struct sock *sk, struct page *page,
+			   int offset, size_t size, int flags)
+{
+	if (flags & ~(MSG_MORE | MSG_DONTWAIT | MSG_NOSIGNAL |
+		      MSG_SENDPAGE_NOTLAST | MSG_SENDPAGE_NOPOLICY))
+		return -ENOTSUPP;
+
+	return tls_sw_do_sendpage(sk, page, offset, size, flags);
+}
+
+int tls_sw_sendpage(struct sock *sk, struct page *page,
+		    int offset, size_t size, int flags)
+{
+	int ret;
+
+	if (flags & ~(MSG_MORE | MSG_DONTWAIT | MSG_NOSIGNAL |
+		      MSG_SENDPAGE_NOTLAST | MSG_SENDPAGE_NOPOLICY))
+		return -ENOTSUPP;
+
+	lock_sock(sk);
+	ret = tls_sw_do_sendpage(sk, page, offset, size, flags);
 	release_sock(sk);
 	return ret;
 }
