@@ -459,6 +459,59 @@ static int fib_detect_death(struct fib_info *fi, int order,
 	return 1;
 }
 
+int fib_nh_init(struct net *net, struct fib_nh *nh,
+		struct fib_config *cfg, int nh_weight,
+		struct netlink_ext_ack *extack)
+{
+	int err = -ENOMEM;
+
+	nh->fib_nh_family = AF_INET;
+
+	nh->nh_pcpu_rth_output = alloc_percpu(struct rtable __rcu *);
+	if (!nh->nh_pcpu_rth_output)
+		goto err_out;
+
+	if (cfg->fc_encap) {
+		struct lwtunnel_state *lwtstate;
+
+		err = -EINVAL;
+		if (cfg->fc_encap_type == LWTUNNEL_ENCAP_NONE) {
+			NL_SET_ERR_MSG(extack, "LWT encap type not specified");
+			goto lwt_failure;
+		}
+		err = lwtunnel_build_state(cfg->fc_encap_type,
+					   cfg->fc_encap, AF_INET, cfg,
+					   &lwtstate, extack);
+		if (err)
+			goto lwt_failure;
+
+		nh->fib_nh_lws = lwtstate_get(lwtstate);
+	}
+
+	nh->fib_nh_oif = cfg->fc_oif;
+	if (cfg->fc_gw) {
+		nh->fib_nh_gw4 = cfg->fc_gw;
+		nh->fib_nh_has_gw = 1;
+	}
+	nh->fib_nh_flags = cfg->fc_flags;
+
+#ifdef CONFIG_IP_ROUTE_CLASSID
+	nh->nh_tclassid = cfg->fc_flow;
+	if (nh->nh_tclassid)
+		net->ipv4.fib_num_tclassid_users++;
+#endif
+#ifdef CONFIG_IP_ROUTE_MULTIPATH
+	nh->nh_weight = nh_weight;
+#endif
+	return 0;
+
+lwt_failure:
+	rt_fibinfo_free_cpus(nh->nh_pcpu_rth_output);
+	nh->nh_pcpu_rth_output = NULL;
+err_out:
+	return err;
+}
+
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 
 static int fib_count_nexthops(struct rtnexthop *rtnh, int remaining,
