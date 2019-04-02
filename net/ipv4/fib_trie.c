@@ -1468,19 +1468,28 @@ found:
 		if (fi->fib_flags & RTNH_F_DEAD)
 			continue;
 		for (nhsel = 0; nhsel < fi->fib_nhs; nhsel++) {
+<<<<<<< HEAD
 			const struct fib_nh *nh = &fi->fib_nh[nhsel];
 			struct in_device *in_dev = __in_dev_get_rcu(nh->fib_nh_dev);
+=======
+			struct fib_nh_common *nhc = fib_info_nhc(fi, nhsel);
+>>>>>>> 2ce338048cd4 (UPSTREAM: ipv4: Add fib_nh_common to fib_result)
 
-			if (nh->fib_nh_flags & RTNH_F_DEAD)
+			if (nhc->nhc_flags & RTNH_F_DEAD)
 				continue;
+<<<<<<< HEAD
 			if (in_dev &&
 			    IN_DEV_IGNORE_ROUTES_WITH_LINKDOWN(in_dev) &&
 			    nh->fib_nh_flags & RTNH_F_LINKDOWN &&
+=======
+			if (ip_ignore_linkdown(nhc->nhc_dev) &&
+			    nhc->nhc_flags & RTNH_F_LINKDOWN &&
+>>>>>>> 2ce338048cd4 (UPSTREAM: ipv4: Add fib_nh_common to fib_result)
 			    !(fib_flags & FIB_LOOKUP_IGNORE_LINKSTATE))
 				continue;
 			if (!(flp->flowi4_flags & FLOWI_FLAG_SKIP_NH_OIF)) {
 				if (flp->flowi4_oif &&
-				    flp->flowi4_oif != nh->fib_nh_oif)
+				    flp->flowi4_oif != nhc->nhc_oif)
 					continue;
 			}
 
@@ -1490,6 +1499,7 @@ found:
 			res->prefix = htonl(n->key);
 			res->prefixlen = KEYLENGTH - fa->fa_slen;
 			res->nh_sel = nhsel;
+			res->nhc = nhc;
 			res->type = fa->fa_type;
 			res->scope = fi->fib_scope;
 			res->fi = fi;
@@ -1498,7 +1508,11 @@ found:
 #ifdef CONFIG_IP_FIB_TRIE_STATS
 			this_cpu_inc(stats->semantic_match_passed);
 #endif
+<<<<<<< HEAD
 			trace_fib_table_lookup(tb->tb_id, flp, nh, err);
+=======
+			trace_fib_table_lookup(tb->tb_id, flp, nhc, err);
+>>>>>>> 2ce338048cd4 (UPSTREAM: ipv4: Add fib_nh_common to fib_result)
 
 			return err;
 		}

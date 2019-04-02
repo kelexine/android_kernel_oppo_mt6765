@@ -672,7 +672,7 @@ static struct fib6_info *find_match(struct fib6_info *rt, int oif, int strict,
 		goto out;
 
 	if (fib6_ignore_linkdown(rt) &&
-	    rt->fib6_nh.nh_flags & RTNH_F_LINKDOWN &&
+	    rt->fib6_nh.fib_nh_flags & RTNH_F_LINKDOWN &&
 	    !(strict & RT6_LOOKUP_F_IGNORE_LINKSTATE))
 		goto out;
 
@@ -3575,7 +3575,7 @@ static struct fib6_info *rt6_get_route_info(struct net *net,
 		goto out;
 
 	for_each_fib6_node_rt_rcu(fn) {
-		if (rt->fib6_nh.nh_dev->ifindex != ifindex)
+		if (rt->fib6_nh.fib_nh_dev->ifindex != ifindex)
 			continue;
 		if (!(rt->fib6_flags & RTF_ROUTEINFO) ||
 		    !rt->fib6_nh.fib_nh_has_gw)
@@ -3665,7 +3665,7 @@ struct fib6_info *rt6_get_dflt_router_expires(struct net_device *dev)
 
 	rcu_read_lock();
 	for_each_fib6_node_rt_rcu(&table->tb6_root) {
-		if (dev == rt->fib6_nh.nh_dev &&
+		if (dev == rt->fib6_nh.fib_nh_dev &&
 		    ((rt->fib6_flags & RTF_ADGE) == RTF_ADGE))
 			break;
 	}
@@ -3961,8 +3961,8 @@ static struct fib6_info *rt6_multipath_first_sibling(const struct fib6_info *rt)
 
 static bool rt6_is_dead(const struct fib6_info *rt)
 {
-	if (rt->fib6_nh.nh_flags & RTNH_F_DEAD ||
-	    (rt->fib6_nh.nh_flags & RTNH_F_LINKDOWN &&
+	if (rt->fib6_nh.fib_nh_flags & RTNH_F_DEAD ||
+	    (rt->fib6_nh.fib_nh_flags & RTNH_F_LINKDOWN &&
 	     fib6_ignore_linkdown(rt)))
 		return true;
 
@@ -4039,7 +4039,7 @@ static int fib6_ifup(struct fib6_info *rt, void *p_arg)
 
 	if (rt != net->ipv6.fib6_null_entry &&
 	    rt->fib6_nh.fib_nh_dev == arg->dev) {
-		rt->fib6_nh.fib_nh_flags &= ~arg->nh_flags;
+		rt->fib6_nh.fib_nh_flags &= ~arg->fib_nh_flags;
 		fib6_update_sernum_upto_root(net, rt);
 		rt6_multipath_rebalance(rt);
 	}
@@ -4052,12 +4052,12 @@ void rt6_sync_up(struct net_device *dev, unsigned int nh_flags)
 	struct arg_netdev_event arg = {
 		.dev = dev,
 		{
-			.nh_flags = nh_flags,
+			.fib_nh_flags = nh_flags,
 		},
 	};
 
 	if (nh_flags & RTNH_F_DEAD && netif_carrier_ok(dev))
-		arg.nh_flags |= RTNH_F_LINKDOWN;
+		arg.fib_nh_flags |= RTNH_F_LINKDOWN;
 
 	fib6_clean_all(dev_net(dev), fib6_ifup, &arg);
 }
@@ -4696,10 +4696,10 @@ static size_t rt6_nlmsg_size(struct fib6_info *rt)
 static int rt6_nexthop_info(struct sk_buff *skb, struct fib6_info *rt,
 			    unsigned int *flags, bool skip_oif)
 {
-	if (rt->fib6_nh.nh_flags & RTNH_F_DEAD)
+	if (rt->fib6_nh.fib_nh_flags & RTNH_F_DEAD)
 		*flags |= RTNH_F_DEAD;
 
-	if (rt->fib6_nh.nh_flags & RTNH_F_LINKDOWN) {
+	if (rt->fib6_nh.fib_nh_flags & RTNH_F_LINKDOWN) {
 		*flags |= RTNH_F_LINKDOWN;
 
 		rcu_read_lock();
@@ -4709,21 +4709,21 @@ static int rt6_nexthop_info(struct sk_buff *skb, struct fib6_info *rt,
 	}
 
 	if (rt->fib6_nh.fib_nh_has_gw) {
-		if (nla_put_in6_addr(skb, RTA_GATEWAY, &rt->fib6_nh.nh_gw) < 0)
+		if (nla_put_in6_addr(skb, RTA_GATEWAY, &rt->fib6_nh.fib_nh_gw6) < 0)
 			goto nla_put_failure;
 	}
 
-	*flags |= (rt->fib6_nh.nh_flags & RTNH_F_ONLINK);
-	if (rt->fib6_nh.nh_flags & RTNH_F_OFFLOAD)
+	*flags |= (rt->fib6_nh.fib_nh_flags & RTNH_F_ONLINK);
+	if (rt->fib6_nh.fib_nh_flags & RTNH_F_OFFLOAD)
 		*flags |= RTNH_F_OFFLOAD;
 
 	/* not needed for multipath encoding b/c it has a rtnexthop struct */
-	if (!skip_oif && rt->fib6_nh.nh_dev &&
-	    nla_put_u32(skb, RTA_OIF, rt->fib6_nh.nh_dev->ifindex))
+	if (!skip_oif && rt->fib6_nh.fib_nh_dev &&
+	    nla_put_u32(skb, RTA_OIF, rt->fib6_nh.fib_nh_dev->ifindex))
 		goto nla_put_failure;
 
-	if (rt->fib6_nh.nh_lwtstate &&
-	    lwtunnel_fill_encap(skb, rt->fib6_nh.nh_lwtstate) < 0)
+	if (rt->fib6_nh.fib_nh_lws &&
+	    lwtunnel_fill_encap(skb, rt->fib6_nh.fib_nh_lws) < 0)
 		goto nla_put_failure;
 
 	return 0;
@@ -4735,7 +4735,7 @@ nla_put_failure:
 /* add multipath next hop */
 static int rt6_add_nexthop(struct sk_buff *skb, struct fib6_info *rt)
 {
-	const struct net_device *dev = rt->fib6_nh.nh_dev;
+	const struct net_device *dev = rt->fib6_nh.fib_nh_dev;
 	struct rtnexthop *rtnh;
 	unsigned int flags = 0;
 
@@ -4743,7 +4743,7 @@ static int rt6_add_nexthop(struct sk_buff *skb, struct fib6_info *rt)
 	if (!rtnh)
 		goto nla_put_failure;
 
-	rtnh->rtnh_hops = rt->fib6_nh.nh_weight - 1;
+	rtnh->rtnh_hops = rt->fib6_nh.fib_nh_weight - 1;
 	rtnh->rtnh_ifindex = dev ? dev->ifindex : 0;
 
 	if (rt6_nexthop_info(skb, rt, &flags, true) < 0)
