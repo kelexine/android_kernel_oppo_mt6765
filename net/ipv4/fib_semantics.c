@@ -41,11 +41,8 @@
 #include <net/tcp.h>
 #include <net/sock.h>
 #include <net/ip_fib.h>
-<<<<<<< HEAD
-=======
 #include <net/ip6_fib.h>
 #include <net/nexthop.h>
->>>>>>> bc5b38fcede1 (BACKPORT: ipv4: Use accessors for fib_info nexthop data)
 #include <net/netlink.h>
 #include <net/nexthop.h>
 #include <net/lwtunnel.h>
@@ -305,9 +302,6 @@ static inline int nh_comp(struct fib_info *fi, struct fib_info *ofi)
 		    lwtunnel_cmp_encap(nh->fib_nh_lws, onh->fib_nh_lws) ||
 		    ((nh->fib_nh_flags ^ onh->fib_nh_flags) & ~RTNH_COMPARE_MASK))
 			return -1;
-<<<<<<< HEAD
-		onh++;
-=======
 
 		if (nh->fib_nh_gw_family == AF_INET &&
 		    nh->fib_nh_gw4 != onh->fib_nh_gw4)
@@ -316,7 +310,6 @@ static inline int nh_comp(struct fib_info *fi, struct fib_info *ofi)
 		if (nh->fib_nh_gw_family == AF_INET6 &&
 		    ipv6_addr_cmp(&nh->fib_nh_gw6, &onh->fib_nh_gw6))
 			return -1;
->>>>>>> bc5b38fcede1 (BACKPORT: ipv4: Use accessors for fib_info nexthop data)
 	} endfor_nexthops(fi);
 	return 0;
 }
@@ -540,8 +533,11 @@ int fib_nh_init(struct net *net, struct fib_nh *nh,
 		goto init_failure;
 
 	nh->fib_nh_oif = cfg->fc_oif;
-	if (cfg->fc_gw) {
-		nh->fib_nh_gw4 = cfg->fc_gw;
+	nh->fib_nh_gw_family = cfg->fc_gw_family;
+	if (cfg->fc_gw_family == AF_INET)
+		nh->fib_nh_gw4 = cfg->fc_gw4;
+	else if (cfg->fc_gw_family == AF_INET6)
+		nh->fib_nh_gw6 = cfg->fc_gw6;
 		nh->fib_nh_gw_family = AF_INET;
 	}
 	nh->fib_nh_flags = cfg->fc_flags;
@@ -589,12 +585,9 @@ static int fib_get_nhs(struct fib_info *fi, struct rtnexthop *rtnh,
 		       int remaining, struct fib_config *cfg,
 		       struct netlink_ext_ack *extack)
 {
-<<<<<<< HEAD
-=======
 	struct net *net = fi->fib_net;
 	struct fib_config fib_cfg;
 	struct fib_nh *nh;
->>>>>>> bc5b38fcede1 (BACKPORT: ipv4: Use accessors for fib_info nexthop data)
 	int ret;
 
 	change_nexthops(fi) {
@@ -661,8 +654,6 @@ static int fib_get_nhs(struct fib_info *fi, struct rtnexthop *rtnh,
 
 err_inval:
 	ret = -EINVAL;
-<<<<<<< HEAD
-=======
 	nh = fib_info_nh(fi, 0);
 	if (cfg->fc_oif && nh->fib_nh_oif != cfg->fc_oif) {
 		NL_SET_ERR_MSG(extack,
@@ -688,7 +679,6 @@ err_inval:
 	}
 #endif
 	ret = 0;
->>>>>>> bc5b38fcede1 (BACKPORT: ipv4: Use accessors for fib_info nexthop data)
 errout:
 	return ret;
 }
@@ -777,13 +767,9 @@ int fib_nh_match(struct fib_config *cfg, struct fib_info *fi,
 	if (cfg->fc_priority && cfg->fc_priority != fi->fib_priority)
 		return 1;
 
-<<<<<<< HEAD
-	if (cfg->fc_oif || cfg->fc_gw) {
-=======
 	if (cfg->fc_oif || cfg->fc_gw_family) {
 		struct fib_nh *nh = fib_info_nh(fi, 0);
 
->>>>>>> bc5b38fcede1 (BACKPORT: ipv4: Use accessors for fib_info nexthop data)
 		if (cfg->fc_encap) {
 			if (fib_encap_match(cfg->fc_encap_type, cfg->fc_encap,
 					    nh, cfg, extack))
@@ -794,12 +780,6 @@ int fib_nh_match(struct fib_config *cfg, struct fib_info *fi,
 		    cfg->fc_flow != nh->nh_tclassid)
 			return 1;
 #endif
-<<<<<<< HEAD
-		if ((!cfg->fc_oif || cfg->fc_oif == fi->fib_nh->fib_nh_oif) &&
-		    (!cfg->fc_gw  || cfg->fc_gw == fi->fib_nh->fib_nh_gw4))
-			return 0;
-		return 1;
-=======
 		if ((cfg->fc_oif && cfg->fc_oif != nh->fib_nh_oif) ||
 		    (cfg->fc_gw_family &&
 		     cfg->fc_gw_family != nh->fib_nh_gw_family))
@@ -814,7 +794,6 @@ int fib_nh_match(struct fib_config *cfg, struct fib_info *fi,
 			return 1;
 
 		return 0;
->>>>>>> bc5b38fcede1 (BACKPORT: ipv4: Use accessors for fib_info nexthop data)
 	}
 
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
@@ -1219,122 +1198,13 @@ struct fib_info *fib_create_info(struct fib_config *cfg,
 	}
 
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
-	if (cfg->fc_mp) {
-		nhs = fib_count_nexthops(cfg->fc_mp, cfg->fc_mp_len, extack);
-		if (nhs == 0)
-			goto err_inval;
-	}
-#endif
-
-	err = -ENOBUFS;
-	if (fib_info_cnt >= fib_info_hash_size) {
-		unsigned int new_size = fib_info_hash_size << 1;
-		struct hlist_head *new_info_hash;
-		struct hlist_head *new_laddrhash;
-		unsigned int bytes;
-
-		if (!new_size)
-			new_size = 16;
-		bytes = new_size * sizeof(struct hlist_head *);
-		new_info_hash = fib_info_hash_alloc(bytes);
-		new_laddrhash = fib_info_hash_alloc(bytes);
-		if (!new_info_hash || !new_laddrhash) {
-			fib_info_hash_free(new_info_hash, bytes);
-			fib_info_hash_free(new_laddrhash, bytes);
-		} else
-			fib_info_hash_move(new_info_hash, new_laddrhash, new_size);
-
-		if (!fib_info_hash_size)
-			goto failure;
-	}
-
-	fi = kzalloc(sizeof(*fi)+nhs*sizeof(struct fib_nh), GFP_KERNEL);
-	if (!fi)
-		goto failure;
-	fi->fib_metrics = ip_fib_metrics_init(fi->fib_net, cfg->fc_mx,
-					      cfg->fc_mx_len, extack);
-	if (unlikely(IS_ERR(fi->fib_metrics))) {
-		err = PTR_ERR(fi->fib_metrics);
-		kfree(fi);
-		return ERR_PTR(err);
-	}
-
-	fib_info_cnt++;
-	fi->fib_net = net;
-	fi->fib_protocol = cfg->fc_protocol;
-	fi->fib_scope = cfg->fc_scope;
-	fi->fib_flags = cfg->fc_flags;
-	fi->fib_priority = cfg->fc_priority;
-	fi->fib_prefsrc = cfg->fc_prefsrc;
-	fi->fib_type = cfg->fc_type;
-	fi->fib_tb_id = cfg->fc_table;
-
-	fi->fib_nhs = nhs;
-	change_nexthops(fi) {
-		nexthop_nh->nh_parent = fi;
-		nexthop_nh->nh_pcpu_rth_output = alloc_percpu(struct rtable __rcu *);
-		if (!nexthop_nh->nh_pcpu_rth_output)
-			goto failure;
-	} endfor_nexthops(fi)
-
-	if (cfg->fc_mp) {
-#ifdef CONFIG_IP_ROUTE_MULTIPATH
+	if (cfg->fc_mp)
 		err = fib_get_nhs(fi, cfg->fc_mp, cfg->fc_mp_len, cfg, extack);
-		if (err != 0)
-			goto failure;
-		if (cfg->fc_oif && fi->fib_nh->fib_nh_oif != cfg->fc_oif) {
-			NL_SET_ERR_MSG(extack,
-				       "Nexthop device index does not match RTA_OIF");
-			goto err_inval;
-		}
-		if (cfg->fc_gw && fi->fib_nh->fib_nh_gw != cfg->fc_gw) {
-			NL_SET_ERR_MSG(extack,
-				       "Nexthop gateway does not match RTA_GATEWAY");
-			goto err_inval;
-		}
-#ifdef CONFIG_IP_ROUTE_CLASSID
-		if (cfg->fc_flow && fi->fib_nh->nh_tclassid != cfg->fc_flow) {
-			NL_SET_ERR_MSG(extack,
-				       "Nexthop class id does not match RTA_FLOW");
-			goto err_inval;
-		}
-#endif
-#else
-		NL_SET_ERR_MSG(extack,
-			       "Multipath support not enabled in kernel");
-		goto err_inval;
-#endif
-	} else {
-		struct fib_nh *nh = fi->fib_nh;
+	else
+		err = fib_nh_init(net, fi->fib_nh, cfg, 1, extack);
 
-		if (cfg->fc_encap) {
-			struct lwtunnel_state *lwtstate;
-
-			if (cfg->fc_encap_type == LWTUNNEL_ENCAP_NONE) {
-				NL_SET_ERR_MSG(extack,
-					       "LWT encap type not specified");
-				goto err_inval;
-			}
-			err = lwtunnel_build_state(cfg->fc_encap_type,
-						   cfg->fc_encap, AF_INET, cfg,
-						   &lwtstate, extack);
-			if (err)
-				goto failure;
-
-			nh->fib_nh_lws = lwtstate_get(lwtstate);
-		}
-		nh->fib_nh_oif = cfg->fc_oif;
-		nh->fib_nh_gw4 = cfg->fc_gw;
-		nh->fib_nh_flags = cfg->fc_flags;
-#ifdef CONFIG_IP_ROUTE_CLASSID
-		nh->nh_tclassid = cfg->fc_flow;
-		if (nh->nh_tclassid)
-			fi->fib_net->ipv4.fib_num_tclassid_users++;
-#endif
-#ifdef CONFIG_IP_ROUTE_MULTIPATH
-		nh->nh_weight = 1;
-#endif
-	}
+	if (err != 0)
+		goto failure;
 
 	if (fib_props[cfg->fc_type].error) {
 		if (cfg->fc_gw || cfg->fc_oif || cfg->fc_mp) {
@@ -1602,15 +1472,9 @@ int fib_dump_info(struct sk_buff *skb, u32 portid, u32 seq, int event,
 	if (fi->fib_prefsrc &&
 	    nla_put_in_addr(skb, RTA_PREFSRC, fi->fib_prefsrc))
 		goto nla_put_failure;
-<<<<<<< HEAD
-	if (fi->fib_nhs == 1) {
-		struct fib_nh *nh = &fi->fib_nh[0];
-		unsigned int flags = 0;
-=======
 	if (nhs == 1) {
 		const struct fib_nh *nh = fib_info_nh(fi, 0);
 		unsigned char flags = 0;
->>>>>>> bc5b38fcede1 (BACKPORT: ipv4: Use accessors for fib_info nexthop data)
 
 		if (fib_nexthop_info(skb, &nh->nh_common, &flags, false) < 0)
 			goto nla_put_failure;
