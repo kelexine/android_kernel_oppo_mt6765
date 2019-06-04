@@ -31,4 +31,18 @@ static inline int rtnh_attrlen(const struct rtnexthop *rtnh)
 	return rtnh->rtnh_len - NLA_ALIGN(sizeof(*rtnh));
 }
 
+
+static inline unsigned int fib_info_num_path(const struct fib_info *fi)
+{
+	return fi->fib_nhs;
+}
+
+static inline struct fib_nh_common *fib_info_nhc(struct fib_info *fi, int nhsel)
+{
+	return &fi->fib_nh[nhsel].nh_common;
+}
+
+static inline struct fib_nh *fib_info_nh(struct fib_info *fi, int nhsel)
+{
+	return &fi->fib_nh[nhsel];
 #endif
