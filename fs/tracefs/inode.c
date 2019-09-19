@@ -162,6 +162,7 @@ struct tracefs_fs_info {
 	struct tracefs_mount_opts mount_opts;
 };
 
+
 static int tracefs_parse_options(char *data, struct tracefs_mount_opts *opts)
 {
 	substring_t args[MAX_OPT_ARGS];
