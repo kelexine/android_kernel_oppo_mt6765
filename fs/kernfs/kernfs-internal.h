@@ -24,6 +24,8 @@ struct kernfs_iattrs {
 	u32			ia_secdata_len;
 
 	struct simple_xattrs	xattrs;
+	atomic_t		nr_user_xattrs;
+	atomic_t		user_xattr_size;
 };
 
 /* +1 to avoid triggering overflow warning when negating it */
