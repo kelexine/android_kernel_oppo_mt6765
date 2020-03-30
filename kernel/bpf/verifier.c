@@ -4287,6 +4287,7 @@ static int do_refine_retval_range(struct bpf_verifier_env *env,
 	/* Success case where ret is in range [0, msize_max_value]. */
 	ret_reg->smin_value = 0;
 	ret_reg->smax_value = meta->msize_max_value;
+	ret_reg->s32_max_value = meta->msize_max_value;
 	ret_reg->umin_value = ret_reg->smin_value;
 	ret_reg->umax_value = ret_reg->smax_value;
 
