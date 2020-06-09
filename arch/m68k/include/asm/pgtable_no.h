@@ -58,7 +58,6 @@ extern void paging_init(void);
 #define	KMAP_START	0
 #define	KMAP_END	0xffffffff
 
-#include <asm-generic/pgtable.h>
 
 #define check_pgt_cache()	do { } while (0)
 

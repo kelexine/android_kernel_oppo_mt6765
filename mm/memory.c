@@ -78,7 +78,7 @@
 #include <linux/uaccess.h>
 #include <asm/tlb.h>
 #include <asm/tlbflush.h>
-#include <asm/pgtable.h>
+#include <linux/pgtable.h>
 #ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
 #include <linux/mysufs_def.h>
 #endif // #ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
