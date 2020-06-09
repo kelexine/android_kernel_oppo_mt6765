@@ -105,3 +105,76 @@ long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count)
 
 	return ret ? -EFAULT : src - unsafe_addr;
 }
+
+/**
+ * strncpy_from_user_nofault: - Copy a NUL terminated string from unsafe user
+ *				address.
+ * @dst:   Destination address, in kernel space.  This buffer must be at
+ *         least @count bytes long.
+ * @unsafe_addr: Unsafe user address.
+ * @count: Maximum number of bytes to copy, including the trailing NUL.
+ *
+ * Copies a NUL-terminated string from unsafe user address to kernel buffer.
+ *
+ * On success, returns the length of the string INCLUDING the trailing NUL.
+ *
+ * If access fails, returns -EFAULT (some data may have been copied
+ * and the trailing NUL added).
+ *
+ * If @count is smaller than the length of the string, copies @count-1 bytes,
+ * sets the last byte of @dst buffer to NUL and returns @count.
+ */
+long strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
+			      long count)
+{
+	mm_segment_t old_fs = get_fs();
+	long ret;
+
+	if (unlikely(count <= 0))
+		return 0;
+
+	set_fs(USER_DS);
+	pagefault_disable();
+	ret = strncpy_from_user(dst, unsafe_addr, count);
+	pagefault_enable();
+	set_fs(old_fs);
+
+	if (ret >= count) {
+		ret = count;
+		dst[ret - 1] = '\0';
+	} else if (ret > 0) {
+		ret++;
+	}
+
+	return ret;
+}
+
+/**
+ * strnlen_unsafe_user: - Get the size of a user string INCLUDING final NUL.
+ * @unsafe_addr: The string to measure.
+ * @count: Maximum count (including NUL)
+ *
+ * Get the size of a NUL-terminated string in user space without pagefault.
+ *
+ * Returns the size of the string INCLUDING the terminating NUL.
+ *
+ * If the string is too long, returns a number larger than @count. User
+ * has to check the return value against "> count".
+ * On exception (or invalid count), returns 0.
+ *
+ * Unlike strnlen_user, this can be used from IRQ handler etc. because
+ * it disables pagefaults.
+ */
+long strnlen_unsafe_user(const void __user *unsafe_addr, long count)
+{
+	mm_segment_t old_fs = get_fs();
+	int ret;
+
+	set_fs(USER_DS);
+	pagefault_disable();
+	ret = strnlen_user(unsafe_addr, count);
+	pagefault_enable();
+	set_fs(old_fs);
+
+	return ret;
+}
