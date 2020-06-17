@@ -264,6 +264,13 @@ static inline long copy_to_kernel_nofault(void *dst, const void *src, size_t siz
 	return probe_kernel_write(dst, src, size);
 }
 
+long copy_from_user_nofault(void *dst, const void __user *src, size_t size);
+long notrace copy_to_user_nofault(void __user *dst, const void *src,
+		size_t size);
+
+#define probe_user_read copy_from_user_nofault
+#define probe_user_write copy_to_user_nofault
+
 extern long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count);
 long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr,
 		long count);
