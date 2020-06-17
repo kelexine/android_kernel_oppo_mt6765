@@ -207,6 +207,7 @@ static void print_pstate(struct pt_regs *regs)
 	}
 }
 
+
 void __show_regs(struct pt_regs *regs)
 {
 	int i, top_reg;
