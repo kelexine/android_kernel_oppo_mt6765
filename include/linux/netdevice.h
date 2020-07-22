@@ -861,6 +861,17 @@ struct netlink_ext_ack;
 struct xdp_umem;
 struct xdp_dev_bulk_queue;
 
+enum bpf_xdp_mode {
+	XDP_MODE_SKB = 0,
+	XDP_MODE_DRV = 1,
+	XDP_MODE_HW = 2,
+	__MAX_XDP_MODE
+};
+
+struct bpf_xdp_entity {
+	struct bpf_prog *prog;
+};
+
 struct netdev_bpf {
 	enum bpf_netdev_command command;
 	union {
@@ -2061,6 +2072,8 @@ struct net_device {
 	bool			proto_down;
 	unsigned		wol_enabled:1;
 
+	/* protected by rtnl_lock */
+	struct bpf_xdp_entity	xdp_state[__MAX_XDP_MODE];
 	ANDROID_KABI_RESERVE(1);
 	ANDROID_KABI_RESERVE(2);
 	ANDROID_KABI_RESERVE(3);
@@ -3648,8 +3661,7 @@ struct sk_buff *dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev,
 typedef int (*bpf_op_t)(struct net_device *dev, struct netdev_bpf *bpf);
 int dev_change_xdp_fd(struct net_device *dev, struct netlink_ext_ack *extack,
 		      int fd, int expected_fd, u32 flags);
-u32 __dev_xdp_query(struct net_device *dev, bpf_op_t xdp_op,
-		    enum bpf_netdev_command cmd);
+u32 dev_xdp_prog_id(struct net_device *dev, enum bpf_xdp_mode mode);
 int xdp_umem_query(struct net_device *dev, u16 queue_id);
 
 int __dev_forward_skb(struct net_device *dev, struct sk_buff *skb);
