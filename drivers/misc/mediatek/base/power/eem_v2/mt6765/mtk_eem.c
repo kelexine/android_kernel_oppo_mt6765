@@ -119,6 +119,8 @@ DEFINE_SPINLOCK(record_spinlock);
  * common variables for legacy ptp
  *******************************************
  */
+/* Add the calibration flag to be compatible with the recovery scenario.*/
+static unsigned int is_calibration_fail;
 static int eem_log_en;
 static unsigned int eem_checkEfuse = 1;
 #if defined(CONFIG_CPU_FORCE_TO_BIN2)
@@ -1643,7 +1645,7 @@ static inline void handle_init01_isr(struct eem_det *det)
 	det->DCVOFFSETIN = ~(eem_read(EEM_DCVALUES) & 0xffff) + 1;
 	/* check if DCVALUES is minus and set DCVOFFSETIN to zero */
 
-//	if (det->DCVOFFSETIN & 0x8000)
+	if ((det->DCVOFFSETIN & 0x8000) || (is_calibration_fail))
 		det->DCVOFFSETIN = 0;
 
 	det->AGEVOFFSETIN = eem_read(EEM_AGEVALUES) & 0xffff;
@@ -2498,6 +2500,19 @@ void eem_init02(const char *str)
 	FUNC_EXIT(FUNC_LV_LOCAL);
 }
 
+/* get regulator reference */
+static int eem_buck_get(struct platform_device *pdev)
+{
+	int ret = 0;
+
+	eem_regulator_vproc = regulator_get(&pdev->dev, "vproc");
+	if (!eem_regulator_vproc) {
+		eem_error("eem_regulator_vproc error\n");
+		return -EINVAL;
+	}
+
+	return ret;
+}
 
 static void eem_buck_set_mode(unsigned int mode)
 {
@@ -2511,8 +2526,101 @@ static void eem_buck_set_mode(unsigned int mode)
 
 void eem_init01(void)
 {
+	struct eem_det *det;
+	struct eem_ctrl *ctrl;
+	unsigned int out = 0, timeout = 0;
+
 	FUNC_ENTER(FUNC_LV_LOCAL);
 
+	for_each_det_ctrl(det, ctrl) {
+		unsigned long flag;
+
+		if (HAS_FEATURE(det, FEA_INIT01)) {
+			if (det->ops->get_volt != NULL) {
+				det->real_vboot = det->ops->volt_2_eem(det,
+					det->ops->get_volt(det));
+
+#ifdef CONFIG_EEM_AEE_RR_REC
+			aee_rr_rec_ptp_vboot(
+				((unsigned long long)(det->real_vboot) <<
+				(8 * det->ctrl_id)) |
+				(aee_rr_curr_ptp_vboot() & ~
+				((unsigned long long)(0xFF) <<
+				(8 * det->ctrl_id))
+				)
+			);
+#endif
+			}
+			timeout = 0;
+			while (det->real_vboot != det->VBOOT) {
+				det->real_vboot = det->ops->volt_2_eem(det,
+					det->ops->get_volt(det));
+				if (timeout++ % 10000 == 0) {
+					eem_error
+("@%s():%d, get_volt(%s) = 0x%08X, VBOOT = 0x%08X\n",
+__func__, __LINE__, det->name, det->real_vboot, det->VBOOT);
+					is_calibration_fail = 1;
+					break;
+				}
+			}
+			if (det->real_vboot == det->VBOOT)
+				is_calibration_fail = 0;
+			/* BUG_ON(det->real_vboot != det->VBOOT); */
+			WARN_ON(det->real_vboot != det->VBOOT);
+
+			mt_ptp_lock(&flag); /* <-XXX */
+			det->ops->init01(det);
+			mt_ptp_unlock(&flag); /* <-XXX */
+		}
+	}
+
+	/* CPU post-process */
+	eem_buck_set_mode(0);
+
+	mt_ppm_ptpod_policy_deactivate();
+
+	mcdi_pause(MCDI_PAUSE_BY_EEM, false);
+
+	/* This patch is waiting for whole bank finish the init01 then go
+	 * next. Due to LL/L use same bulk PMIC, LL voltage table change
+	 * will impact L to process init01 stage, because L require a
+	 * stable 1V for init01.
+	 */
+	timeout = 0;
+	while (1) {
+		for_each_det(det) {
+			if (((out & BIT(det->ctrl_id)) == 0) &&
+				(det->eem_eemEn[EEM_PHASE_INIT01] ==
+				(1 | SEC_MOD_SEL)))
+				out |= BIT(det->ctrl_id);
+		}
+
+
+		if (out == final_init01_flag) {
+			eem_debug("init01 finish time is %d, bankmask:0x%x\n",
+			timeout, out);
+			break;
+		}
+		udelay(100);
+		timeout++;
+
+		if (timeout % 300 == 0)
+			eem_error
+			("init01 wait time is %d, bankmask:0x%x[/0x%x]\n",
+			timeout, out, final_init01_flag);
+	}
+
+#if ENABLE_LOO
+	/* save CPU L/B init01 info to HIGHL/HIGHB */
+	eem_detectors[EEM_DET_L_HI].DCVOFFSETIN =
+		eem_detectors[EEM_DET_L].DCVOFFSETIN;
+	eem_detectors[EEM_DET_L_HI].AGEVOFFSETIN =
+		eem_detectors[EEM_DET_L].AGEVOFFSETIN;
+	eem_detectors[EEM_DET_2L_HI].DCVOFFSETIN =
+		eem_detectors[EEM_DET_2L].DCVOFFSETIN;
+	eem_detectors[EEM_DET_2L_HI].AGEVOFFSETIN =
+		eem_detectors[EEM_DET_2L].AGEVOFFSETIN;
+#endif
 	eem_init02(__func__);
 	FUNC_EXIT(FUNC_LV_LOCAL);
 }
@@ -2562,6 +2670,17 @@ static int eem_probe(struct platform_device *pdev)
 	for_each_ctrl(ctrl)
 		eem_init_ctrl(ctrl);
 
+	/* CPU pre-process */
+	mcdi_pause(MCDI_PAUSE_BY_EEM, true);
+
+	mt_ppm_ptpod_policy_activate();
+
+	ret = eem_buck_get(pdev);
+	if (ret != 0)
+		eem_error("eem_buck_get failed\n");
+
+	eem_buck_set_mode(1);
+
 	/* for slow idle */
 	ptp_data[0] = 0xffffffff;
 
@@ -2573,6 +2692,8 @@ static int eem_probe(struct platform_device *pdev)
 		if (det->ops->get_orig_volt_table)
 			det->ops->get_orig_volt_table(det);
 	}
+
+	final_init01_flag = EEM_INIT01_FLAG;
 
 	eem_init01();
 	ptp_data[0] = 0;

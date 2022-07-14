@@ -85,7 +85,7 @@ struct eem_det eem_detectors[NR_EEM_DET] = {
 		.volt_offset	= 0,
 #endif
 		.ctrl_id	= EEM_CTRL_L,
-		.features	= FEA_INIT02 | FEA_MON,
+		.features	= FEA_INIT01 | FEA_INIT02 | FEA_MON,
 #if ENABLE_LOO
 		.max_freq_khz	= 1750000,
 #else
@@ -124,7 +124,7 @@ struct eem_det eem_detectors[NR_EEM_DET] = {
 		.volt_offset	= 0,
 #endif
 		.ctrl_id	= EEM_CTRL_2L,
-		.features	= FEA_INIT02 | FEA_MON,
+		.features	= FEA_INIT01 | FEA_INIT02 | FEA_MON,
 #if ENABLE_LOO
 		.max_freq_khz	= 1050000,
 #else
