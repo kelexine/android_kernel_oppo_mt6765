@@ -18,6 +18,7 @@
 #define MTK_DRM_PROP_NEXT_BUFF_IDX  "NEXT_BUFF_IDX"
 #define MTK_DRM_PROP_PRESENT_FENCE  "PRESENT_FENCE"
 #define MTK_DRM_PROP_OVL_DSI_SEQ  "OVL_DSI_SEQ"
+#define MTK_DRM_CCORR_LINEAR_OFFSET 16 /* Linear:1 Nonlinear:0 */
 
 struct mml_frame_info;
 

@@ -80,6 +80,7 @@ static struct mtk_drm_property mtk_crtc_property[CRTC_PROP_MAX] = {
 
 static struct cmdq_pkt *sb_cmdq_handle;
 static unsigned int sb_backlight;
+static bool g_ccorr_linear;
 
 bool hdr_en;
 static const char * const crtc_gce_client_str[] = {
@@ -2929,7 +2930,7 @@ static void mtk_crtc_dc_config_color_matrix(struct drm_crtc *crtc,
 
 			if (comp->id == DDP_COMPONENT_CCORR0) {
 				disp_ccorr_set_color_matrix(comp, cmdq_handle,
-							ccorr_matrix, mode, false);
+							ccorr_matrix, mode, false, g_ccorr_linear);
 				set = true;
 				break;
 			}
@@ -2940,7 +2941,7 @@ static void mtk_crtc_dc_config_color_matrix(struct drm_crtc *crtc,
 			for_each_comp_in_dual_pipe(comp_ccorr, mtk_crtc, i, j) {
 				if (comp_ccorr->id == DDP_COMPONENT_CCORR1) {
 					disp_ccorr_set_color_matrix(comp_ccorr, cmdq_handle,
-								ccorr_matrix, mode, false);
+							ccorr_matrix, mode, false, g_ccorr_linear);
 					set = true;
 					break;
 				}
@@ -5978,6 +5979,11 @@ static struct disp_ccorr_config *mtk_crtc_get_color_matrix_data(
 
 	if (ccorr_config) {
 		int i = 0, all_zero = 1;
+		if ((ccorr_config->mode >> MTK_DRM_CCORR_LINEAR_OFFSET) != 0)
+			g_ccorr_linear = true;
+		else
+			g_ccorr_linear = false;
+		ccorr_config->mode &= 0xffff;
 
 		color_matrix = ccorr_config->color_matrix;
 		for (i = 0; i <= 15; i += 5) {
@@ -6043,7 +6049,8 @@ static void mtk_crtc_dl_config_color_matrix(struct drm_crtc *crtc,
 		if (comp->id == DDP_COMPONENT_CCORR0) {
 			disp_ccorr_set_color_matrix(comp, cmdq_handle,
 					ccorr_config->color_matrix,
-					ccorr_config->mode, ccorr_config->featureFlag);
+					ccorr_config->mode, ccorr_config->featureFlag,
+					g_ccorr_linear);
 			set = true;
 			break;
 		}
@@ -6055,7 +6062,8 @@ static void mtk_crtc_dl_config_color_matrix(struct drm_crtc *crtc,
 			if (comp_ccorr->id == DDP_COMPONENT_CCORR1) {
 				disp_ccorr_set_color_matrix(comp_ccorr, cmdq_handle,
 						ccorr_config->color_matrix,
-						ccorr_config->mode, ccorr_config->featureFlag);
+						ccorr_config->mode, ccorr_config->featureFlag,
+						g_ccorr_linear);
 				set = true;
 				break;
 			}
