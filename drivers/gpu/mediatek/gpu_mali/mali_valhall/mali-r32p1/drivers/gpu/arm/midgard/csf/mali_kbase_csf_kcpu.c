@@ -76,7 +76,14 @@ static int kbase_kcpu_map_import_prepare(
 		 * on the physical pages tracking object. When the last
 		 * reference to the tracking object is dropped the pages
 		 * would be unpinned if they weren't unpinned before.
+		 *
+		 * Region should be CPU cached: abort if it isn't.
 		 */
+		if (WARN_ON(!(reg->flags & KBASE_REG_CPU_CACHED))) {
+			ret = -EINVAL;
+			goto out;
+		}
+
 		ret = kbase_jd_user_buf_pin_pages(kctx, reg);
 		if (ret)
 			goto out;
@@ -345,6 +352,14 @@ static int kbase_kcpu_jit_allocate_prepare(
 	u32 i;
 
 	lockdep_assert_held(&kctx->csf.kcpu_queues.lock);
+
+	if (!kbase_mem_allow_alloc(kctx)) {
+		dev_dbg(kctx->kbdev->dev,
+			"Invalid attempt to allocate JIT memory by %s/%d for ctx %d_%d",
+			current->comm, current->pid, kctx->tgid, kctx->id);
+		ret = -EINVAL;
+		goto out;
+	}
 
 	if (!data || count > kcpu_queue->kctx->jit_max_allocations ||
 			count > ARRAY_SIZE(kctx->jit_alloc)) {
@@ -629,22 +644,27 @@ static int kbase_csf_queue_group_suspend_prepare(
 							sus_buf->pages);
 		kbase_gpu_vm_lock(kctx);
 
-		if (pinned_pages < 0) {
-			ret = pinned_pages;
-			goto out_clean_pages;
-		}
 		if (pinned_pages != nr_pages) {
-			ret = -EINVAL;
+			int i;
+
+			/* Unpin those partially pinned pages */
+			for (i = 0; i < pinned_pages; i++)
+				kbase_unpin_user_buf_page(sus_buf->pages[i]);
+
+			/* Set the error return value */
+			ret = (pinned_pages < 0) ? pinned_pages : -EINVAL;
 			goto out_clean_pages;
 		}
 	} else {
 		struct tagged_addr *page_array;
 		u64 start, end, i;
 
-		if (!(reg->flags & BASE_MEM_SAME_VA) ||
-				reg->nr_pages < nr_pages ||
-				kbase_reg_current_backed_size(reg) !=
-					reg->nr_pages) {
+		if (((reg->flags & KBASE_REG_ZONE_MASK) != KBASE_REG_ZONE_SAME_VA) ||
+		    (kbase_reg_current_backed_size(reg) < nr_pages) ||
+		    !(reg->flags & KBASE_REG_CPU_WR) ||
+		    (reg->gpu_alloc->type != KBASE_MEM_TYPE_NATIVE) ||
+		    (kbase_is_region_shrinkable(reg)) ||
+		    (kbase_va_region_is_no_user_free(kctx, reg))) {
 			ret = -EINVAL;
 			goto out_clean_pages;
 		}
@@ -1403,8 +1423,6 @@ static int kbase_kcpu_fence_signal_prepare(
 		goto fd_flags_fail;
 	}
 
-	fd_install(fd, sync_file->file);
-
 	fence.basep.fd = fd;
 
 	current_command->type = BASE_KCPU_COMMAND_TYPE_FENCE_SIGNAL;
@@ -1416,6 +1434,11 @@ static int kbase_kcpu_fence_signal_prepare(
 		goto fd_flags_fail;
 	}
 
+	/* 'sync_file' pointer can't be safely dereferenced once 'fd' is
+	 * installed, so the install step needs to be done at the last
+	 * before returning success.
+	 */
+	fd_install(fd, sync_file->file);
 	return 0;
 
 fd_flags_fail:

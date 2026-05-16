@@ -436,7 +436,7 @@ page_owner=on loop.max_part=7";
 			};
 		};
 	};
-	disp_leds {
+	disp_leds: disp_leds {
 		compatible = "mediatek,disp-leds";
 
 		backlight {
@@ -2546,6 +2546,10 @@ page_owner=on loop.max_part=7";
 		dmas = <&apdma 2
 				&apdma 3>;
 		dma-names = "tx", "rx";
+		/* #ifdef OPLUS_FEATURE_CHG_BASIC */
+		/* Add for solve uart1 enable cause power abnormal */
+		status = "disabled";
+		/* #endif */
 	};
 
 	ssusb: usb0@11201000 {
@@ -2685,7 +2689,6 @@ page_owner=on loop.max_part=7";
 		#endif
 
 		vcc-supply = <&mt_pmic_vemc_ldo_reg>;
-		vccq2-supply = <&mt_pmic_vufs_ldo_reg>;
 	};
 
 	md_ccif2@1023d000 {
@@ -6400,6 +6403,16 @@ page_owner=on loop.max_part=7";
 			"mbox4";
 	};
 
+//#ifdef OPLUS_FEATURE_SECURITY_COMMON
+        oplus_secure_common:oplus_secure_common {
+                compatible = "oplus,secure_common";
+                oplus,sec_reg_num = <0>;
+                oplus,sec_en_anti_reg = <0>;
+                oplus,sec_override1_reg = <0>;
+                oplus,override1_en_value = <0>;
+        };
+//#endif  OPLUS_FEATURE_SECURITY_COMMON
+
 	odm: odm {
 		compatible = "simple-bus";
 		/* reserved for overlay by odm */
@@ -8053,6 +8066,17 @@ page_owner=on loop.max_part=7";
 		ibus_err = <14>;
 		vsys_watt = <5000000>;
 	};
+
+	/* 2019/9/27, Add for phy_tuning */
+	phy_tuning: phy_tuning {
+		compatible = "mediatek,phy_tuning";
+		u2_vrt_ref = <6>;
+		u2_term_ref = <6>;
+                u2_enhance = <1>;
+                host_u2_vrt_ref = <6>;
+                host_u2_term_ref = <6>;
+                host_u2_enhance = <2>;
+    };
 
 	pd_adapter: pd_adapter {
 		compatible = "mediatek,pd_adapter";

@@ -80,7 +80,11 @@
 };
 
 &mmc1 {
-	status = "okay";
+	/* #ifndef OPLUS_BUG_STABILITY */
+	/* status = "okay"; */
+	/* #else */
+	status = "disabled";
+	/* #endif */
 	host-index = <1>;
 	pinctrl-names = "default", "state_uhs";
 	pinctrl-0 = <&mmc1_pins_default>;

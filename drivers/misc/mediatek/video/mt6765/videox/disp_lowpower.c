@@ -883,7 +883,7 @@ void _vdo_mode_leave_idle(void)
 	unsigned int cur_disp_fps = 60;
 #endif
 
-	DISPMSG("[disp_lowpower]%s\n", __func__);
+	DISPINFO("[disp_lowpower]%s\n", __func__);
 #ifdef CONFIG_MTK_HIGH_FRAME_RATE
 	/*DynFPS*/
 	/*ToDo, whether vfp change will change current disp fps*/

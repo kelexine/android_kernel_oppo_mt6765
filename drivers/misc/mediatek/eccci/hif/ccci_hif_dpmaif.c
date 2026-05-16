@@ -31,6 +31,7 @@
 #include <linux/tcp.h>
 #include <linux/ipv6.h>
 #include <net/ipv6.h>
+#include <linux/suspend.h>
 
 #include "ccci_core.h"
 #include "modem_sys.h"
@@ -2475,6 +2476,7 @@ static int dpmaif_wait_resume_done(void)
 			CCCI_NORMAL_LOG(-1, TAG,
 				"[%s] warning: suspend_flag = 1; (cnt: %d)",
 				__func__, cnt);
+			pm_system_wakeup();
 			return -1;
 		}
 	}
@@ -3769,6 +3771,13 @@ int dpmaif_late_init(unsigned char hif_id)
 			dpmaif_ctrl->dpmaif_irq_id, ret);
 		return ret;
 	}
+
+	ret = irq_set_irq_wake(dpmaif_ctrl->dpmaif_irq_id, 1);
+	if (ret)
+		CCCI_ERROR_LOG(dpmaif_ctrl->md_id, TAG,
+			"irq_set_irq_wake dpmaif irq(%d) error %d\n",
+			dpmaif_ctrl->dpmaif_irq_id, ret);
+
 	atomic_set(&dpmaif_ctrl->dpmaif_irq_enabled, 1); /* init */
 	dpmaif_disable_irq(dpmaif_ctrl);
 
@@ -4296,10 +4305,11 @@ void dpmaif_hw_reset(unsigned char md_id)
 
 	/* pre- DPMAIF HW reset: bus-protect */
 #ifdef MT6297
-	regmap_read(dpmaif_ctrl->plat_val.infra_ao_base, 0, &reg_value);
+	//#ifdef OPLUS_BUG_COMPATIBILITY
+	reg_value = ccci_read32(infra_ao_mem_base, 0);
 	reg_value &= ~INFRA_PROT_DPMAIF_BIT;
-	regmap_write(dpmaif_ctrl->plat_val.infra_ao_base,
-		0,reg_value);
+	ccci_write32(infra_ao_mem_base, 0, reg_value);
+	//#endif OPLUS_BUG_COMPATIBILITY
 	CCCI_REPEAT_LOG(md_id, TAG, "%s:set prot:0x%x\n", __func__, reg_value);
 #else
 	regmap_write(dpmaif_ctrl->plat_val.infra_ao_base,
@@ -4320,6 +4330,8 @@ void dpmaif_hw_reset(unsigned char md_id)
 	CCCI_NORMAL_LOG(md_id, TAG,
 		"infra_topaxi_protecten_1: 0x%x\n", reg_value);
 #endif
+	udelay(500);
+
 	/* DPMAIF HW reset */
 	CCCI_DEBUG_LOG(md_id, TAG, "%s:rst dpmaif\n", __func__);
 	/* reset dpmaif hw: AO Domain */
@@ -4333,6 +4345,8 @@ void dpmaif_hw_reset(unsigned char md_id)
 #endif
 	regmap_write(dpmaif_ctrl->plat_val.infra_ao_base,
 		INFRA_RST0_REG_AO, reg_value);
+	udelay(500);
+
 	CCCI_BOOTUP_LOG(md_id, TAG, "%s:clear reset\n", __func__);
 	/* reset dpmaif clr */
 #ifndef MT6297
@@ -4344,6 +4358,8 @@ void dpmaif_hw_reset(unsigned char md_id)
 	regmap_write(dpmaif_ctrl->plat_val.infra_ao_base,
 		INFRA_RST1_REG_AO, reg_value);
 	CCCI_BOOTUP_LOG(md_id, TAG, "%s:done\n", __func__);
+
+	udelay(500);
 
 	/* reset dpmaif hw: PD Domain */
 #ifdef MT6297
@@ -4357,6 +4373,9 @@ void dpmaif_hw_reset(unsigned char md_id)
 	regmap_write(dpmaif_ctrl->plat_val.infra_ao_base,
 		INFRA_RST0_REG_PD, reg_value);
 	CCCI_BOOTUP_LOG(md_id, TAG, "%s:clear reset\n", __func__);
+
+	udelay(500);
+
 	/* reset dpmaif clr */
 #ifndef MT6297
 	reg_value = regmap_read(dpmaif_ctrl->plat_val.infra_ao_base,
@@ -4406,10 +4425,11 @@ int dpmaif_stop(unsigned char hif_id)
 	/* 3. todo: reset IP */
 	dpmaif_hw_reset(dpmaif_ctrl->md_id);
 #else
-	/* 3. todo: reset IP */
-	dpmaif_hw_reset(dpmaif_ctrl->md_id);
+	/* 2022.06.29 xuepeng@ims bug:3516370 modem minidump case:ALPS07178138 */
 	/* CG set */
 	ccci_hif_dpmaif_set_clk(0);
+	/* 3. todo: reset IP */
+	dpmaif_hw_reset(dpmaif_ctrl->md_id);
 #endif
 
 #ifdef DPMAIF_DEBUG_LOG

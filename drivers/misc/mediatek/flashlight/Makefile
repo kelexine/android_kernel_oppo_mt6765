@@ -20,6 +20,14 @@ obj-$(CONFIG_MTK_FLASHLIGHT_AW3644)      += flashlights-aw3644.o
 obj-$(CONFIG_MTK_FLASHLIGHT_SYWT78)      += flashlights-sywt78.o
 obj-$(CONFIG_MTK_FLASHLIGHT_DUMMY)       += flashlights-dummy.o
 obj-$(CONFIG_MTK_FLASHLIGHT_DUMMY_GPIO)  += flashlights-dummy-gpio.o
+obj-$(CONFIG_MTK_FLASHLIGHT_ZHAOYUN)     += flashlights_zhaoyun.o
+obj-$(CONFIG_MTK_FLASHLIGHT_PARKERB)     += flashlights_parkerb.o
+obj-$(CONFIG_MTK_FLASHLIGHT_PARKERA)     += flashlights_parkera.o
+obj-$(CONFIG_MTK_FLASHLIGHT_LIMU)        += flashlights_limu.o
+
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+obj-y += ./oplus/flashlight_custom.o
+#endif
 
 ccflags-$(CONFIG_MTK_FLASHLIGHT_DEBUG)     := -DDEBUG
 ccflags-$(CONFIG_MTK_FLASHLIGHT_SYWT78)    += -DCONFIG_MTK_FLASHLIGHT_SYWT78

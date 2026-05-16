@@ -385,7 +385,7 @@ page_owner=on loop.max_part=7";
 		ccorr1 = &disp_ccorr1;
 	};
 
-	disp_leds {
+	disp_leds: disp_leds {
 		compatible = "mediatek,disp-leds";
 
 		backlight {
@@ -1009,6 +1009,10 @@ page_owner=on loop.max_part=7";
 		dmas = <&apdma 2
 				&apdma 3>;
 		dma-names = "tx", "rx";
+		/* #ifdef OPLUS_FEATURE_CHG_BASIC */
+		/* Add for solve uart1 enable cause power abnormal */
+		status = "disabled";
+		/* #endif */
 	};
 
 	dcm: dcm@10001000 {
@@ -1634,7 +1638,6 @@ page_owner=on loop.max_part=7";
 			<0 0>;
 
 		vcc-supply = <&mt_pmic_vemc_ldo_reg>;
-		vccq2-supply = <&mt_pmic_vufs_ldo_reg>;
 
 		resets = <&infracfg_rst 0>, <&infracfg_rst 1>,
 				 <&infracfg_rst 2>;
@@ -6353,6 +6356,16 @@ page_owner=on loop.max_part=7";
 		pwm_data_invert = <0>;
 	};
 
+//#ifdef OPLUS_FEATURE_SECURITY_COMMON
+        oplus_secure_common:oplus_secure_common {
+                compatible = "oplus,secure_common";
+                oplus,sec_reg_num = <0>;
+                oplus,sec_en_anti_reg = <0>;
+                oplus,sec_override1_reg = <0>;
+                oplus,override1_en_value = <0>;
+        };
+//#endif  OPLUS_FEATURE_SECURITY_COMMON
+
 	odm: odm {
 		compatible = "simple-bus";
 		/* reserved for overlay by odm */
@@ -6524,6 +6537,19 @@ page_owner=on loop.max_part=7";
 
 		ibus_err = <14>;
 		vsys_watt = <5000000>;
+	};
+
+	/* 2020/4/13, Add for phy_tuning */
+	phy_tuning: phy_tuning {
+		compatible = "mediatek,phy_tuning";
+		u2_vrt_ref = <6>;
+		u2_term_ref = <6>;
+		u2_enhance = <2>;
+
+		host_u2_vrt_ref = <6>;
+		host_u2_term_ref = <6>;
+		host_u2_enhance = <2>;
+
 	};
 
 	pd_adapter: pd_adapter {
