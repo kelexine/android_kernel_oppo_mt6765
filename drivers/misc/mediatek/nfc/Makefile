@@ -12,4 +12,5 @@
 #
 
 obj-$(CONFIG_NFC_CHIP_SUPPORT) += st21nfc/
-obj-$(CONFIG_NFC_ST54_SPI)     += st54spi.o
+# Duplicate st54spi.o is already built in drivers/nfc/st54-spi/
+# obj-$(CONFIG_NFC_ST54_SPI)     += st54spi.o
