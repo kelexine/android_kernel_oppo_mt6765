@@ -1,0 +1,275 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Script: cubot_p50.dts
+ * Author: kelexine <https://github.com/kelexine>
+ * Date: 2026-08-13
+ * Purpose: Device Tree Overlay for Cubot P50 (MT6762R / MT6765)
+ */
+
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/mt6765-pinfunc.h>
+#include <dt-bindings/clock/mt6765-clk.h>
+
+/dts-v1/;
+/plugin/;
+
+&{/} {
+	model = "Cubot P50";
+	compatible = "cubot,p50", "mediatek,mt6765";
+};
+
+/* chosen */
+&chosen {
+	atag,videolfb-fb_base_h = <0x0>;
+	atag,videolfb-fb_base_l = <0x5e605000>;
+	atag,videolfb-islcmfound = <1>;
+	atag,videolfb-islcm_inited = <0>;
+	atag,videolfb-fps = <6000>;
+	atag,videolfb-vramSize = <0x017bb000>;
+	atag,videolfb-lcmname = "ili9881h_hdp_dsi_vdo_ilitek_rt5081_19_9_90hz_drv";
+};
+
+&odm {
+	led0: led@0 {
+		compatible = "mediatek,red";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led1: led@1 {
+		compatible = "mediatek,green";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led2: led@2 {
+		compatible = "mediatek,blue";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led3: led@3 {
+		compatible = "mediatek,jogball-backlight";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led4: led@4 {
+		compatible = "mediatek,keyboard-backlight";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led5: led@5 {
+		compatible = "mediatek,button-backlight";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led6: led@6 {
+		compatible = "mediatek,lcd-backlight";
+		led_mode = <5>;
+		data = <1>;
+		pwm_config = <0 1 0 0 0>;
+	};
+	vibrator0: vibrator@0 {
+		compatible = "mediatek,vibrator";
+		vib_timer = <25>;
+		vib_limit = <9>;
+		vib_vol = <9>;
+	};
+};
+
+/* MT6370 Sub-PMIC and Type-C */
+&mt6370_pmu {
+	mt6370,intr_gpio_num = <11>;
+	mt6370,intr_gpio = <&pio 11 0x0>;
+};
+
+&mt6370_typec {
+	mt6370pd,intr_gpio_num = <41>;
+	mt6370pd,intr_gpio = <&pio 41 0x0>;
+};
+
+&mt6370_chg {
+	bc12_sel = <1>;
+};
+
+/* Touchscreen */
+&touch {
+	tpd-resolution = <720 1520>;
+	lcm-resolution = <720 1520>;
+	tpd-cfg-version = "config17";
+	tpd-max-touch-num = <10>;
+	interrupt-parent = <&pio>;
+	interrupts = <0 IRQ_TYPE_EDGE_FALLING 0 0>;
+	vtouch-supply = <&mt_pmic_vldo28_ldo_reg>;
+	tpd-filter-enable = <1>;
+	tpd-filter-pixel-density = <106>;
+	tpd-filter-custom-prameters = <0 0 0 0 0 0 0 0 0 0 0 0>;
+	tpd-filter-custom-speed = <0 0 0>;
+	pinctrl-names = "default", "ts_int_active", "ts_reset_active", "ts_int_suspend", "ts_reset_suspend", "ts_i2c_mode", "ts_eint_high", "state_power_output0", "state_power_output1";
+	pinctrl-0 = <&ctp_pins_default>;
+	pinctrl-1 = <&ctp_ts_int_active>;
+	pinctrl-2 = <&ctp_ts_reset_active>;
+	pinctrl-3 = <&ctp_ts_int_suspend>;
+	pinctrl-4 = <&ctp_ts_reset_suspend>;
+	pinctrl-5 = <&ctp_ts_i2c_mode>;
+	pinctrl-6 = <&ctp_ts_int_as_gpio>;
+	pinctrl-7 = <&ctp_pins_power_output0>;
+	pinctrl-8 = <&ctp_pins_power_output1>;
+	status = "okay";
+};
+
+&pio {
+	ctp_pins_default: eintdefault {
+	};
+
+	ctp_ts_int_active: int_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO0__FUNC_GPIO0>;
+			input-enable;
+			bias-pull-up = <103>;
+		};
+	};
+
+	ctp_ts_reset_active: reset_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO174__FUNC_GPIO174>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+
+	ctp_ts_int_suspend: int_suspend {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO0__FUNC_GPIO0>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+
+	ctp_ts_reset_suspend: reset_suspend {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO174__FUNC_GPIO174>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+
+	ctp_ts_i2c_mode: i2cmode_default {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO83__FUNC_SCL0 PINMUX_GPIO82__FUNC_SDA0>;
+		};
+	};
+
+	ctp_ts_int_as_gpio: int_high {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO0__FUNC_GPIO0>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+
+	ctp_pins_power_output0: poweroutput0 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO167__FUNC_GPIO167>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+
+	ctp_pins_power_output1: poweroutput1 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO167__FUNC_GPIO167>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+};
+
+/* Display FB Pinctrl */
+&mtkfb {
+	pinctrl-names = "lcm_rst_out0_gpio", "lcm_rst_out1_gpio",
+			"lcd_bias_enp0_gpio", "lcd_bias_enp1_gpio",
+			"lcd_bias_enn0_gpio", "lcd_bias_enn1_gpio";
+	pinctrl-0 = <&mtkfb_pins_lcm_reset0>;
+	pinctrl-1 = <&mtkfb_pins_lcm_reset1>;
+	pinctrl-2 = <&mtkfb_pins_lcd_bias_enp0>;
+	pinctrl-3 = <&mtkfb_pins_lcd_bias_enp1>;
+	pinctrl-4 = <&mtkfb_pins_lcd_bias_enn0>;
+	pinctrl-5 = <&mtkfb_pins_lcd_bias_enn1>;
+	status = "okay";
+};
+
+&pio {
+	mtkfb_pins_lcm_reset0: lcm_rst_out0_gpio {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO45__FUNC_GPIO45>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+	mtkfb_pins_lcm_reset1: lcm_rst_out1_gpio {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO45__FUNC_GPIO45>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+	mtkfb_pins_lcd_bias_enp0: lcd_bias_enp0_gpio {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO150__FUNC_GPIO150>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+	mtkfb_pins_lcd_bias_enp1: lcd_bias_enp1_gpio {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO150__FUNC_GPIO150>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+	mtkfb_pins_lcd_bias_enn0: lcd_bias_enn0_gpio {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO151__FUNC_GPIO151>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+	mtkfb_pins_lcd_bias_enn1: lcd_bias_enn1_gpio {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO151__FUNC_GPIO151>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+};
+
+/* I2C3 peripherals */
+&i2c3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <400000>;
+	mediatek,use-open-drain;
+
+	nfc_mtk: nfc@08 {
+		compatible = "mediatek,nfc";
+		reg = <0x08>;
+		status = "okay";
+	};
+
+	ext_buck_lp4_mtk: ext_buck_lp4@57 {
+		compatible = "mediatek,ext_buck_lp4";
+		reg = <0x57>;
+		status = "okay";
+	};
+
+	ext_buck_lp4x_mtk: ext_buck_lp4x@50 {
+		compatible = "mediatek,ext_buck_lp4x";
+		reg = <0x50>;
+		status = "okay";
+	};
+};

@@ -1,5 +1,6 @@
 dtb-$(CONFIG_ARCH_MEDIATEK) += auto2712p1v1-ivi-boot.dtb
 dtb-$(CONFIG_ARCH_MEDIATEK) += auto2712p1v1-ivi-nand-boot.dtb
+dtb-$(CONFIG_ARCH_MEDIATEK) += cubot_p50.dtb
 
 #ifdef  VENDOR_EDIT
 ifeq ($(strip $(CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE)), y)

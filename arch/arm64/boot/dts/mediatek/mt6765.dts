@@ -176,16 +176,16 @@ firmware_class.path=/vendor/firmware";
 			opp-microvolt = <950000>;
 		};
 		opp12 {
-			opp-hz = /bits/ 64 <1491000000>;
+			opp-hz = /bits/ 64 <1490000000>;
 			opp-microvolt = <987500>;
 		};
 		opp13 {
-			opp-hz = /bits/ 64 <1579000000>;
+			opp-hz = /bits/ 64 <1578000000>;
 			opp-microvolt = <1025000>;
 		};
 		opp14 {
-			opp-hz = /bits/ 64 <1682000000>;
-			opp-microvolt = <1068740>;
+			opp-hz = /bits/ 64 <1685000000>;
+			opp-microvolt = <1068750>;
 		};
 		opp15 {
 			opp-hz = /bits/ 64 <1800000000>;
