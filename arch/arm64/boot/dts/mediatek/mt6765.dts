@@ -24,8 +24,9 @@
 	#size-cells = <2>;
 
 	/* chosen */
+	/* Note: ttyGS0 requires musb to probe first (~3-8s). Early pre-musb messages are replayed from ring buffer when the console registers. Not lost, just delayed. */
 	chosen: chosen {
-		bootargs = "console=tty0 console=ttyS0,921600n1 vmalloc=400M \
+		bootargs = "console=tty0 console=ttyS0,921600n1 console=ttyGS0,115200n8 vmalloc=400M \
 page_owner=on \
 swiotlb=noforce androidboot.hardware=mt6765 \
 maxcpus=8 loop.max_part=7 \

@@ -24,4 +24,4 @@ obj-$(CONFIG_NFC_PN553_DEVICES)		+= nq330-i2c/
 obj-$(CONFIG_NXP_P73_DEVICES)		+= p73-spi-nq330/
 
 obj-$(CONFIG_ST_NFC_CHIP_SUPPORT)   += st21nfc-i2c/
-obj-$(CONFIG_NFC_ST54_SPI)		    += st54-spi/
+obj-$(CONFIG_ST_NFC_CHIP_SUPPORT)   += st54-spi/
