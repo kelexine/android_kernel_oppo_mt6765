@@ -227,12 +227,15 @@ AES_ENTRY(aes_ctr_encrypt)
 
 	umov		x6, v4.d[1]		/* keep swabbed ctr in reg */
 	rev		x6, x6
+.Lctr_addends:
+	.quad		0x0000000200000001, 0x0000000000000003
+
 .LctrloopNx:
 	subs		w23, w23, #4
 	bmi		.Lctr1x
 	cmn		w6, #4			/* 32 bit overflow? */
 	bcs		.Lctr1x
-	ldr		q8, =0x30000000200000001	/* addends 1,2,3[,0] */
+	ldr		q8, .Lctr_addends	/* addends 1,2,3[,0] */
 	dup		v7.4s, w6
 	mov		v0.16b, v4.16b
 	add		v7.4s, v7.4s, v8.4s

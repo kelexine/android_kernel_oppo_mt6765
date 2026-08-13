@@ -163,7 +163,7 @@ static int tcpm_try_role(const struct typec_capability *cap, int role)
 int tcpc_dual_role_phy_init(struct tcpc_device *tcpc)
 {
 	struct device_node *switch_np;
-	int err;
+	int __maybe_unused err;
 
 	tcpc->typec_caps.revision = 0x0120;	/* Type-C spec release 1.2 */
 	tcpc->typec_caps.pd_revision = 0x0300;	/* USB-PD spec release 3.0 */

@@ -22,7 +22,7 @@ static bool support_nfc = false;
 static const char* nfc_feature = "feature";
 static const char* feature_src = "/vendor/etc/nfc/com.oppo.nfc_feature.xml";
 
-bool is_nfc_support()
+bool is_nfc_support(void)
 {
 	return support_nfc;
 }
@@ -75,7 +75,7 @@ static int nfc_read_func(struct seq_file *s, void *v)
 {
 	void *p = s->private;
 
-	switch((uint32_t)(p)) {
+	switch((unsigned long)(p)) {
 	case NFC_CHIPSET_VERSION:
 		seq_printf(s, "%s", current_chipset);
 		break;

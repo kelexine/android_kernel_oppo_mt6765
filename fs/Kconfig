@@ -327,8 +327,8 @@ endif # NETWORK_FILESYSTEMS
 source "fs/nls/Kconfig"
 source "fs/dlm/Kconfig"
 source "fs/unicode/Kconfig"
-#ifdef OPLUS_FEATURE_EXFAT_SUPPORT
-source "fs/exfat/Kconfig"
-#endif /*OPLUS_FEATURE_EXFAT_SUPPORT*/
+# Cubot P50 stock config does not enable exFAT, and the OPPO exFAT tree is absent.
+# Keep first-stage P50 bring-up independent from the missing vendor drop.
+# source "fs/exfat/Kconfig"
 
 endmenu

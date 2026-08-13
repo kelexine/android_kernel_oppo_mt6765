@@ -819,7 +819,7 @@ static inline int mt6370_fault_status_vconn_oc(struct tcpc_device *tcpc)
 
 int mt6370_fault_status_clear(struct tcpc_device *tcpc, uint8_t status)
 {
-	int ret;
+	int __maybe_unused ret;
 
 	if (status & TCPC_V10_REG_FAULT_STATUS_VCONN_OV)
 		ret = mt6370_fault_status_vconn_ov(tcpc);

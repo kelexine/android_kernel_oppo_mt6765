@@ -217,16 +217,12 @@ struct task_group;
 #ifdef OPLUS_FEATURE_UIFIRST
 extern int sysctl_uifirst_enabled;
 extern int sysctl_launcher_boost_enabled;
-#endif /* OPLUS_FEATURE_UIFIRST */
-#if defined(OPLUS_FEATURE_UIFIRST) && defined(CONFIG_SCHED_WALT)
 extern int sysctl_slide_boost_enabled;
 extern int sysctl_boost_task_threshold;
 #ifdef CONFIG_CAMERA_OPT
 extern int sysctl_camera_opt_enabled;
 #endif
-#endif /* defined(OPLUS_FEATURE_UIFIRST) && defined(CONFIG_SCHED_WALT) */
 
-#if defined(OPLUS_FEATURE_UIFIRST) && defined(CONFIG_SCHED_WALT)
 enum task_event {
 	PUT_PREV_TASK   = 0,
 	PICK_NEXT_TASK  = 1,

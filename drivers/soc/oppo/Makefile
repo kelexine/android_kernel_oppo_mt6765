@@ -4,6 +4,7 @@
 obj-$(CONFIG_OPPO_ALS_CALI)   +=  oppo_als_cali_value/
 
 obj-y += oppo_custom/
+obj-y += oppo_stubs.o
 #obj-$(CONFIG_OPPO_HYPNUS)       +=  oppo_hypnus/
 
 #obj-$(CONFIG_OPPO_SHUTDOWN_DETECT)  +=  oppo_shutdown_detect/

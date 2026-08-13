@@ -128,7 +128,7 @@ static struct power_supply *get_charger_psy(void)
 	return NULL;
 }
 
-extern thermal_pm_event;
+extern int thermal_pm_event;
 static int mtktscharger_get_hw_temp(void)
 {
 	int ret = -1;

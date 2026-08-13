@@ -194,7 +194,7 @@ static enum led_brightness mt6370_pmu_led_bright_get2(
 {
 	int led_index = mt6370_pmu_led_get_index(led_cdev);
 	uint8_t reg_addr = 0, reg_mask = 0xF, reg_shift = 0, en_mask = 0;
-	bool need_enable_timer = true;
+	bool __maybe_unused need_enable_timer = true;
 	int ret = 0;
 
 	switch (led_index) {
@@ -1058,7 +1058,7 @@ static enum led_brightness mt6370_pmu_led_bright_get(
 {
 	int led_index = mt6370_pmu_led_get_index(led_cdev);
 	uint8_t reg_addr = 0, reg_mask = 0x7, reg_shift = 0, en_mask = 0;
-	bool need_enable_timer = true;
+	bool __maybe_unused need_enable_timer = true;
 	int ret = 0;
 
 	switch (led_index) {

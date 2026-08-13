@@ -527,7 +527,7 @@ int hi556_read_data(u8 page,u16 addr,u8 *data)
     last_addr = addr;
     return read_reg16_data8(0x0108,data);
 }
-void hi556_otp_read_enable()
+void hi556_otp_read_enable(void)
 {
  #if 0
     write_reg16_data16(0x0e00,0x0102);
@@ -546,7 +546,7 @@ void hi556_otp_read_enable()
     write_reg16_data16(0x004a,0x0100);
     write_reg16_data16(0x003e,0x1000);
     write_reg16_data16(0x0a00,0x0100);
-#endif
+ #endif
     write_reg16_data8(0x0a02,0x01);
     write_reg16_data8(0x0a00,0x00);
     mdelay(10);
@@ -558,7 +558,7 @@ void hi556_otp_read_enable()
     write_reg16_data8(0x003e,0x10);
     write_reg16_data8(0x0a00,0x01);
 }
-void hi556_otp_read_disable()
+void hi556_otp_read_disable(void)
 {
     write_reg16_data8(0x0a00,0x00);
     mdelay(10);
@@ -569,7 +569,7 @@ void hi556_otp_read_disable()
     write_reg16_data8(0x0a00,0x01);
 }
 
-void hi556_otp_read_disable_yogurta()
+void hi556_otp_read_disable_yogurta(void)
 {
 	write_reg16_data8(0x0a00, 0x00);
 	mdelay(10);

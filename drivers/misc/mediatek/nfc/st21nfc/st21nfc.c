@@ -409,13 +409,13 @@ static int st21nfc_release(struct inode *inode, struct file *file)
 static void (*st21nfc_st54spi_cb)(int, void *);
 static void *st21nfc_st54spi_data;
 
-void st21nfc_register_st54spi_cb(void (*cb)(int, void *), void *data)
+__weak void st21nfc_register_st54spi_cb(void (*cb)(int, void *), void *data)
 {
 	pr_info("%s\n", __func__);
 	st21nfc_st54spi_cb = cb;
 	st21nfc_st54spi_data = data;
 }
-void st21nfc_unregister_st54spi_cb(void)
+__weak void st21nfc_unregister_st54spi_cb(void)
 {
 	pr_info("%s\n", __func__);
 	st21nfc_st54spi_cb = NULL;

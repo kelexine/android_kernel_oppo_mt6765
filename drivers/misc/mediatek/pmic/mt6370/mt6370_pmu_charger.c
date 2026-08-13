@@ -4365,7 +4365,7 @@ static int mt6370_get_charger_type(struct mt6370_pmu_charger_data *chg_data,
 {
 	union power_supply_propval prop, prop2, prop3;
 	static struct power_supply *chg_psy;
-	int ret = 0;
+	int __maybe_unused ret = 0;
 
 	if (chg_psy == NULL) {
 		if (chg_data->chg_desc->bc12_sel == 1)

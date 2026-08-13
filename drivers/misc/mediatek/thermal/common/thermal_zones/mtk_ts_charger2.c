@@ -131,7 +131,7 @@ static struct power_supply *get_charger2_handle(void)
  * for main charger
  * in both PEP30 and dual charging cases.
  */
-extern thermal_pm_event;
+extern int thermal_pm_event;
 static int mtktscharger2_get_hw_temp(void)
 {
 	int ret = -1;

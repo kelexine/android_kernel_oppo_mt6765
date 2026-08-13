@@ -27,9 +27,7 @@
 #include "dbg.h"
 //#include "include/pmic_api_buck.h"
 
-#ifdef CONFIG_OPLUS_FEATURE_SDCARD
 unsigned int cd_ldo_gpio;
-#endif
 
 #if defined(CONFIG_MTK_PMIC_WRAP)
 #include <linux/soc/mediatek/pmic_wrap.h>

@@ -496,9 +496,33 @@ endif
 ifneq ($(GCC_TOOLCHAIN),)
 CLANG_FLAGS	+= --gcc-toolchain=$(GCC_TOOLCHAIN)
 endif
+ifneq ($(LLVM_IAS),1)
 CLANG_FLAGS	+= -no-integrated-as
+endif
+ifeq ($(notdir $(LD)),ld.lld)
+CLANG_FLAGS	+= -fuse-ld=lld
+endif
 CLANG_FLAGS	+= -Werror=unknown-warning-option
-KBUILD_CFLAGS	+= $(CLANG_FLAGS)
+KBUILD_CFLAGS	+= $(CLANG_FLAGS) $(call cc-option,-Wno-gnu-variable-sized-type-not-at-end) \
+		   $(call cc-option,-fno-builtin-stpcpy) \
+		   $(call cc-option,-Wno-unused-but-set-variable) \
+		   $(call cc-option,-Wno-unused-variable) \
+		   $(call cc-option,-Wno-strict-prototypes) \
+		   $(call cc-option,-Wno-default-const-init-var-unsafe) \
+		   $(call cc-option,-Wno-default-const-init-field-unsafe) \
+		   $(call cc-option,-Wno-implicit-int) \
+		   $(call cc-option,-Wno-address-of-packed-member) \
+		   $(call cc-option,-Wno-align-mismatch) \
+		   $(call cc-option,-Wno-implicit-function-declaration) \
+		   $(call cc-option,-Wno-bitwise-instead-of-logical) \
+		   $(call cc-option,-Wno-int-in-bool-context) \
+		   $(call cc-option,-Wno-int-conversion) \
+		   $(call cc-option,-Wno-enum-compare) \
+		   $(call cc-option,-Wno-enum-conversion) \
+		   $(call cc-option,-Wno-typedef-redefinition) \
+		   $(call cc-option,-Wno-deprecated-non-prototype) \
+		   $(call cc-option,-Wno-single-bit-bitfield-constant-conversion) \
+		   $(call cc-option,-Wno-format)
 KBUILD_AFLAGS	+= $(CLANG_FLAGS)
 export CLANG_FLAGS
 endif
