@@ -126,6 +126,12 @@ int mtk_clk_register_gates(struct device_node *node,
 
 	pwr_regmap = syscon_regmap_lookup_by_phandle(node, "pwr-regmap");
 	if (IS_ERR(pwr_regmap))
+		pwr_regmap = syscon_regmap_lookup_by_phandle(node, "mediatek,infracfg");
+	if (IS_ERR(pwr_regmap))
+		pwr_regmap = syscon_regmap_lookup_by_compatible("mediatek,mt6765-scpsys");
+	if (IS_ERR(pwr_regmap))
+		pwr_regmap = syscon_regmap_lookup_by_compatible("mediatek,mt6765-infracfg");
+	if (IS_ERR(pwr_regmap))
 		pwr_regmap = NULL;
 
 	for (i = 0; i < num; i++) {

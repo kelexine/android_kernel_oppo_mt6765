@@ -23,5 +23,6 @@ obj-$(CONFIG_NXP_P73_DEVICES)		+= p73-spi/
 obj-$(CONFIG_NFC_PN553_DEVICES)		+= nq330-i2c/
 obj-$(CONFIG_NXP_P73_DEVICES)		+= p73-spi-nq330/
 
-obj-$(CONFIG_ST_NFC_CHIP_SUPPORT)   += st21nfc-i2c/
+# Duplicate st21nfc-i2c is already built in drivers/misc/mediatek/nfc/st21nfc/
+# obj-$(CONFIG_ST_NFC_CHIP_SUPPORT)   += st21nfc-i2c/
 obj-$(CONFIG_ST_NFC_CHIP_SUPPORT)   += st54-spi/

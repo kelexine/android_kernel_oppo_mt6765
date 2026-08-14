@@ -14,6 +14,9 @@
 
 #include <dt-bindings/clock/mt6765-clk.h>
 
+/* get spm power status struct to register inside clk_data */
+static struct pwr_status pwr_stat = GATE_PWR_STAT(0x180, 0x184, BIT(24));
+
 static const struct mtk_gate_regs audio0_cg_regs = {
 	.set_ofs = 0x0,
 	.clr_ofs = 0x0,
@@ -33,6 +36,7 @@ static const struct mtk_gate_regs audio1_cg_regs = {
 		.regs = &audio0_cg_regs,		\
 		.shift = _shift,			\
 		.ops = &mtk_clk_gate_ops_no_setclr,	\
+		.pwr_stat = &pwr_stat,			\
 	}
 
 #define GATE_AUDIO1(_id, _name, _parent, _shift) {	\
@@ -42,6 +46,7 @@ static const struct mtk_gate_regs audio1_cg_regs = {
 		.regs = &audio1_cg_regs,		\
 		.shift = _shift,			\
 		.ops = &mtk_clk_gate_ops_no_setclr,	\
+		.pwr_stat = &pwr_stat,			\
 	}
 
 static const struct mtk_gate audio_clks[] = {

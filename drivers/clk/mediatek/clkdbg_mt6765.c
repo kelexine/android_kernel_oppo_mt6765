@@ -707,7 +707,7 @@ void setup_provider_clk(struct provider_clk *pvdck)
 		{"imgsys", BIT(3) | BIT(5)},
 		{"camsys", BIT(3) | BIT(5)},
 		{"venc_gcon", BIT(3) | BIT(26)},
-		{"mmsys", BIT(3)},
+		{"audsys", BIT(24)},
 	};
 
 	int i;
