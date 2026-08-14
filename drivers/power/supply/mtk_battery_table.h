@@ -452,7 +452,6 @@ int g_temperature[MAX_TABLE] = {
 #define BIF_NTC_R 16000
 
 #if (BAT_NTC_10 == 1)
-#ifdef OPLUS_FEATURE_CHG_BASIC
 struct fuelgauge_temperature Fg_Temperature_Table_High_Precision[166] = {
 		{-400, 195652},
 		{-390, 184917},
@@ -621,7 +620,6 @@ struct fuelgauge_temperature Fg_Temperature_Table_High_Precision[166] = {
 		{1240, 544},
 		{1250, 531}
 };
-#endif
 
 struct fuelgauge_temperature Fg_Temperature_Table[27] = {
 		{-40, 195652},

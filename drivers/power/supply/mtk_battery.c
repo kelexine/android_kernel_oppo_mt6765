@@ -1363,6 +1363,11 @@ int BattThermistorConverTempHighPrecision(struct mtk_battery *gm, int Res)
 	int TBatt_Value = -200, TMP1 = 0, TMP2 = 0;
 	struct fuelgauge_temperature *ptable;
 
+	if (!gm || !gm->tmp_table_high_precision) {
+		pr_warn("%s: tmp_table_high_precision is NULL, fallback to 25.0C\n", __func__);
+		return 250;
+	}
+
 	ptable = gm->tmp_table_high_precision;
 	if (Res >= ptable[0].TemperatureR) {
 		TBatt_Value = -400;
@@ -1401,10 +1406,8 @@ int BattVoltToTemp(struct mtk_battery *gm, int dwVolt, int volt_cali)
 	int vbif28_raw;
 	int ret;
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
 	if (dwVolt >= 2000)
 		return -80;
-#endif
 
 	TRes_temp = (gm->rbat.rbat_pull_up_r * (long long) dwVolt);
 	ret = gauge_get_property(GAUGE_PROP_BIF_VOLTAGE,
@@ -1463,15 +1466,20 @@ int BattVoltToTempHighPrecision(struct mtk_battery *gm, int dwVolt, int volt_cal
 	long long TRes_temp;
 	long long TRes;
 	int sBaTTMP = -100;
-	int vbif28 = gm->rbat.rbat_pull_up_volt;
+	int vbif28;
 	int delta_v;
 	int vbif28_raw;
 	int ret;
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
+	if (!gm) {
+		pr_warn("%s: gm is NULL, fallback to 25.0C\n", __func__);
+		return 250;
+	}
+
 	if (dwVolt >= 2000)
 		return -80;
-#endif
+
+	vbif28 = gm->rbat.rbat_pull_up_volt;
 
 	TRes_temp = (gm->rbat.rbat_pull_up_r * (long long) dwVolt);
 	ret = gauge_get_property(GAUGE_PROP_BIF_VOLTAGE,
@@ -4338,9 +4346,7 @@ int battery_init(struct platform_device *pdev)
 	gm = gauge->gm;
 	gm->fixed_bat_tmp = 0xffff;
 	gm->tmp_table = Fg_Temperature_Table;
-#ifdef OPLUS_FEATURE_CHG_BASIC
 	gm->tmp_table_high_precision = Fg_Temperature_Table_High_Precision;
-#endif
 	gm->log_level = BMLOG_ERROR_LEVEL;
 	gm->sw_iavg_gap = 3000;
 #ifdef OPLUS_FEATURE_CHG_BASIC
