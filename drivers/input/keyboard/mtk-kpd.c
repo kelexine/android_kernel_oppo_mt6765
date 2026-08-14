@@ -818,40 +818,34 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 		vol_key_info.homekey_as_vol_up = false;
 	}
 
-	if (!vol_key_info.homekey_as_vol_up) {  // means not home key as volume up, defined on dws
-		err = kpd_request_named_gpio(kpd_oppo, "keypad,volume-up",
-				&vol_key_info.vol_up_gpio);
+	if (of_find_property(dev->of_node, "keypad,volume-up", NULL) ||
+	    of_find_property(dev->of_node, "keypad,volume-down", NULL)) {
+		if (!vol_key_info.homekey_as_vol_up) {
+			err = kpd_request_named_gpio(kpd_oppo, "keypad,volume-up",
+					&vol_key_info.vol_up_gpio);
+			if (err) {
+				pr_err("%s request keypad,volume-up fail\n", __func__);
+			} else {
+				err = gpio_direction_input(vol_key_info.vol_up_gpio);
+				if (err < 0)
+					dev_err(&kpd_oppo->pdev->dev,
+						"gpio_direction_input failed for vol_up INT.\n");
+			}
+		}
 
+		err = kpd_request_named_gpio(kpd_oppo, "keypad,volume-down",
+				&vol_key_info.vol_down_gpio);
 		if (err) {
-			pr_err("%s lfc request keypad,volume-up fail\n", __func__);
-			return -1;
+			pr_err("%s request keypad,volume-down fail\n", __func__);
+		} else {
+			err = gpio_direction_input(vol_key_info.vol_down_gpio);
+			if (err < 0)
+				dev_err(&kpd_oppo->pdev->dev,
+					"gpio_direction_input failed for vol_down INT.\n");
 		}
-		err = gpio_direction_input(vol_key_info.vol_up_gpio);
 
-		if (err < 0) {
-			dev_err(&kpd_oppo->pdev->dev,
-				"gpio_direction_input failed for vol_up INT.\n");
-			return -1;
-		}
-	}
-
-	err = kpd_request_named_gpio(kpd_oppo, "keypad,volume-down",
-			&vol_key_info.vol_down_gpio);
-	if (err) {
-		pr_err("%s request keypad,volume-down fail\n", __func__);
-		return -1;
-	}
-	err = gpio_direction_input(vol_key_info.vol_down_gpio);
-
-	if (err < 0) {
-		dev_err(&kpd_oppo->pdev->dev,
-			"gpio_direction_input failed for vol_down INT.\n");
-		return -1;
-	}
-
-	if (init_custom_gpio_state(pdev) < 0) {
-		pr_err("init gpio state failed\n");
-		return -1;
+		if (init_custom_gpio_state(pdev) < 0)
+			pr_err("init gpio state failed\n");
 	}
 
 	//disable keypad scan function
