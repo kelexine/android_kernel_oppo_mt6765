@@ -2,7 +2,7 @@ BUILD_INFAE := spi
 BUILD_PLATFORM := mtk
 BUILD_MODULE := n
 
-ccflags-y += -Wall
+ccflags-y += -Wall -Wno-unused-but-set-variable -Wno-unused-variable
 
 ifeq ($(BUILD_PLATFORM),mtk)
 platform=ilitek_plat_mtk

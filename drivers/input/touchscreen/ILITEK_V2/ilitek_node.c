@@ -1260,7 +1260,7 @@ int get_tp_recore_data(bool mcu)
 	u8 buf[8] = {0}, record_case = 0;
 	s8 index;
 	u16 *raw = NULL, *raw_ptr = NULL, frame_len = 0;
-	u32 base_addr = 0x20000, addr, len, *ptr, i, fcnt;
+	u32 base_addr = 0x20000, addr, len, i, fcnt;
 	struct record_state record_stat;
 	bool ice = atomic_read(&idev->ice_stat);
 
@@ -1284,7 +1284,6 @@ int get_tp_recore_data(bool mcu)
 		ipio_err("Failed to allocate packet memory, %ld\n", PTR_ERR(raw));
 		return -1;
 	}
-	ptr = (u32 *)raw;
 
 	if (!ice)
 		ilitek_ice_mode_ctrl(ENABLE, mcu);
@@ -2498,7 +2497,7 @@ static int netlink_init(void)
 
 void ilitek_tddi_node_init(void)
 {
-	int i = 0, ret = 0, size;
+	int i = 0, size;
 
 	proc_dir_ilitek = proc_mkdir("ilitek", NULL);
 
@@ -2509,7 +2508,6 @@ void ilitek_tddi_node_init(void)
 		if (proc_table[i].node == NULL) {
 			proc_table[i].isCreated = false;
 			ipio_err("Failed to create %s under /proc\n", proc_table[i].name);
-			ret = -ENODEV;
 		} else {
 			proc_table[i].isCreated = true;
 			ipio_info("Succeed to create %s under /proc\n", proc_table[i].name);
