@@ -114,51 +114,27 @@ static enum IMGSENSOR_RETURN gpio_init(void *pinstance)
 	struct GPIO            *pgpio         = (struct GPIO *)pinstance;
 	enum   IMGSENSOR_RETURN ret           = IMGSENSOR_RETURN_SUCCESS;
 	char str_pinctrl_name[LENGTH_FOR_SNPRINTF];
+	char str_prop_name[32];
 	char *lookup_names = NULL;
-
+	struct device_node *of_node = of_find_compatible_node(NULL, NULL, "mediatek,camera_hw");
 
 	pgpio->ppinctrl = devm_pinctrl_get(&pplatform_dev->dev);
 	if (IS_ERR(pgpio->ppinctrl)) {
-		pr_info("%s : Cannot find camera pinctrl!", __func__);
+		pr_err("%s : Cannot find camera pinctrl!\n", __func__);
 		return IMGSENSOR_RETURN_ERROR;
 	}
 
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	if (pascal_project() == PARKERA_PROJECT || pascal_project() == 6) {
-		for (j = 0; j < IMGSENSOR_SENSOR_IDX_MAIN3; j++) {
-			for (i = 0; i < GPIO_CTRL_STATE_LDO_VCAMAF_H; i++) {
-				lookup_names =
-					gpio_pinctrl_list_cam[i].ppinctrl_lookup_names;
-				if (lookup_names) {
-					snprintf(str_pinctrl_name,
-						sizeof(str_pinctrl_name),
-						"cam%d_%s",
-						j,
-						lookup_names);
-				}
-				pgpio->ppinctrl_state_cam[j][i] =
-					pinctrl_lookup_state(
-						pgpio->ppinctrl,
-						str_pinctrl_name);
-
-				if (pgpio->ppinctrl_state_cam[j][i] == NULL ||
-					IS_ERR(pgpio->ppinctrl_state_cam[j][i])) {
-					pr_info(
-						"%s : pinctrl err, %s\n",
-						__func__,
-						str_pinctrl_name);
-
-					ret = IMGSENSOR_RETURN_ERROR;
-				}
-			}
-		}
-	}
-	else
-	{
-	#endif
 	for (j = IMGSENSOR_SENSOR_IDX_MIN_NUM;
 	j < IMGSENSOR_SENSOR_IDX_MAX_NUM;
 	j++) {
+		if (of_node) {
+			snprintf(str_prop_name, sizeof(str_prop_name), "cam%d_enable_sensor", j);
+			if (!of_find_property(of_node, str_prop_name, NULL)) {
+				for (i = 0; i < GPIO_CTRL_STATE_MAX_NUM_CAM; i++)
+					pgpio->ppinctrl_state_cam[j][i] = NULL;
+				continue;
+			}
+		}
 		for (i = 0; i < GPIO_CTRL_STATE_MAX_NUM_CAM; i++) {
 			lookup_names =
 				gpio_pinctrl_list_cam[i].ppinctrl_lookup_names;
@@ -183,21 +159,19 @@ static enum IMGSENSOR_RETURN gpio_init(void *pinstance)
 						pgpio->ppinctrl,
 						str_pinctrl_name);
 
-				if (pgpio->ppinctrl_state_cam[j][i] == NULL ||
-					IS_ERR(pgpio->ppinctrl_state_cam[j][i])) {
-					pr_info(
-						"%s : pinctrl err, %s\n",
-						__func__,
-						str_pinctrl_name);
-
-					ret = IMGSENSOR_RETURN_ERROR;
+				if (IS_ERR(pgpio->ppinctrl_state_cam[j][i])) {
+					if (PTR_ERR(pgpio->ppinctrl_state_cam[j][i]) != -ENODEV) {
+						pr_err("%s : pinctrl error %ld for %s\n",
+							__func__,
+							PTR_ERR(pgpio->ppinctrl_state_cam[j][i]),
+							str_pinctrl_name);
+						ret = IMGSENSOR_RETURN_ERROR;
+					}
+					pgpio->ppinctrl_state_cam[j][i] = NULL;
 				}
 			}
 		}
 	}
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	}
-	#endif
 
 #ifdef MIPI_SWITCH
 	for (i = 0; i < GPIO_CTRL_STATE_MAX_NUM_SWITCH; i++) {

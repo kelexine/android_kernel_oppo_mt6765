@@ -747,7 +747,6 @@ int pascal_project(void){//// pascald 1.pascal 2 pascale 3
 		projectvalue = 0;
 	}
 
-	printk("pascal_project projectvalue = %d\n",projectvalue);
 	return projectvalue;
 }
 

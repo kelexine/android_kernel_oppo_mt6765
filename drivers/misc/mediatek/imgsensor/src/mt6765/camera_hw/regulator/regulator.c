@@ -196,35 +196,18 @@ static enum IMGSENSOR_RETURN regulator_init(void *pinstance)
 	of_node_record = pdevice->of_node;
 	#endif
 
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	if (pascal_project() == PARKERA_PROJECT || pascal_project() == 6) {
-		for (j = 0; j < IMGSENSOR_SENSOR_IDX_MAIN3; j++) {
-			for (i = 0; i < REGULATOR_TYPE_MAX_NUM; i++) {
-				snprintf(str_regulator_name,
-						sizeof(str_regulator_name),
-						"cam%d_%s",
-						j,
-						regulator_control[i].pregulator_type);
-				preg->pregulator[j][i] =
-				    regulator_get_optional(
-					pdevice, str_regulator_name);
-				if (IS_ERR(preg->pregulator[j][i]))
-					preg->pregulator[j][i] = NULL;
-				if (preg->pregulator[j][i] == NULL)
-					pr_err("regulator[%d][%d]  %s fail!\n",
-						j, i, str_regulator_name);
-
-				atomic_set(&preg->enable_cnt[j][i], 0);
-				regulator_status[j][i] = true;
-			}
-		}
-	}
-	else
-	{
-	#endif
 	for (j = IMGSENSOR_SENSOR_IDX_MIN_NUM;
 		j < IMGSENSOR_SENSOR_IDX_MAX_NUM;
 		j++) {
+		char str_prop[32];
+		snprintf(str_prop, sizeof(str_prop), "cam%d_enable_sensor", j);
+		if (pdevice->of_node && !of_find_property(pdevice->of_node, str_prop, NULL)) {
+			for (i = 0; i < REGULATOR_TYPE_MAX_NUM; i++) {
+				preg->pregulator[j][i] = NULL;
+				atomic_set(&preg->enable_cnt[j][i], 0);
+			}
+			continue;
+		}
 		for (i = 0; i < REGULATOR_TYPE_MAX_NUM; i++) {
 			snprintf(str_regulator_name,
 					sizeof(str_regulator_name),
@@ -234,18 +217,17 @@ static enum IMGSENSOR_RETURN regulator_init(void *pinstance)
 			preg->pregulator[j][i] =
 			    regulator_get_optional(
 				pdevice, str_regulator_name);
-			if (IS_ERR(preg->pregulator[j][i]))
+			if (IS_ERR(preg->pregulator[j][i])) {
+				if (PTR_ERR(preg->pregulator[j][i]) != -ENODEV) {
+					pr_err("regulator[%d][%d] %s get failed: %ld\n",
+						j, i, str_regulator_name, PTR_ERR(preg->pregulator[j][i]));
+				}
 				preg->pregulator[j][i] = NULL;
-			if (preg->pregulator[j][i] == NULL)
-				pr_err("regulator[%d][%d]  %s fail!\n",
-					j, i, str_regulator_name);
+			}
 
 			atomic_set(&preg->enable_cnt[j][i], 0);
 		}
 	}
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	}
-	#endif
 	pdevice->of_node = pof_node;
 	imgsensor_oc_init();
 	preg_own = (struct REGULATOR *)pinstance;

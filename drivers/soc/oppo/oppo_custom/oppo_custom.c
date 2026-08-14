@@ -156,25 +156,23 @@ static void oppo_custome_sync_work(struct work_struct *work)
 	struct oppocustom_data *data =
 		container_of(dwork, struct oppocustom_data, sync_work);
 
-	printk("oppo_custome_sync_work is called\n");
 	if(!data->inited){
-		if(data->tryTime > 100){
-			printk("oppo_custome_sync_work:timeout tryTime = %d\n",data->tryTime);
-			return;
-		}
 		if(ksys_access(OPPOCUSTOM_FILE, 0) != 0){
-			printk("oppo_custome_sync_work: file %s is no exit",OPPOCUSTOM_FILE);
-
 			data->tryTime++;
+			if (data->tryTime > 5) {
+				pr_info("oppo_custom: %s not found, disabling sync\n", OPPOCUSTOM_FILE);
+				return;
+			}
 			schedule_delayed_work(&data->sync_work, msecs_to_jiffies(OPPOCUSTOM_SYNC_TIME));
 			return;
 		}
 		rc = oppocustom_read(data);
-		printk("oppo_custome_sync_work:rc = %d\n",rc);
 		if(rc == 0){
 			data->inited = 1;
 		}else {
 			data->tryTime++;
+			if (data->tryTime > 5)
+				return;
 			schedule_delayed_work(&data->sync_work, msecs_to_jiffies(OPPOCUSTOM_SYNC_TIME));
 			return;
 		}
