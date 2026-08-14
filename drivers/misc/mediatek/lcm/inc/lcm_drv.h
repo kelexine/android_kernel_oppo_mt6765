@@ -792,9 +792,7 @@ struct LCM_PARAMS {
 
 	unsigned int hbm_en_time;
 	unsigned int hbm_dis_time;
-	#ifdef OPLUS_ARCH_EXTENDS
 	unsigned int PANEL_SERIAL_REG;
-	#endif
 };
 
 

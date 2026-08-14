@@ -30,6 +30,14 @@
 #include "mtk_battery_table.h"
 #include <linux/syscalls.h>
 
+int battery_temp_value_high_precision = 0;
+#define RBAT_PULL_UP_R_PARKER_A  12000
+struct iio_channel *batt_id = NULL;
+
+#ifndef OPLUS_FEATURE_CHG_BASIC
+static inline unsigned int is_project(int project) { return 0; }
+#endif
+
 /*****************************************************************/
 #ifdef OPLUS_FEATURE_CHG_BASIC
 #include <linux/iio/consumer.h>
@@ -51,12 +59,10 @@ struct mtk_battery *oppo_gm = NULL;
 struct iio_channel	*batt_id = NULL;
 int fuelgauge_apply = 0;
 int fgauge_is_start = 0;
-int battery_temp_value_high_precision = 0;
 int oplus_fuelgauge_ibta = 0;
 int enbale_battery_temp_compensation = 0;
 int enable_is_force_full;
 bool last_full = false;
-#define RBAT_PULL_UP_R_PARKER_A  12000
 
 #if defined(CONFIG_MTK_20271) || defined(CONFIG_MTK_20361)
 enum oppo_batt_num{
@@ -1350,7 +1356,6 @@ int BattThermistorConverTemp(struct mtk_battery *gm, int Res)
 	return TBatt_Value;
 }
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
 int BattThermistorConverTempHighPrecision(struct mtk_battery *gm, int Res)
 {
 	int i = 0;
@@ -1362,20 +1367,16 @@ int BattThermistorConverTempHighPrecision(struct mtk_battery *gm, int Res)
 	if (Res >= ptable[0].TemperatureR) {
 		TBatt_Value = -400;
 	} else if (Res <= ptable[165].TemperatureR) {
-		TBatt_Value = 900;
+		TBatt_Value = 1250;
 	} else {
-		RES1 = ptable[0].TemperatureR;
-		TMP1 = ptable[0].BatteryTemp;
-
 		for (i = 0; i <= 165; i++) {
 			if (Res >= ptable[i].TemperatureR) {
+				RES1 = ptable[i - 1].TemperatureR;
 				RES2 = ptable[i].TemperatureR;
+
+				TMP1 = ptable[i - 1].BatteryTemp;
 				TMP2 = ptable[i].BatteryTemp;
 				break;
-			}
-			{	/* hidden else */
-				RES1 = ptable[i].TemperatureR;
-				TMP1 = ptable[i].BatteryTemp;
 			}
 		}
 
@@ -1389,7 +1390,6 @@ int BattThermistorConverTempHighPrecision(struct mtk_battery *gm, int Res)
 
 	return TBatt_Value;
 }
-#endif
 
 int BattVoltToTemp(struct mtk_battery *gm, int dwVolt, int volt_cali)
 {
@@ -1458,7 +1458,6 @@ int BattVoltToTemp(struct mtk_battery *gm, int dwVolt, int volt_cali)
 	return sBaTTMP;
 }
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
 int BattVoltToTempHighPrecision(struct mtk_battery *gm, int dwVolt, int volt_cali)
 {
 	long long TRes_temp;
@@ -1525,7 +1524,6 @@ int BattVoltToTempHighPrecision(struct mtk_battery *gm, int dwVolt, int volt_cal
 		vbif28, volt_cali);
 	return sBaTTMP;
 }
-#endif
 
 int force_get_tbat_internal(struct mtk_battery *gm, bool update)
 {

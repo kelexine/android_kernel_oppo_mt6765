@@ -482,14 +482,12 @@ enum dpm_cap_pr_check_prefer {
 	DPM_CAP_PR_CHECK_PREFER_SRC = 2,
 };
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
 #define DPM_CAP_PR_CHECK_PROP(cap)			((cap & 0x03) << 18)
 #define DPM_CAP_EXTRACT_PR_CHECK(raw)		((raw >> 18) & 0x03)
 #define DPM_CAP_PR_SWAP_REJECT_AS_SRC		(1<<20)
 #define DPM_CAP_PR_SWAP_REJECT_AS_SNK		(1<<21)
 #define DPM_CAP_PR_SWAP_CHECK_GP_SRC		(1<<22)
 #define DPM_CAP_PR_SWAP_CHECK_GP_SNK		(1<<23)
-#endif
 #define DPM_CAP_PR_SWAP_CHECK_GOOD_POWER	\
 	(DPM_CAP_PR_SWAP_CHECK_GP_SRC | DPM_CAP_PR_SWAP_CHECK_GP_SNK)
 

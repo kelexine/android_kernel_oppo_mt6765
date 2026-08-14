@@ -19,16 +19,25 @@ int display_bias_regulator_init(void)
 	if (regulator_inited)
 		return ret;
 
-	/* please only get regulator once in a driver */
+	/* try standard dsv_pos, then MT6370 specific variants */
 	disp_bias_pos = regulator_get(NULL, "dsv_pos");
-	if (IS_ERR(disp_bias_pos)) { /* handle return value */
+	if (IS_ERR(disp_bias_pos))
+		disp_bias_pos = regulator_get(NULL, "mt6370_dsv_pos");
+	if (IS_ERR(disp_bias_pos))
+		disp_bias_pos = regulator_get(NULL, "mt6370_dsvp");
+	if (IS_ERR(disp_bias_pos)) {
 		ret = PTR_ERR(disp_bias_pos);
 		pr_info("get dsv_pos fail, error: %d\n", ret);
 		return ret;
 	}
 
+	/* try standard dsv_neg, then MT6370 specific variants */
 	disp_bias_neg = regulator_get(NULL, "dsv_neg");
-	if (IS_ERR(disp_bias_neg)) { /* handle return value */
+	if (IS_ERR(disp_bias_neg))
+		disp_bias_neg = regulator_get(NULL, "mt6370_dsv_neg");
+	if (IS_ERR(disp_bias_neg))
+		disp_bias_neg = regulator_get(NULL, "mt6370_dsvn");
+	if (IS_ERR(disp_bias_neg)) {
 		ret = PTR_ERR(disp_bias_neg);
 		pr_info("get dsv_neg fail, error: %d\n", ret);
 		return ret;
