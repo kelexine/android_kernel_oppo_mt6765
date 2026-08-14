@@ -569,10 +569,6 @@ int disp_pwm_set_backlight_cmdq(enum disp_pwm_id_t id,
 	int abs_diff;
 	int max_level_1024;
 
-	#ifdef VENDOR_EDIT
-	return 0;
-	#endif
-
 	if ((DISP_PWM_ALL & id) == 0) {
 		PWM_ERR("[ERROR] invalid id = 0x%x", id);
 		return -EFAULT;

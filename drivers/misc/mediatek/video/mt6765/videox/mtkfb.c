@@ -2170,7 +2170,13 @@ static int __parse_tag_videolfb(struct device_node *node)
 		islcmconnected = videolfb_tag->islcmfound;
 		vramsize = videolfb_tag->vram;
 		fb_base = videolfb_tag->fb_base;
-		is_lcm_inited = 1;
+		/*
+		 * Cubot P50 (MT6762V/CB): LK reports islcm_inited=1 in the
+		 * ATAG struct but does NOT actually complete panel init before
+		 * handing off to the kernel.  Force a cold init so the kernel
+		 * sends the ILI9881H init sequence and enables the backlight.
+		 */
+		is_lcm_inited = 0;
 
 		return 0;
 	}
@@ -2178,6 +2184,7 @@ static int __parse_tag_videolfb(struct device_node *node)
 	DISPCHECK("[DT][videolfb] videolfb_tag not found\n");
 	return -1;
 }
+
 
 #if defined(CONFIG_MTK_DUAL_DISPLAY_SUPPORT) && \
 	(CONFIG_MTK_DUAL_DISPLAY_SUPPORT == 2)

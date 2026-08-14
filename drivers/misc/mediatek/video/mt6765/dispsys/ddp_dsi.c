@@ -5071,20 +5071,11 @@ int DSI_Send_ROI(enum DISP_MODULE_ENUM module, void *handle, unsigned int x,
 
 static void lcm_set_reset_pin(UINT32 value)
 {
-//#ifdef OPLUS_BUG_STABILITY
-#if 0//!defined(MTK_LCM_DEVICE_TREE_SUPPORT_PASCAL_E)
-	if (!_is_lcm_cmd_mode(DISP_MODULE_DSI0)) {
-		DSI_OUTREG32(NULL, DISP_REG_CONFIG_MMSYS_LCM_RST_B, value);
-	} else
-#else 
-	{
-		if (value)
-			disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT1);
-		else
-			disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT0);
-	}
-#endif
-//#endif
+	DSI_OUTREG32(NULL, DISP_REG_CONFIG_MMSYS_LCM_RST_B, value);
+	if (value)
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT1);
+	else
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT0);
 }
 //#ifdef OPLUS_BUG_STABILITY
  long lcm_bias_vsp(UINT32 value)

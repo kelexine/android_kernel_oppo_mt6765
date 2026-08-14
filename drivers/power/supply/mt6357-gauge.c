@@ -1564,7 +1564,9 @@ static int psy_gauge_get_property(struct power_supply *psy,
 		gm = gauge->gm;
 		if (gm != NULL)
 			val->intval = gm->sdc.shutdown_status.is_dlpt_shutdown;
-
+		else
+			val->intval = 0;
+		break;
 	default:
 		return -EINVAL;
 	}

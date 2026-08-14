@@ -33,6 +33,6 @@ __weak u32 OV5670_MIPI_RAW_SensorInit(void *pfFunc) { return 0; }
 __weak u32 OV5670_MIPI_RAW_SensorInit_2(void *pfFunc) { return 0; }
 __weak int oplus_tchg_01c_precision = 0;
 __weak void oppo_init_sensor_state(void) {}
-__weak int oppo_daily_build = 0;
+__weak bool oppo_daily_build(void) { return false; }
 __weak void print_utc_time(void) {}
 __weak int sysctl_slide_boost_enabled = 0;
