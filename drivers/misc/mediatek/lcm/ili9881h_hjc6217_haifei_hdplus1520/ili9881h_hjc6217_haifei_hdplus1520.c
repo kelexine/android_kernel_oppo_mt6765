@@ -122,7 +122,7 @@ struct LCM_setting_table {
 static struct LCM_setting_table lcm_suspend_setting[] = {
 	{ 0xFF, 0x03, {0x98, 0x81, 0x00} },
 	{ 0x28, 0x00, {} },
-	{ REGFLAG_DELAY, 20, {} },
+	{ REGFLAG_DELAY, 10, {} },
 	{ 0x10, 0x00, {} },
 	{ REGFLAG_DELAY, 120, {} },
 };
@@ -399,8 +399,10 @@ static void lcm_get_params(struct LCM_PARAMS *params)
 
 static void lcm_init_power(void)
 {
+	SET_RESET_PIN(0);
+	MDELAY(30);
 	display_bias_enable();
-	MDELAY(15);
+	MDELAY(30);
 }
 
 static void lcm_suspend_power(void)
@@ -412,8 +414,10 @@ static void lcm_suspend_power(void)
 
 static void lcm_resume_power(void)
 {
+	SET_RESET_PIN(0);
+	MDELAY(30);
 	display_bias_enable();
-	MDELAY(15);
+	MDELAY(30);
 }
 
 static void lcm_init(void)
@@ -423,7 +427,7 @@ static void lcm_init(void)
 	SET_RESET_PIN(0);
 	MDELAY(10);
 	SET_RESET_PIN(1);
-	MDELAY(50); 
+	MDELAY(120);
 
 	push_table(NULL, init_setting_vdo,
 		ARRAY_SIZE(init_setting_vdo), 1);
@@ -450,39 +454,26 @@ static void lcm_update(unsigned int x, unsigned int y,
 
 static unsigned int lcm_compare_id(void)
 {
-	unsigned int id = 0, version_id = 0;
-	unsigned char buffer[2];
-	unsigned int array[16];
-
-	struct LCM_setting_table switch_page1[] = {
-		{ 0xFF, 0x03, {0x98, 0x81, 0x01} }
-	};
-	struct LCM_setting_table switch_page0[] = {
-		{ 0xFF, 0x03, {0x98, 0x81, 0x00} }
-	};
+	unsigned char buffer[2] = {0};
+	unsigned int array[4];
 
 	SET_RESET_PIN(1);
+	MDELAY(10);
 	SET_RESET_PIN(0);
-	MDELAY(1);
+	MDELAY(10);
 	SET_RESET_PIN(1);
-	MDELAY(20);
+	MDELAY(120);
 
-	push_table(NULL, switch_page1, ARRAY_SIZE(switch_page1), 1);
+	/* Switch to Page 6 (DCS packet: 0xFF 0x98 0x81 0x06) */
+	array[0] = 0x00043902;
+	array[1] = 0x068198FF;
+	dsi_set_cmdq(array, 2, 1);
+	MDELAY(10);
 
-	array[0] = 0x00023700;
-	dsi_set_cmdq(array, 1, 1);
+	read_reg_v2(0xF0, buffer, 1);
+	LCM_LOGI("%s: id=0x%02x (expected 0x%02x)\n", __func__, buffer[0], LCM_ID_BYTE0);
 
-	read_reg_v2(0x00, buffer, 1);
-	id = buffer[0];
-
-	read_reg_v2(0x01, buffer, 1);
-	version_id = buffer[0];
-
-	LCM_LOGI("%s: id=0x%02x version=0x%02x\n", __func__, id, version_id);
-
-	push_table(NULL, switch_page0, ARRAY_SIZE(switch_page0), 1);
-
-	return (id == LCM_ID_BYTE0 && version_id == LCM_ID_BYTE1) ? 1 : 0;
+	return (buffer[0] == LCM_ID_BYTE0) ? 1 : 0;
 }
 
 static unsigned int lcm_esd_check(void)

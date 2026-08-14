@@ -392,6 +392,8 @@ static const struct dev_pm_ops tp_pm_ops = {
 
 static const struct of_device_id tp_match_table[] = {
 	{.compatible = DTS_OF_NAME},
+	{.compatible = "mediatek,cap_touch3"},
+	{.compatible = "mediatek,cap_touch"},
 	{},
 };
 

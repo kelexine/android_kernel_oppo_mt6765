@@ -45,6 +45,9 @@ struct pinctrl_state *eint_as_int, *eint_output0,
 		*pins_spi_mode;
 const struct of_device_id touch_of_match[] = {
 	{ .compatible = "goodix,touch", },
+	{ .compatible = "mediatek,touch", },
+	{ .compatible = "mediatek,cap_touch3", },
+	{ .compatible = "mediatek,cap_touch", },
 	{},
 };
 

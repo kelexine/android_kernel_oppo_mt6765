@@ -130,6 +130,8 @@ SECTIONS
 			*(.gnu.warning)
 		. = ALIGN(16);
 		*(.got)			/* Global offset table		*/
+		*(.got.plt)
+		*(.plt)
 	}
 
 	. = ALIGN(SEGMENT_ALIGN);

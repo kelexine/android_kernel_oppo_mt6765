@@ -7424,9 +7424,9 @@ unsigned long free_reserved_area(void *start, void *end, int poison, char *s)
 		struct page *page = virt_to_page(pos);
 		void *direct_map_addr;
 
-		if (pages % 100 == 0)
-			pr_info("=== [BOOT] free_reserved_area: freeing page %lu/%lu (pos=%px) ===\n",
-				pages, ((unsigned long)end - (unsigned long)start) / PAGE_SIZE, pos);
+		if (pages >= 300 || pages % 50 == 0)
+			pr_info("=== [BOOT] free_page %lu/%lu (pos=%px page=%px) ===\n",
+				pages, ((unsigned long)end - (unsigned long)start) / PAGE_SIZE, pos, page);
 
 		/*
 		 * 'direct_map_addr' might be different from 'pos'
