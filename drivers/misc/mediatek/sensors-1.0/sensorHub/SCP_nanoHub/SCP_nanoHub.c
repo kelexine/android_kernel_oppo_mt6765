@@ -305,6 +305,7 @@ static int ipi_txrx_bufs(struct ipi_transfer *t)
 		pr_debug("retry time:%d\n", retry);
 
 	timeout = wait_for_completion_timeout(&hw->done, msecs_to_jiffies(2000));
+	spin_lock_irqsave(&txrx_cmd_lock, flags);
 	if (!timeout) {
 		pr_err("transfer timeout!\n");
 		hw->count = -1;
