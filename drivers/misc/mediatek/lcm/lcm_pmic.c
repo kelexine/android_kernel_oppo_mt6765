@@ -56,7 +56,7 @@ int display_bias_enable(void)
 
 	display_bias_regulator_init();
 
-	/* set voltage with min & max*/
+	/* set voltage with min & max — stock_Image Ghidra-verified: 5400000 µV (5.4V) */
 	ret = regulator_set_voltage(disp_bias_pos, 5400000, 5400000);
 	if (ret < 0)
 		pr_info("set voltage disp_bias_pos fail, ret = %d\n", ret);
