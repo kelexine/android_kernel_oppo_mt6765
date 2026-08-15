@@ -305,7 +305,6 @@ static int ipi_txrx_bufs(struct ipi_transfer *t)
 		pr_debug("retry time:%d\n", retry);
 
 	timeout = wait_for_completion_timeout(&hw->done, msecs_to_jiffies(2000));
-	spin_lock_irqsave(&txrx_cmd_lock, flags);
 	if (!timeout) {
 		pr_err("transfer timeout!\n");
 		hw->count = -1;
@@ -1304,6 +1303,11 @@ static int sensor_send_timestamp_to_hub(void)
 
 	if (READ_ONCE(rtc_compensation_suspend)) {
 		pr_err("rtc_compensation_suspend suspend,drop time sync\n");
+		return 0;
+	}
+
+	if (atomic_read(&power_status) != SENSOR_POWER_UP) {
+		pr_debug("sensor hub power is not up, drop time sync\n");
 		return 0;
 	}
 

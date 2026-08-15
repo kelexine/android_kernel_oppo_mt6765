@@ -35,8 +35,8 @@
 #define LCM_LOGI(string, args...)  dprintf(0, "[LK/"LOG_TAG"]"string, ##args)
 #define LCM_LOGD(string, args...)  dprintf(1, "[LK/"LOG_TAG"]"string, ##args)
 #else
-#define LCM_LOGI(fmt, args...)  pr_debug("[KERNEL/"LOG_TAG"]"fmt, ##args)
-#define LCM_LOGD(fmt, args...)  pr_debug("[KERNEL/"LOG_TAG"]"fmt, ##args)
+#define LCM_LOGI(fmt, args...)  pr_info("[KERNEL/"LOG_TAG"]"fmt, ##args)
+#define LCM_LOGD(fmt, args...)  pr_info("[KERNEL/"LOG_TAG"]"fmt, ##args)
 #endif
 
 /* ILI9881H chip ID bytes: 0x98 (reg 0x00), 0x81 (reg 0x01) */
@@ -127,7 +127,7 @@ static struct LCM_setting_table lcm_suspend_setting[] = {
 	{ REGFLAG_DELAY, 120, {} },
 };
 
-/* ILI9881H DCS Initialisation Sequence */
+/* ILI9881H DCS Initialisation Sequence — verified against stock_Image via Ghidra */
 static struct LCM_setting_table init_setting_vdo[] = {
 	{ 0xFF, 0x03, {0x98, 0x81, 0x00} },
 	{ 0x11, 0x01, {0x00} },
@@ -311,11 +311,11 @@ static struct LCM_setting_table init_setting_vdo[] = {
 	{ 0x1A, 0x01, {0x48} },
 	{ 0xFF, 0x03, {0x98, 0x81, 0x07} },
 	{ 0x0F, 0x01, {0x02} },
-	{ 0xFF, 0x03, {0x98, 0x81, 0x00} },
-	{ 0x35, 0x01, {0x00} },
-	{ 0x36, 0x01, {0x00} },
-	{ 0x29, 0x01, {0x00} },
+	{ 0xFF, 0x03, {0x98, 0x81, 0x00} },   /* Back to Page 0 */
+	{ 0x36, 0x01, {0x00} },                /* MADCTL — scan direction normal */
+	{ 0x29, 0x00, {} },                    /* Display On — LAST DCS command */
 	{ REGFLAG_DELAY, 20, {} },
+	{ 0x35, 0x01, {0x00} },               /* TE on (vsync only) — after display on */
 };
 
 static struct LCM_setting_table bl_level[] = {
@@ -399,8 +399,14 @@ static void lcm_get_params(struct LCM_PARAMS *params)
 
 static void lcm_init_power(void)
 {
-	SET_RESET_PIN(0);
-	MDELAY(30);
+	/*
+	 * Power-on sequence (MT6370 DSV, ILI9881H datasheet §6.2):
+	 *   1. Enable AVDD (+5.5V) and AVEE (-5.5V) — MT6370 DSV
+	 *   2. Wait ≥30ms for rails to stabilise
+	 *   3. Only then drive RST — handled by lcm_init()
+	 *
+	 * DO NOT assert RST here; bias must be stable first.
+	 */
 	display_bias_enable();
 	MDELAY(30);
 }
@@ -414,20 +420,29 @@ static void lcm_suspend_power(void)
 
 static void lcm_resume_power(void)
 {
-	SET_RESET_PIN(0);
-	MDELAY(30);
+	/*
+	 * Same constraint as lcm_init_power: bias first, then RST.
+	 * lcm_resume() → lcm_init() handles the reset sequence.
+	 */
 	display_bias_enable();
 	MDELAY(30);
 }
 
 static void lcm_init(void)
 {
+	/*
+	 * Reset sequence (ILI9881H datasheet §6.2 + lk_lk.bin @ 0x4802bb04):
+	 *   RST HIGH → 10ms → RST LOW → 10ms → RST HIGH → 50ms
+	 *
+	 * After 50ms, lcm_init_power() has already stabilised AVDD/AVEE.
+	 * The 120ms Sleep-Out delay is in the DCS table (init_setting_vdo[0]).
+	 */
 	SET_RESET_PIN(1);
 	MDELAY(10);
 	SET_RESET_PIN(0);
 	MDELAY(10);
 	SET_RESET_PIN(1);
-	MDELAY(120);
+	MDELAY(50);   /* LK-verified: 50ms post-deassert, NOT 120ms */
 
 	push_table(NULL, init_setting_vdo,
 		ARRAY_SIZE(init_setting_vdo), 1);

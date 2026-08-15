@@ -28,7 +28,10 @@ static int is_subsys_pwr_on(struct mtk_clk_gate *cg)
 	struct pwr_status *pwr = cg->pwr_stat;
 	u32 val = 0, val2 = 0;
 
-	if (pwr != NULL && cg->pwr_regmap != NULL) {
+	if (pwr != NULL) {
+		if (cg->pwr_regmap == NULL)
+			return false;
+
 		regmap_read(cg->pwr_regmap, pwr->pwr_ofs, &val);
 		regmap_read(cg->pwr_regmap, pwr->pwr2_ofs, &val2);
 
