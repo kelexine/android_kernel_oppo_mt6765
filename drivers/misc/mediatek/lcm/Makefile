@@ -24,6 +24,7 @@ obj-$(CONFIG_MTK_LCM) += mt65xx_lcm_list.o        \
 
 LCM_LISTS := $(subst ",,$(CONFIG_CUSTOM_KERNEL_LCM))
 LCM_LISTS += ili9881h_hjc6217_haifei_hdplus1520
+LCM_LISTS += icnl9911_boe621_haifei_lhd
 obj-$(CONFIG_MTK_LCM) += $(foreach LCM,$(LCM_LISTS),$(LCM)/)
 
 

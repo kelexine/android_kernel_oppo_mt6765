@@ -186,4 +186,20 @@ config DRM_PANEL_SITRONIX_ST7789V
 	  Say Y here if you want to enable support for the Sitronix
 	  ST7789V controller for 240x320 LCD panels
 
+config DRM_PANEL_HAIFEI_ILI9881H
+	tristate "Haifei HJC6217 (Ilitek ILI9881H) 720x1520 DSI panel"
+	depends on OF
+	depends on DRM_MIPI_DSI
+	help
+	  Say Y here if you want to enable support for Haifei HJC6217
+	  720x1520 video mode DSI panel with Ilitek ILI9881H controller.
+
+config DRM_PANEL_HAIFEI_ICNL9911
+	tristate "Haifei BOE 6.21\" (Chipone ICNL9911) 720x1520 DSI panel"
+	depends on OF
+	depends on DRM_MIPI_DSI
+	help
+	  Say Y here if you want to enable support for Haifei BOE 6.21\"
+	  720x1520 video mode DSI panel with Chipone ICNL9911 controller.
+
 endmenu
