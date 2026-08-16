@@ -1722,9 +1722,8 @@ int disp_lcm_set_backlight(struct disp_lcm_handle *plcm,
 //#else
 //		lcm_drv->set_backlight_cmdq(handle, level);
 //#endif
-	} else {
-		DISPERR("FATAL ERROR, lcm_drv->set_backlight is null\n");
-		return -1;
+	} else if (lcm_drv->set_backlight) {
+		lcm_drv->set_backlight(level);
 	}
 	ls_level=level;
 	return 0;

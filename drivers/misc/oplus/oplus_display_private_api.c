@@ -889,16 +889,11 @@ int disp_lcm_poweron_before_ulps(struct disp_lcm_handle *plcm)
 	DISPFUNC();
 	if (_is_lcm_inited(plcm)) {
 		lcm_drv = plcm->drv;
-		if (lcm_drv->poweron_before_ulps) {
+		if (lcm_drv && lcm_drv->poweron_before_ulps)
 			lcm_drv->poweron_before_ulps();
-		} else {
-			DISP_PR_ERR("FATAL ERROR, lcm_drv->poweron_before_ulps is null\n");
-			return -1;
-		}
 		return 0;
 	}
-	DISP_PR_ERR("lcm_drv is null\n");
-	return -1;
+	return 0;
 }
 
 int disp_lcm_poweroff_after_ulps(struct disp_lcm_handle *plcm)
@@ -908,19 +903,11 @@ int disp_lcm_poweroff_after_ulps(struct disp_lcm_handle *plcm)
 	DISPFUNC();
 	if (_is_lcm_inited(plcm)) {
 		lcm_drv = plcm->drv;
-		if (lcm_drv->poweroff_after_ulps) {
-			//if ((0 == tp_gesture_enable_flag()) || (1 == display_esd_recovery_lcm())) {
-			//if (0 == tp_gesture_enable_flag()) {
-				lcm_drv->poweroff_after_ulps();
-			//}
-		} else {
-			DISP_PR_ERR("FATAL ERROR, lcm_drv->poweroff_after_ulps is null\n");
-			return -1;
-		}
+		if (lcm_drv && lcm_drv->poweroff_after_ulps)
+			lcm_drv->poweroff_after_ulps();
 		return 0;
 	}
-	DISP_PR_ERR("lcm_drv is null\n");
-	return -1;
+	return 0;
 }
 
 static int disp_lcm_set_safe_mode(struct disp_lcm_handle *plcm, void *handle, unsigned int mode)

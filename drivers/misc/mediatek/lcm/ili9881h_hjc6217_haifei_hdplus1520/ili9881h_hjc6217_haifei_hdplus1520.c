@@ -302,50 +302,11 @@ static void lcm_get_params(struct LCM_PARAMS *params)
     params->physical_height = 142;
 }
 
-#ifndef BUILD_LK
-static void lcm_init_regulators(void)
-{
-    if (!is_regulator_inited) {
-        dsv_pos = regulator_get(NULL, "dsv_pos");
-        if (IS_ERR(dsv_pos))
-            pr_err("[LCM] Failed to get dsv_pos regulator\n");
-
-        dsv_neg = regulator_get(NULL, "dsv_neg");
-        if (IS_ERR(dsv_neg))
-            pr_err("[LCM] Failed to get dsv_neg regulator\n");
-
-        is_regulator_inited = 1;
-    }
-}
-#endif
-
 static void init_power(void)
 {
 #ifndef BUILD_LK
-    int ret;
-    lcm_init_regulators();
-
-    if (!IS_ERR_OR_NULL(dsv_pos)) {
-        ret = regulator_set_voltage(dsv_pos, 5400000, 5400000);
-        if (ret < 0)
-            pr_err("[LCM] set voltage dsv_pos fail: %d\n", ret);
-        ret = regulator_enable(dsv_pos);
-        if (ret < 0)
-            pr_err("[LCM] enable dsv_pos fail: %d\n", ret);
-    }
-
-    UDELAY(1000);
-
-    if (!IS_ERR_OR_NULL(dsv_neg)) {
-        ret = regulator_set_voltage(dsv_neg, 5400000, 5400000);
-        if (ret < 0)
-            pr_err("[LCM] set voltage dsv_neg fail: %d\n", ret);
-        ret = regulator_enable(dsv_neg);
-        if (ret < 0)
-            pr_err("[LCM] enable dsv_neg fail: %d\n", ret);
-    }
-
-    MDELAY(30);
+    display_bias_enable();
+    MDELAY(15);
 #else
     SET_RESET_PIN(0);
     MDELAY(30);
@@ -355,24 +316,9 @@ static void init_power(void)
 static void suspend_power(void)
 {
 #ifndef BUILD_LK
-    int ret;
-    lcm_init_regulators();
-
-    if (!IS_ERR_OR_NULL(dsv_neg)) {
-        ret = regulator_disable(dsv_neg);
-        if (ret < 0)
-            pr_err("[LCM] disable dsv_neg fail: %d\n", ret);
-    }
-
-    UDELAY(1000);
-
-    if (!IS_ERR_OR_NULL(dsv_pos)) {
-        ret = regulator_disable(dsv_pos);
-        if (ret < 0)
-            pr_err("[LCM] disable dsv_pos fail: %d\n", ret);
-    }
-
-    MDELAY(30);
+    SET_RESET_PIN(0);
+    MDELAY(2);
+    display_bias_disable();
 #else
     SET_RESET_PIN(0);
     MDELAY(30);
@@ -381,7 +327,10 @@ static void suspend_power(void)
 
 static void resume_power(void)
 {
-    init_power();
+#ifndef BUILD_LK
+    display_bias_enable();
+    MDELAY(15);
+#endif
 }
 
 static void lcm_init(void)
@@ -438,14 +387,16 @@ static unsigned int lcm_compare_id(void)
 }
 
 struct LCM_DRIVER ili9881h_hjc6217_haifei_hdplus1520_lcm_drv = {
-    .name           = "ili9881h_hjc6217_haifei_hdplus1520",
-    .set_util_funcs = lcm_set_util_funcs,
-    .get_params     = lcm_get_params,
-    .init           = lcm_init,
-    .suspend        = lcm_suspend,
-    .resume         = lcm_resume,
-    .compare_id     = lcm_compare_id,
-    .init_power     = init_power,
-    .resume_power   = resume_power,
-    .suspend_power  = suspend_power,
+    .name                 = "ili9881h_hjc6217_haifei_hdplus1520",
+    .set_util_funcs       = lcm_set_util_funcs,
+    .get_params           = lcm_get_params,
+    .init                 = lcm_init,
+    .suspend              = lcm_suspend,
+    .resume               = lcm_resume,
+    .compare_id           = lcm_compare_id,
+    .init_power           = init_power,
+    .resume_power         = resume_power,
+    .suspend_power        = suspend_power,
+    .poweron_before_ulps  = init_power,
+    .poweroff_after_ulps  = suspend_power,
 };
