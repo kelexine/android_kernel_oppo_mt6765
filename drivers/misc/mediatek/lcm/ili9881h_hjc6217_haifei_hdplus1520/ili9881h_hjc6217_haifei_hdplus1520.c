@@ -375,9 +375,16 @@ static unsigned int lcm_compare_id(void)
     SET_RESET_PIN(1);
     MDELAY(120);
 
-    /* Switch to Page 1: 0xFF 0x98 0x81 0x01 */
+    /*
+     * Switch to Page 6: 0xFF 0x98 0x81 0x06 -- confirmed via disassembly
+     * of the stock kernel's lcm_compare_id (0xffffff80087355bc). The ID
+     * byte at reg 0xF0 lives on Page 6 for this panel, not Page 1; the
+     * previous Page-1 select here caused compare_id() to always fail,
+     * so disp_lcm_probe() never selected this driver (see
+     * logcat-lcm-usb.log: "ERROR: lcm driver:ili9881h_hjc6217_haifei_hdplus1520").
+     */
     data_array[0] = 0x00043902;
-    data_array[1] = 0x018198FF;
+    data_array[1] = 0x068198FF;
     dsi_set_cmdq(data_array, 2, 1);
     MDELAY(10);
 
