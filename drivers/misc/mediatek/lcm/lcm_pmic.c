@@ -91,17 +91,21 @@ int display_bias_disable(void)
 
 	display_bias_regulator_init();
 
-	ret = regulator_disable(disp_bias_neg);
-	if (ret < 0)
-		pr_info("disable regulator disp_bias_neg fail, ret = %d\n",
-			ret);
-	retval |= ret;
+	if (disp_bias_neg && regulator_is_enabled(disp_bias_neg) > 0) {
+		ret = regulator_disable(disp_bias_neg);
+		if (ret < 0)
+			pr_info("disable regulator disp_bias_neg fail, ret = %d\n",
+				ret);
+		retval |= ret;
+	}
 
-	ret = regulator_disable(disp_bias_pos);
-	if (ret < 0)
-		pr_info("disable regulator disp_bias_pos fail, ret = %d\n",
-			ret);
-	retval |= ret;
+	if (disp_bias_pos && regulator_is_enabled(disp_bias_pos) > 0) {
+		ret = regulator_disable(disp_bias_pos);
+		if (ret < 0)
+			pr_info("disable regulator disp_bias_pos fail, ret = %d\n",
+				ret);
+		retval |= ret;
+	}
 
 	return retval;
 }

@@ -161,10 +161,7 @@ extern bool flag_lcd_off;
 int primary_display_set_lcm_hbm(bool en);
 #endif /*OPLUS_ARCH_EXTEND*/
 
-#ifdef OPLUS_BUG_STABILITY
-extern int __attribute__((weak)) disp_lcm_poweron_before_ulps(struct disp_lcm_handle *plcm) { return 0; };
-extern int __attribute__((weak)) disp_lcm_poweroff_after_ulps(struct disp_lcm_handle *plcm) { return 0; };
-#endif /* OPLUS_BUG_STABILITY */
+
 
 #ifdef MTK_FB_MMDVFS_SUPPORT
 struct mtk_pm_qos_request primary_display_qos_request;
@@ -4059,23 +4056,13 @@ int primary_display_init(char *lcm_name, unsigned int lcm_fps,
 		DDP_OVL_GOLDEN_SETTING, &gset_arg);
 	replace_fb_addr_to_mva();
 
-	if (is_lcm_inited) {
-		/* ??? why need */
-		/* no need lcm power on,because lk power on lcm */
-		/* ret = disp_lcm_init(pgc->plcm, 0);	*/
-	} else {
-		/* lcm not inited:
-		 * 1. fpga no lk(verify done);
-		 * 2. evb no lk(need verify)
-		 */
-		if (use_cmdq) {
-			/* make sure dsi configuration done before lcm init */
-			_cmdq_flush_config_handle(1, NULL, 0);
-			_cmdq_reset_config_handle();
-		}
-
-		ret = disp_lcm_init(pgc->plcm, 1);
+	if (use_cmdq) {
+		/* make sure dsi configuration done before lcm init */
+		_cmdq_flush_config_handle(1, NULL, 0);
+		_cmdq_reset_config_handle();
 	}
+
+	ret = disp_lcm_init(pgc->plcm, 1);
 	if (!ret)
 		primary_display_set_lcm_power_state_nolock(LCM_ON);
 	DISPCHECK("primary_display_init->dpmgr_path_start\n");
@@ -4881,11 +4868,7 @@ done:
 		HRT_LEVEL_DEFAULT, 0);
 #endif
 
-	#ifdef OPLUS_BUG_STABILITY
-	if (primary_display_get_power_mode_nolock() == FB_SUSPEND) {
-		disp_lcm_poweroff_after_ulps(pgc->plcm);
-	}
-	#endif /* OPLUS_BUG_STABILITY */
+
 
 	return ret;
 }
@@ -4990,11 +4973,7 @@ int primary_display_resume(void)
 	mmprofile_log_ex(ddp_mmp_get_events()->primary_resume,
 		MMPROFILE_FLAG_PULSE, 0, 1);
 
-	#ifdef OPLUS_BUG_STABILITY
-	if (primary_display_get_power_mode_nolock() == FB_RESUME) {
-		disp_lcm_poweron_before_ulps(pgc->plcm);
-	}
-	#endif /* OPLUS_BUG_STABILITY */
+
 
 	if (is_ipoh_bootup) {
 		DISPCHECK(
@@ -10617,7 +10596,7 @@ void oppo_delayed_trigger_kick_set(int params)
 
 enum DISP_POWER_STATE oppo_primary_set_state(enum DISP_POWER_STATE new_state)
 {
-	primary_set_state(new_state);
+	return primary_set_state(new_state);
 }
 
 void oppo_cmdq_reset_config_handle(void)

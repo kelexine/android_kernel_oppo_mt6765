@@ -41,10 +41,8 @@ static long _set_state(const char *name)
 	long ret = 0;
 	struct pinctrl_state *pState = 0;
 
-	if (!this_pctrl) {
-		pr_info("this pctrl is null\n");
+	if (!this_pctrl)
 		return -1;
-	}
 
 	pState = pinctrl_lookup_state(this_pctrl, name);
 	if (IS_ERR(pState)) {

@@ -3788,12 +3788,15 @@ static int read_audio_extern_config_dts(struct platform_device *pdev)
 {
 	int ret;
 	int count, i;
+
+	if (!pdev->dev.of_node)
+		return 0;
+
 	count = of_property_count_u32_elems(pdev->dev.of_node, "audio_extern_config");
-	if (count <= 0) {
-		dev_err(&pdev->dev, "%s: no property match audio_extern_config\n", __func__);
-		return -ENODATA;
-	} else if (count > AUDIO_EXTERN_CONFIG_MAX_NUM) {
-		dev_err(&pdev->dev, "%s: audio_extern_config num=%d > %d(max numbers)\n",
+	if (count <= 0)
+		return 0;
+	else if (count > AUDIO_EXTERN_CONFIG_MAX_NUM) {
+		dev_warn(&pdev->dev, "%s: audio_extern_config num=%d > %d(max numbers)\n",
 				__func__, count, AUDIO_EXTERN_CONFIG_MAX_NUM);
 		return -EINVAL;
 	}
@@ -3801,7 +3804,7 @@ static int read_audio_extern_config_dts(struct platform_device *pdev)
 	ret = of_property_read_u32_array(pdev->dev.of_node, "audio_extern_config",
 			audio_extern, count);
 	if (ret) {
-		dev_err(&pdev->dev, "%s: read audio_extern_config error = %d\n", __func__, ret);
+		dev_dbg(&pdev->dev, "%s: read audio_extern_config error = %d\n", __func__, ret);
 		return ret;
 	}
 	for (i = 0; i < count; i++) {

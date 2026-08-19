@@ -2406,18 +2406,7 @@ static struct fb_info *allocate_fb_by_index(struct device *dev)
 }
 #endif
 
-#ifdef OPLUS_BUG_STABILITY
-static void diming_delay_work_func(struct work_struct *work) {
-	int ret =0;
 
-	pr_debug("%s come in set diming\n", __func__);
-	ret = primary_display_set_dimming_mode(1);
-	if (ret != 0) {
-		pr_err("%s set diming error\n", __func__);
-	}
-	pr_debug("%s set diming end ret=%d\n", __func__, ret);
-}
-#endif /* OPLUS_BUG_STABILITY */
 
 static int mtkfb_probe(struct platform_device *pdev)
 {
@@ -2451,58 +2440,7 @@ static int mtkfb_probe(struct platform_device *pdev)
 
 	init_state = 0;
 
-#ifdef OPLUS_BUG_STABILITY
-	switch (get_project()) {
-		case 20375: //jelly
-		case 21251: //paker-b
-		case 21253: //paker-b
-		case 21254: //paker-b
-		case 20376:
-		case 20377:
-		case 20378:
-		case 20379:
-		case 131962://2037A
-                        custom_lcm_flag = 1;
-		case 20361:
-		case 20362:
-		case 20363:
-		case 20364:
-		case 20365:
-		case 20366:
-		case 20271:
-		case 20272:
-		case 20273:
-		case 20274:
-		case 20091:
-		case 0x202A1:
-		case 0x202A2:
-		case 0x202A3:
-		case 0x2027A:
-		case 0x2027B:
-		case 0x2027C:
-		case 0x2027D:
-		case 21281:
-		case 21282:
-		case 21283:
-                case 21285:
-			backlight_twelve_bit_flag = 1;
-			break;
-		default:
-			pr_err("[LCM] ERROR! is not twelvebits project.\n");
-			break;
-	}
 
-	if (backlight_twelve_bit_flag) {
-		//pr_err("backlight_twelve_bit_flag =%d\n", backlight_twelve_bit_flag);
-		oplus_display_twelvebits_support = 1;
-	} else {
-		oplus_display_elevenbits_support = 1;
-	}
-
-	oplus_display_local_dre_support = of_property_read_bool(pdev->dev.of_node, "oplus_display_local_dre_support");
-	oplus_display_lcd_dimming_support = of_property_read_bool(pdev->dev.of_node, "oplus_display_lcd_dimming_support");
-	oplus_display_dyn_mipi_support = of_property_read_bool(pdev->dev.of_node, "oplus_display_dyn_mipi_support");
-#endif
 
 	/* pdev = to_platform_device(dev); */
 	/* repo call DTS gpio module, if not necessary, invoke nothing */
@@ -2620,38 +2558,7 @@ static int mtkfb_probe(struct platform_device *pdev)
 
 
 	fbdev->state = MTKFB_ACTIVE;
-#ifdef OPLUS_BUG_STABILITY
-	if ((!strcmp(mtkfb_find_lcm_driver(),"nt36525b_hlt_psc_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"ilt9881h_txd_psc_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"ilt9881h_ls_psc_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"hx83102d_truly_psc_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"nt36525b_hlt_psc_boe_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"hx83102d_hlt_psc_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"nt36525b_txd_psc_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"ilt9882n_ls_psc_hdp_dsi_vdo_lcm"))  || (!strcmp(mtkfb_find_lcm_driver(),
-		"ilt9882n_truly_psc_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"hx83102d_txd_jelly_hdp_dsi_vdo_lcm"))  || (!strcmp(mtkfb_find_lcm_driver(),
-		"ilt7807s_hlt_jelly_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"ilt9882q_innolux_jelly_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"oplus21251_boe_ili9882q_hdp_dsi_vdo_lcm")) || (!strcmp(mtkfb_find_lcm_driver(),
-		"oplus21251_csot_ili7807s_hdp_dsi_vdo_lcm")) || oplus_display_dyn_mipi_support) {
-		register_ccci_sys_call_back(MD_SYS1,
-			MD_DISPLAY_DYNAMIC_MIPI, mipi_clk_change);
-	}
-#endif
 
-	#ifdef OPLUS_BUG_STABILITY
-	if (oplus_display_lcd_dimming_support) {
-		custom_lcm_flag = 0;
-		diming_wq = create_workqueue("diming_wq");
-		if (!diming_wq) {
-			pr_err("%s No memory for workqueue\n", __func__);
-		} else {
-			pr_debug("%s initlize diming_delay_work\n", __func__);
-			INIT_DELAYED_WORK(&diming_delay_wq, diming_delay_work_func);
-		}
-	}
-	#endif /* OPLUS_BUG_STABILITY */
 
 	MSG_FUNC_LEAVE();
 	pr_info("disp driver(2) mtkfb_probe end\n");

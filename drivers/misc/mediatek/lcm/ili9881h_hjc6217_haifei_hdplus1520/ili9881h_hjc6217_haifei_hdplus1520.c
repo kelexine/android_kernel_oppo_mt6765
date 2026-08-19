@@ -22,6 +22,7 @@
 
 #define REGFLAG_DELAY                   0xAB
 #define REGFLAG_END_OF_TABLE            0xAA
+#define REGFLAG_UDELAY                  0xFFFB
 
 #define LCM_DSI_CMD_MODE                0
 
@@ -239,15 +240,14 @@ static void push_table(struct LCM_setting_table *table, unsigned int count, unsi
     unsigned int i;
     for (i = 0; i < count; i++) {
         unsigned int cmd = table[i].cmd;
-        switch (cmd) {
-        case REGFLAG_DELAY:
+        if (cmd == 0xAA || cmd == REGFLAG_END_OF_TABLE) {
+            continue;
+        } else if (cmd == 0xAB || cmd == REGFLAG_DELAY) {
             MDELAY(table[i].count);
-            break;
-        case REGFLAG_END_OF_TABLE:
-            break;
-        default:
+        } else if (cmd == 0xFFFB || cmd == REGFLAG_UDELAY) {
+            UDELAY(table[i].count);
+        } else {
             dsi_set_cmdq_V2(cmd, table[i].count, table[i].para_list, force_update);
-            break;
         }
     }
 }
@@ -305,8 +305,9 @@ static void lcm_get_params(struct LCM_PARAMS *params)
 static void init_power(void)
 {
 #ifndef BUILD_LK
+    SET_RESET_PIN(0);
+    MDELAY(30);
     display_bias_enable();
-    MDELAY(15);
 #else
     SET_RESET_PIN(0);
     MDELAY(30);
@@ -316,8 +317,6 @@ static void init_power(void)
 static void suspend_power(void)
 {
 #ifndef BUILD_LK
-    SET_RESET_PIN(0);
-    MDELAY(2);
     display_bias_disable();
 #else
     SET_RESET_PIN(0);
@@ -328,8 +327,10 @@ static void suspend_power(void)
 static void resume_power(void)
 {
 #ifndef BUILD_LK
+    SET_RESET_PIN(0);
+    MDELAY(30);
     display_bias_enable();
-    MDELAY(15);
+    MDELAY(30);
 #endif
 }
 
@@ -404,6 +405,4 @@ struct LCM_DRIVER ili9881h_hjc6217_haifei_hdplus1520_lcm_drv = {
     .init_power           = init_power,
     .resume_power         = resume_power,
     .suspend_power        = suspend_power,
-    .poweron_before_ulps  = init_power,
-    .poweroff_after_ulps  = suspend_power,
 };

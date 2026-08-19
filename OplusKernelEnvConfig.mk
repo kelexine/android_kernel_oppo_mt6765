@@ -76,43 +76,8 @@ OPLUS_FEATURE_LOWMEM_DBG
 
 
 $(foreach myfeature,$(ALLOWED_MCROS),\
-         $(warning myfeature is $(myfeature)) \
          $(eval KBUILD_CFLAGS += -D$(myfeature)) \
          $(eval KBUILD_CPPFLAGS += -D$(myfeature)) \
          $(eval CFLAGS_KERNEL += -D$(myfeature)) \
          $(eval CFLAGS_MODULE += -D$(myfeature)) \
 )
-
-
-
-# BSP team can do customzation by referring the feature variables
-
-ifeq ($(OPLUS_FEATURE_SECURE_GUARD),yes)
-export CONFIG_OPLUS_SECURE_GUARD=y
-KBUILD_CFLAGS += -DCONFIG_OPLUS_SECURE_GUARD
-endif
-
-ifeq ($(OPLUS_FEATURE_SECURE_ROOTGUARD),yes)
-export CONFIG_OPLUS_ROOT_CHECK=y
-KBUILD_CFLAGS += -DCONFIG_OPLUS_ROOT_CHECK
-endif
-
-ifeq ($(OPLUS_FEATURE_SECURE_MOUNTGUARD),yes)
-export CONFIG_OPLUS_MOUNT_BLOCK=y
-KBUILD_CFLAGS += -DCONFIG_OPLUS_MOUNT_BLOCK
-endif
-
-ifeq ($(OPLUS_FEATURE_SECURE_EXECGUARD),yes)
-export CONFIG_OPLUS_EXECVE_BLOCK=y
-KBUILD_CFLAGS += -DCONFIG_OPLUS_EXECVE_BLOCK
-KBUILD_CFLAGS += -DCONFIG_OPLUS_EXECVE_REPORT
-endif
-
-ifeq ($(OPLUS_FEATURE_SECURE_KEVENTUPLOAD),yes)
-export CONFIG_OPLUS_KEVENT_UPLOAD=y
-KBUILD_CFLAGS += -DCONFIG_OPLUS_KEVENT_UPLOAD
-endif
-
-ifeq ($(OPLUS_FEATURE_SECURE_KEYINTERFACESGUARD),yes)
-KBUILD_CFLAGS += -DOPLUS_DISALLOW_KEY_INTERFACES
-endif

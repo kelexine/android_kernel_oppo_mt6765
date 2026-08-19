@@ -667,51 +667,31 @@ struct IMGSENSOR_HW_CFG imgsensor_custom_config_parkerb[] = {
 	{IMGSENSOR_SENSOR_IDX_NONE}
 };
 
-int yogurt_project(void){//// yogurt 1.yogurt 2 yogurte 3 yogurt 11
+int yogurt_project(void){
 	int returnvalue = 0;
 	const char *projectcdt = "0";
 	struct device_node *of_node
 		= of_find_compatible_node(NULL, NULL, "mediatek,camera_hw");
-	if (of_property_read_string(
-			of_node,
-			"camera_yogurt",
-			&projectcdt) < 0) {
-			printk("Property camera_yogurt not defined\n");
+	if (of_node && of_property_read_string(of_node, "camera_yogurt", &projectcdt) == 0) {
+		if (strcmp(projectcdt, "20271") == 0)
+			returnvalue = 1;
 	}
-	if (strcmp(projectcdt, "20271") == 0) {
-		returnvalue = 1;
-        printk("cfg_setting_imgsensor,This is YOGURT_20271\n");
-	} else {
-        returnvalue = 0;
-        printk("cfg_setting_imgsensor,This is NOT YOGURT_20271\n");
-    }
-
-    return returnvalue;
+	return returnvalue;
 }
 
-int yogurta_project(void){//// yogurta 1.yogurta
+int yogurta_project(void){
 	int returnvalue = 0;
 	const char *projectcdt = "0";
 	struct device_node *of_node
 		= of_find_compatible_node(NULL, NULL, "mediatek,camera_hw");
-	if (of_property_read_string(
-			of_node,
-			"camera_yogurta",
-			&projectcdt) < 0) {
-			printk("Property camera_yogurta not defined\n");
+	if (of_node && of_property_read_string(of_node, "camera_yogurta", &projectcdt) == 0) {
+		if (strcmp(projectcdt, "21281") == 0)
+			returnvalue = 1;
 	}
-	if (strcmp(projectcdt, "21281") == 0) {
-		returnvalue = 1;
-        printk("cfg_setting_imgsensor,This is YOGURTA_21281\n");
-	} else {
-        returnvalue = 0;
-        printk("cfg_setting_imgsensor,This is NOT YOGURTA_21281\n");
-    }
-
-    return returnvalue;
+	return returnvalue;
 }
 
-int pascal_project(void){//// pascald 1.pascal 2 pascale 3
+int pascal_project(void){
 	int projectvalue = 0;
 	if (get_Operator_Version() == 131 || get_Operator_Version() == 132
 		|| get_Operator_Version() == 133 || get_Operator_Version() == 134
@@ -719,29 +699,23 @@ int pascal_project(void){//// pascald 1.pascal 2 pascale 3
 		|| get_Operator_Version() == 172 || get_Operator_Version() == 173
 		|| get_Operator_Version() == 174 || get_Operator_Version() == 175
 		|| get_Operator_Version() == 176) {
-		printk("This is pascald board\n");
 		projectvalue = 1;
 	} else if (get_Operator_Version() == 141 || get_Operator_Version() == 142
 		|| get_Operator_Version() == 143 || get_Operator_Version() == 144
 		|| get_Operator_Version() == 145 || get_Operator_Version() == 146) {
-		printk("This is pascal board\n");
 		projectvalue = 2;
 	} else if (get_Operator_Version() == 136 || get_Operator_Version() == 137
 		|| get_Operator_Version() == 138 || get_Operator_Version() == 139
 		|| get_Operator_Version() == 140) {
-		printk("This is pascale board\n");
 		projectvalue = 3;
 	} else if (get_Operator_Version() == 9 || is_project(20375)
 		|| is_project(20376) || is_project(20377)
 		|| is_project(20378) || is_project(20379)
 		|| is_project(0x2037A)) {
-		printk("This is parkera board\n");
 		projectvalue = PARKERA_PROJECT;
 	} else if (get_Operator_Version() >= 177 && get_Operator_Version() <= 184) {
-		printk("This is ROI-D board\n");
 		projectvalue = 5;
 	} else if(is_project(21251) || is_project(21253) || is_project(21254)){
-		printk("This is parker-B board\n");
 		projectvalue = 6;
 	} else {
 		projectvalue = 0;
@@ -751,25 +725,15 @@ int pascal_project(void){//// pascald 1.pascal 2 pascale 3
 }
 
 int parker_project(void){
-    int returnvalue = 0;
-    const char *projectcdt = "0";
+	int returnvalue = 0;
+	const char *projectcdt = "0";
 	struct device_node *of_node
 		= of_find_compatible_node(NULL, NULL, "mediatek,camera_hw");
-	if (of_property_read_string(
-			of_node,
-			"camera_parker",
-			&projectcdt) < 0) {
-			printk("Property camera_parker not defined\n");
+	if (of_node && of_property_read_string(of_node, "camera_parker", &projectcdt) == 0) {
+		if (strcmp(projectcdt, "20361") == 0)
+			returnvalue = 1;
 	}
-	if (strcmp(projectcdt, "20361") == 0) {
-		returnvalue = 1;
-        printk("cfg_setting_imgsensor,This is PARKER_20361\n");
-	} else {
-        returnvalue = 0;
-        printk("cfg_setting_imgsensor,This is NOT PARKER_20361\n");
-    }
-
-    return returnvalue;
+	return returnvalue;
 }
 #endif  //OPLUS_FEATURE_CAMERA_COMMON
 
