@@ -269,18 +269,34 @@ static int mt6370_dsv_get_voltage_sel(struct regulator_dev *rdev)
 static int mt6370_dsv_enable(struct regulator_dev *rdev)
 {
 	struct mt6370_pmu_dsv_data *info = rdev_get_drvdata(rdev);
+	int id = rdev->desc->id;
+	int ret;
 
-	pr_info("%s, id = %d\n", __func__, rdev->desc->id);
+	pr_info("%s, id = %d", __func__, id);
+
+	/* Ensure boost and target voltages are configured */
+	ret = mt6370_pmu_reg_update_bits(info->chip, MT6370_PMU_REG_DBVBST, 0xFF, 0xE8);
+	if (ret < 0)
+		pr_err("%s: failed to set DBVBST, ret = %d", __func__, ret);
+
+	ret = mt6370_pmu_reg_update_bits(info->chip, MT6370_PMU_REG_DBVPOS, 0x3F, 0x28);
+	if (ret < 0)
+		pr_err("%s: failed to set DBVPOS, ret = %d", __func__, ret);
+
+	ret = mt6370_pmu_reg_update_bits(info->chip, MT6370_PMU_REG_DBVNEG, 0x3F, 0x28);
+	if (ret < 0)
+		pr_err("%s: failed to set DBVNEG, ret = %d", __func__, ret);
+
 	return mt6370_pmu_reg_set_bit(info->chip,
-		mt6370_dsv_regulators[rdev->desc->id].enable_reg,
-		mt6370_dsv_regulators[rdev->desc->id].enable_bit);
+		mt6370_dsv_regulators[id].enable_reg,
+		mt6370_dsv_regulators[id].enable_bit);
 }
 
 static int mt6370_dsv_disable(struct regulator_dev *rdev)
 {
 	struct mt6370_pmu_dsv_data *info = rdev_get_drvdata(rdev);
 
-	pr_info("%s, id = %d\n", __func__, rdev->desc->id);
+	pr_info("%s, id = %d", __func__, rdev->desc->id);
 	return mt6370_pmu_reg_clr_bit(info->chip,
 		mt6370_dsv_regulators[rdev->desc->id].enable_reg,
 		mt6370_dsv_regulators[rdev->desc->id].enable_bit);

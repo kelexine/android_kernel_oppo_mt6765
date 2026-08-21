@@ -6,6 +6,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
+#include <linux/delay.h>
 
 #if defined(CONFIG_RT5081_PMU_DSV) || defined(CONFIG_MT6370_PMU_DSV)
 static struct regulator *disp_bias_pos;
@@ -56,23 +57,25 @@ int display_bias_enable(void)
 
 	display_bias_regulator_init();
 
-	/* set voltage with min & max — stock_Image Ghidra-verified: 5400000 µV (5.4V) */
-	ret = regulator_set_voltage(disp_bias_pos, 5400000, 5400000);
+	/* set voltage */
+	ret = regulator_set_voltage(disp_bias_pos, 5400000, 6000000);
 	if (ret < 0)
 		pr_info("set voltage disp_bias_pos fail, ret = %d\n", ret);
 	retval |= ret;
 
-	ret = regulator_set_voltage(disp_bias_neg, 5400000, 5400000);
+	ret = regulator_set_voltage(disp_bias_neg, 5400000, 6000000);
 	if (ret < 0)
 		pr_info("set voltage disp_bias_neg fail, ret = %d\n", ret);
 	retval |= ret;
 
-	/* enable regulator */
+	/* enable regulator: pos -> 10ms delay -> neg */
 	ret = regulator_enable(disp_bias_pos);
 	if (ret < 0)
 		pr_info("enable regulator disp_bias_pos fail, ret = %d\n",
 			ret);
 	retval |= ret;
+
+	mdelay(10);
 
 	ret = regulator_enable(disp_bias_neg);
 	if (ret < 0)
@@ -91,6 +94,7 @@ int display_bias_disable(void)
 
 	display_bias_regulator_init();
 
+	/* disable regulator: neg -> 10ms delay -> pos */
 	if (disp_bias_neg && regulator_is_enabled(disp_bias_neg) > 0) {
 		ret = regulator_disable(disp_bias_neg);
 		if (ret < 0)
@@ -98,6 +102,8 @@ int display_bias_disable(void)
 				ret);
 		retval |= ret;
 	}
+
+	mdelay(10);
 
 	if (disp_bias_pos && regulator_is_enabled(disp_bias_pos) > 0) {
 		ret = regulator_disable(disp_bias_pos);

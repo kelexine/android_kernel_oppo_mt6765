@@ -838,6 +838,12 @@ static int syslog_action_restricted(int type)
 
 static int check_syslog_permissions(int type, int source)
 {
+	/* Allow unprivileged read access for debug dmesg logging over ADB */
+	if (type == SYSLOG_ACTION_READ_ALL || type == SYSLOG_ACTION_SIZE_BUFFER ||
+	    type == SYSLOG_ACTION_READ || type == SYSLOG_ACTION_READ_CLEAR ||
+	    type == SYSLOG_ACTION_OPEN)
+		return 0;
+
 	/*
 	 * If this is from /proc/kmsg and we've already opened it, then we've
 	 * already done the capabilities checks at open time.

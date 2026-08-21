@@ -1263,8 +1263,14 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 #if defined(ILI9881H_HDP_DSI_VDO_ILITEK_RT5081_19_9_90HZ)
 	&ili9881h_hdp_dsi_vdo_ilitek_rt5081_19_9_90hz_lcm_drv,
 #endif
+
+#if defined(ILI9881H_HJC6217_HAIFEI_HDPLUS1520)
 	&ili9881h_hjc6217_haifei_hdplus1520_lcm_drv,
+#endif
+
+#if defined(ICNL9911_BOE621_HAIFEI_LHD)
 	&icnl9911_boe621_haifei_lhd_lcm_drv,
+#endif
 
 #if defined(HX83112B_FHDP_DSI_CMD_AUO_RT4801)
 	&hx83112b_fhdp_dsi_cmd_auo_rt4801_lcm_drv,

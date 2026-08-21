@@ -4062,9 +4062,10 @@ int primary_display_init(char *lcm_name, unsigned int lcm_fps,
 		_cmdq_reset_config_handle();
 	}
 
-	ret = disp_lcm_init(pgc->plcm, 1);
-	if (!ret)
-		primary_display_set_lcm_power_state_nolock(LCM_ON);
+	if (!is_lcm_inited) {
+		ret = disp_lcm_init(pgc->plcm, 1);
+	}
+	primary_display_set_lcm_power_state_nolock(LCM_ON);
 	DISPCHECK("primary_display_init->dpmgr_path_start\n");
 	/* path start must after lcm init for video mode
 	 * because dsi_start will set mode
