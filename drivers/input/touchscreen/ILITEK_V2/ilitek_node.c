@@ -2497,67 +2497,99 @@ static int netlink_init(void)
 	return ret;
 }
 
-static ssize_t proc_double_tap_enable_read(struct file *file, char __user *buff, size_t count, loff_t *ppos)
-{
-	char str[16];
-	int len;
+#define DEFINE_GESTURE_PROC_SYSFS(name, field) \
+static ssize_t proc_##name##_read(struct file *file, char __user *buff, size_t count, loff_t *ppos) \
+{ \
+	char str[16]; \
+	int len; \
+	if (!idev) \
+		return -ENODEV; \
+	len = snprintf(str, sizeof(str), "%d\n", idev->ges_sym.field ? 1 : 0); \
+	return simple_read_from_buffer(buff, count, ppos, str, len); \
+} \
+static ssize_t proc_##name##_write(struct file *file, const char __user *buff, size_t count, loff_t *ppos) \
+{ \
+	char str[16] = {0}; \
+	int enable = 0; \
+	if (!idev) \
+		return -ENODEV; \
+	if (count >= sizeof(str)) \
+		return -EINVAL; \
+	if (copy_from_user(str, buff, count)) \
+		return -EFAULT; \
+	if (kstrtoint(strstrip(str), 10, &enable)) \
+		return -EINVAL; \
+	idev->ges_sym.field = enable ? 1 : 0; \
+	if (enable) idev->gesture = ENABLE; \
+	ipio_info(#name " set to: %d\n", idev->ges_sym.field); \
+	return count; \
+} \
+static const struct file_operations proc_##name##_fops = { \
+	.owner = THIS_MODULE, \
+	.read = proc_##name##_read, \
+	.write = proc_##name##_write, \
+}; \
+static ssize_t name##_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf) \
+{ \
+	if (!idev) \
+		return -ENODEV; \
+	return sprintf(buf, "%d\n", idev->ges_sym.field ? 1 : 0); \
+} \
+static ssize_t name##_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count) \
+{ \
+	int enable = 0; \
+	if (!idev) \
+		return -ENODEV; \
+	if (kstrtoint(strstrip((char *)buf), 10, &enable)) \
+		return -EINVAL; \
+	idev->ges_sym.field = enable ? 1 : 0; \
+	if (enable) idev->gesture = ENABLE; \
+	ipio_info(#name " sysfs set to: %d\n", idev->ges_sym.field); \
+	return count; \
+} \
+static struct kobj_attribute name##_attr = \
+	__ATTR(name, 0664, name##_show, name##_store);
 
-	if (!idev)
+DEFINE_GESTURE_PROC_SYSFS(double_tap_enable, double_tap)
+DEFINE_GESTURE_PROC_SYSFS(single_swipe_up_enable, alphabet_line_2_top)
+DEFINE_GESTURE_PROC_SYSFS(single_swipe_down_enable, alphabet_line_2_bottom)
+DEFINE_GESTURE_PROC_SYSFS(single_swipe_left_enable, alphabet_line_2_left)
+DEFINE_GESTURE_PROC_SYSFS(single_swipe_right_enable, alphabet_line_2_right)
+DEFINE_GESTURE_PROC_SYSFS(double_swipe_enable, alphabet_two_line_2_bottom)
+DEFINE_GESTURE_PROC_SYSFS(letter_m_enable, alphabet_m)
+DEFINE_GESTURE_PROC_SYSFS(letter_w_enable, alphabet_w)
+DEFINE_GESTURE_PROC_SYSFS(letter_c_enable, alphabet_c)
+DEFINE_GESTURE_PROC_SYSFS(letter_e_enable, alphabet_E)
+DEFINE_GESTURE_PROC_SYSFS(letter_v_enable, alphabet_V)
+DEFINE_GESTURE_PROC_SYSFS(letter_o_enable, alphabet_O)
+DEFINE_GESTURE_PROC_SYSFS(letter_s_enable, alphabet_S)
+DEFINE_GESTURE_PROC_SYSFS(letter_z_enable, alphabet_Z)
+
+static ssize_t proc_coordinate_read(struct file *file, char __user *buff, size_t count, loff_t *ppos)
+{
+	char str[128];
+	int len;
+	struct gesture_coordinate *gc;
+
+	if (!idev || !idev->gcoord)
 		return -ENODEV;
 
-	len = snprintf(str, sizeof(str), "%d\n", idev->gesture ? 1 : 0);
+	gc = idev->gcoord;
+	len = snprintf(str, sizeof(str), "Point:[%d,%d][%d,%d][%d,%d][%d,%d][%d,%d][%d,%d]\n",
+		gc->pos_start.x, gc->pos_start.y,
+		gc->pos_end.x, gc->pos_end.y,
+		gc->pos_1st.x, gc->pos_1st.y,
+		gc->pos_2nd.x, gc->pos_2nd.y,
+		gc->pos_3rd.x, gc->pos_3rd.y,
+		gc->pos_4th.x, gc->pos_4th.y);
+
 	return simple_read_from_buffer(buff, count, ppos, str, len);
 }
 
-static ssize_t proc_double_tap_enable_write(struct file *file, const char __user *buff, size_t count, loff_t *ppos)
-{
-	char str[16] = {0};
-	int enable = 0;
-
-	if (!idev)
-		return -ENODEV;
-	if (count >= sizeof(str))
-		return -EINVAL;
-	if (copy_from_user(str, buff, count))
-		return -EFAULT;
-
-	if (kstrtoint(strstrip(str), 10, &enable))
-		return -EINVAL;
-
-	idev->gesture = enable ? ENABLE : DISABLE;
-	ipio_info("DT2W gesture set to: %d\n", idev->gesture);
-	return count;
-}
-
-static const struct file_operations proc_double_tap_enable_fops = {
+static const struct file_operations proc_coordinate_fops = {
 	.owner = THIS_MODULE,
-	.read = proc_double_tap_enable_read,
-	.write = proc_double_tap_enable_write,
+	.read = proc_coordinate_read,
 };
-
-static ssize_t double_tap_enable_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
-{
-	if (!idev)
-		return -ENODEV;
-	return sprintf(buf, "%d\n", idev->gesture ? 1 : 0);
-}
-
-static ssize_t double_tap_enable_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
-{
-	int enable = 0;
-
-	if (!idev)
-		return -ENODEV;
-	if (kstrtoint(strstrip((char *)buf), 10, &enable))
-		return -EINVAL;
-
-	idev->gesture = enable ? ENABLE : DISABLE;
-	ipio_info("DT2W sysfs set gesture to: %d\n", idev->gesture);
-	return count;
-}
-
-static struct kobj_attribute double_tap_enable_attr =
-	__ATTR(double_tap_enable, 0664, double_tap_enable_show, double_tap_enable_store);
 
 void ilitek_tddi_node_init(void)
 {
@@ -2581,14 +2613,46 @@ void ilitek_tddi_node_init(void)
 	}
 
 	proc_touchpanel = proc_mkdir("touchpanel", NULL);
-	if (proc_touchpanel)
+	if (proc_touchpanel) {
 		proc_create("double_tap_enable", 0664, proc_touchpanel, &proc_double_tap_enable_fops);
-	if (proc_dir_ilitek)
+		proc_create("single_swipe_up_enable", 0664, proc_touchpanel, &proc_single_swipe_up_enable_fops);
+		proc_create("single_swipe_down_enable", 0664, proc_touchpanel, &proc_single_swipe_down_enable_fops);
+		proc_create("single_swipe_left_enable", 0664, proc_touchpanel, &proc_single_swipe_left_enable_fops);
+		proc_create("single_swipe_right_enable", 0664, proc_touchpanel, &proc_single_swipe_right_enable_fops);
+		proc_create("double_swipe_enable", 0664, proc_touchpanel, &proc_double_swipe_enable_fops);
+		proc_create("letter_m_enable", 0664, proc_touchpanel, &proc_letter_m_enable_fops);
+		proc_create("letter_w_enable", 0664, proc_touchpanel, &proc_letter_w_enable_fops);
+		proc_create("letter_c_enable", 0664, proc_touchpanel, &proc_letter_c_enable_fops);
+		proc_create("letter_e_enable", 0664, proc_touchpanel, &proc_letter_e_enable_fops);
+		proc_create("letter_v_enable", 0664, proc_touchpanel, &proc_letter_v_enable_fops);
+		proc_create("letter_o_enable", 0664, proc_touchpanel, &proc_letter_o_enable_fops);
+		proc_create("letter_s_enable", 0664, proc_touchpanel, &proc_letter_s_enable_fops);
+		proc_create("letter_z_enable", 0664, proc_touchpanel, &proc_letter_z_enable_fops);
+		proc_create("coordinate", 0444, proc_touchpanel, &proc_coordinate_fops);
+	}
+
+	if (proc_dir_ilitek) {
 		proc_create("double_tap_enable", 0664, proc_dir_ilitek, &proc_double_tap_enable_fops);
+		proc_create("coordinate", 0444, proc_dir_ilitek, &proc_coordinate_fops);
+	}
 
 	android_touch_kobj = kobject_create_and_add("android_touch", NULL);
-	if (android_touch_kobj)
+	if (android_touch_kobj) {
 		sysfs_create_file(android_touch_kobj, &double_tap_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &single_swipe_up_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &single_swipe_down_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &single_swipe_left_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &single_swipe_right_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &double_swipe_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &letter_m_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &letter_w_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &letter_c_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &letter_e_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &letter_v_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &letter_o_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &letter_s_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &letter_z_enable_attr.attr);
+	}
 
 	netlink_init();
 }

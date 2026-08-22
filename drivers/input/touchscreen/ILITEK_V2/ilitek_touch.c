@@ -1042,6 +1042,14 @@ void ilitek_tddi_report_debug_lite_mode(u8 *buf, int len)
 	ilitek_tddi_touch_send_debug_data(buf, len);
 }
 
+static inline void ilitek_report_gesture_key(struct input_dev *input, unsigned int key)
+{
+	input_report_key(input, key, 1);
+	input_sync(input);
+	input_report_key(input, key, 0);
+	input_sync(input);
+}
+
 void ilitek_tddi_report_gesture_mode(u8 *buf, int len)
 {
 	int i, lu_x = 0, lu_y = 0, rd_x = 0, rd_y = 0, score = 0;
@@ -1076,32 +1084,39 @@ void ilitek_tddi_report_gesture_mode(u8 *buf, int len)
 	switch (gc->code) {
 	case GESTURE_DOUBLECLICK:
 		ipio_info("Double Click key event\n");
-		input_report_key(input, KEY_GESTURE_POWER, 1);
-		input_sync(input);
-		input_report_key(input, KEY_GESTURE_POWER, 0);
-		input_sync(input);
+		ilitek_report_gesture_key(input, KEY_GESTURE_POWER);
 		gc->type  = GESTURE_DOUBLECLICK;
 		gc->clockwise = 1;
 		gc->pos_end.x = gc->pos_start.x;
 		gc->pos_end.y = gc->pos_start.y;
 		break;
 	case GESTURE_LEFT:
+		ipio_info("Gesture Swipe Left key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_LEFT);
 		gc->type  = GESTURE_LEFT;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_RIGHT:
+		ipio_info("Gesture Swipe Right key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_RIGHT);
 		gc->type  = GESTURE_RIGHT;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_UP:
+		ipio_info("Gesture Swipe Up key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_UP);
 		gc->type  = GESTURE_UP;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_DOWN:
+		ipio_info("Gesture Swipe Down key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_DOWN);
 		gc->type  = GESTURE_DOWN;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_O:
+		ipio_info("Gesture 'O' key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_O);
 		gc->type  = GESTURE_O;
 		gc->clockwise = (ges[34] > 1) ? 0 : ges[34];
 
@@ -1120,34 +1135,50 @@ void ilitek_tddi_report_gesture_mode(u8 *buf, int len)
 		gc->pos_4th.y = ((rd_y + lu_y) / 2);
 		break;
 	case GESTURE_W:
+		ipio_info("Gesture 'W' key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_W);
 		gc->type  = GESTURE_W;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_M:
+		ipio_info("Gesture 'M' key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_M);
 		gc->type  = GESTURE_M;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_V:
+		ipio_info("Gesture 'V' key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_V);
 		gc->type  = GESTURE_V;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_C:
+		ipio_info("Gesture 'C' key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_C);
 		gc->type  = GESTURE_C;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_E:
+		ipio_info("Gesture 'E' key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_E);
 		gc->type  = GESTURE_E;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_S:
+		ipio_info("Gesture 'S' key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_S);
 		gc->type  = GESTURE_S;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_Z:
+		ipio_info("Gesture 'Z' key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_Z);
 		gc->type  = GESTURE_Z;
 		gc->clockwise = 1;
 		break;
 	case GESTURE_TWOLINE_DOWN:
+		ipio_info("Gesture Two-Finger Swipe Down key event\n");
+		ilitek_report_gesture_key(input, KEY_PLAYPAUSE);
 		gc->type  = GESTURE_TWOLINE_DOWN;
 		gc->clockwise = 1;
 		gc->pos_1st.x  = (((ges[10] & 0xF0) << 4) | (ges[11]));
@@ -1155,8 +1186,32 @@ void ilitek_tddi_report_gesture_mode(u8 *buf, int len)
 		gc->pos_2nd.x  = (((ges[13] & 0xF0) << 4) | (ges[14]));
 		gc->pos_2nd.y  = (((ges[13] & 0x0F) << 8) | (ges[15]));
 		break;
+	case GESTURE_F:
+		ipio_info("Gesture 'F' key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_F);
+		gc->type  = GESTURE_F;
+		gc->clockwise = 1;
+		break;
+	case GESTURE_V_DOWN:
+		ipio_info("Gesture 'V' Down key event\n");
+		ilitek_report_gesture_key(input, KEY_GESTURE_V);
+		gc->type  = GESTURE_V_DOWN;
+		gc->clockwise = 1;
+		break;
+	case GESTURE_V_LEFT:
+		ipio_info("Gesture '<' Left Arrow key event\n");
+		ilitek_report_gesture_key(input, KEY_PREVIOUSSONG);
+		gc->type  = GESTURE_V_LEFT;
+		gc->clockwise = 1;
+		break;
+	case GESTURE_V_RIGHT:
+		ipio_info("Gesture '>' Right Arrow key event\n");
+		ilitek_report_gesture_key(input, KEY_NEXTSONG);
+		gc->type  = GESTURE_V_RIGHT;
+		gc->clockwise = 1;
+		break;
 	default:
-		ipio_err("Unknown gesture code\n");
+		ipio_err("Unknown gesture code: 0x%x\n", gc->code);
 		break;
 	}
 

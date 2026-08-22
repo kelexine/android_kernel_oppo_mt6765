@@ -77,6 +77,10 @@ void ilitek_plat_input_register(void)
 
 	/* Gesture keys register */
 	input_set_capability(idev->input, EV_KEY, KEY_POWER);
+	input_set_capability(idev->input, EV_KEY, KEY_WAKEUP);
+	input_set_capability(idev->input, EV_KEY, KEY_PLAYPAUSE);
+	input_set_capability(idev->input, EV_KEY, KEY_PREVIOUSSONG);
+	input_set_capability(idev->input, EV_KEY, KEY_NEXTSONG);
 	input_set_capability(idev->input, EV_KEY, KEY_GESTURE_UP);
 	input_set_capability(idev->input, EV_KEY, KEY_GESTURE_DOWN);
 	input_set_capability(idev->input, EV_KEY, KEY_GESTURE_LEFT);
@@ -92,6 +96,10 @@ void ilitek_plat_input_register(void)
 	input_set_capability(idev->input, EV_KEY, KEY_GESTURE_F);
 
 	__set_bit(KEY_GESTURE_POWER, idev->input->keybit);
+	__set_bit(KEY_WAKEUP, idev->input->keybit);
+	__set_bit(KEY_PLAYPAUSE, idev->input->keybit);
+	__set_bit(KEY_PREVIOUSSONG, idev->input->keybit);
+	__set_bit(KEY_NEXTSONG, idev->input->keybit);
 	__set_bit(KEY_GESTURE_UP, idev->input->keybit);
 	__set_bit(KEY_GESTURE_DOWN, idev->input->keybit);
 	__set_bit(KEY_GESTURE_LEFT, idev->input->keybit);
