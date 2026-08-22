@@ -42,7 +42,7 @@ struct pinctrl *pinctrl1;
 struct pinctrl_state *pins_default;
 struct pinctrl_state *eint_as_int, *eint_output0,
 		*eint_output1, *rst_output0, *rst_output1,
-		*pins_spi_mode;
+		*pins_spi_mode, *pwr_output0, *pwr_output1;
 const struct of_device_id touch_of_match[] = {
 	{ .compatible = "goodix,touch", },
 	{ .compatible = "mediatek,touch", },
@@ -163,7 +163,14 @@ void tpd_gpio_output(int pin, int level)
 {
 	mutex_lock(&tpd_set_gpio_mutex);
 	TPD_DEBUG("%s pin = %d, level = %d\n", __func__, pin, level);
-	if (pin == 1) {
+	if (pin == 2) {
+		if (pwr_output1 && !IS_ERR(pwr_output1) && pwr_output0 && !IS_ERR(pwr_output0)) {
+			if (level)
+				pinctrl_select_state(pinctrl1, pwr_output1);
+			else
+				pinctrl_select_state(pinctrl1, pwr_output0);
+		}
+	} else if (pin == 1) {
 		if (level)
 			pinctrl_select_state(pinctrl1, eint_output1);
 		else
@@ -187,7 +194,7 @@ void tpd_gpio_output(int pin, int level)
 }
 int tpd_get_gpio_info(struct platform_device *pdev)
 {
-	int ret;
+	int ret = 0;
 
 	TPD_DEBUG("[tpd %d] mt_tpd_pinctrl+++++++++++++++++\n", pdev->id);
 	pinctrl1 = devm_pinctrl_get(&pdev->dev);
@@ -201,46 +208,71 @@ int tpd_get_gpio_info(struct platform_device *pdev)
 		ret = PTR_ERR(pins_default);
 		TPD_DMESG("Cannot find pinctrl default %d!\n", ret);
 	}
-	eint_as_int = pinctrl_lookup_state(pinctrl1, "state_eint_as_int");
+
+	eint_as_int = pinctrl_lookup_state(pinctrl1, "ts_int_active");
 	if (IS_ERR(eint_as_int)) {
-		ret = PTR_ERR(eint_as_int);
-		TPD_DMESG("Cannot find pinctrl state_eint_as_int!\n");
-		return ret;
+		eint_as_int = pinctrl_lookup_state(pinctrl1, "state_eint_as_int");
+		if (IS_ERR(eint_as_int)) {
+			ret = PTR_ERR(eint_as_int);
+			TPD_DMESG("Cannot find pinctrl ts_int_active / state_eint_as_int!\n");
+			return ret;
+		}
 	}
-	eint_output0 = pinctrl_lookup_state(pinctrl1, "state_eint_output0");
+
+	eint_output0 = pinctrl_lookup_state(pinctrl1, "ts_int_suspend");
 	if (IS_ERR(eint_output0)) {
-		ret = PTR_ERR(eint_output0);
-		TPD_DMESG("Cannot find pinctrl state_eint_output0!\n");
-		return ret;
+		eint_output0 = pinctrl_lookup_state(pinctrl1, "state_eint_output0");
+		if (IS_ERR(eint_output0)) {
+			ret = PTR_ERR(eint_output0);
+			TPD_DMESG("Cannot find pinctrl ts_int_suspend / state_eint_output0!\n");
+			return ret;
+		}
 	}
-	eint_output1 = pinctrl_lookup_state(pinctrl1, "state_eint_output1");
+
+	eint_output1 = pinctrl_lookup_state(pinctrl1, "ts_eint_high");
 	if (IS_ERR(eint_output1)) {
-		ret = PTR_ERR(eint_output1);
-		TPD_DMESG("Cannot find pinctrl state_eint_output1!\n");
-		return ret;
+		eint_output1 = pinctrl_lookup_state(pinctrl1, "state_eint_output1");
+		if (IS_ERR(eint_output1)) {
+			ret = PTR_ERR(eint_output1);
+			TPD_DMESG("Cannot find pinctrl ts_eint_high / state_eint_output1!\n");
+			return ret;
+		}
 	}
-	pins_spi_mode = pinctrl_lookup_state(pinctrl1, "state_spi_mode");
+
+	pins_spi_mode = pinctrl_lookup_state(pinctrl1, "ts_i2c_mode");
 	if (IS_ERR(pins_spi_mode)) {
-		ret = PTR_ERR(pins_spi_mode);
-		TPD_DMESG("Cannot find pinctrl state_spi_mode!\n");
-		return ret;
+		pins_spi_mode = pinctrl_lookup_state(pinctrl1, "state_spi_mode");
+		if (IS_ERR(pins_spi_mode)) {
+			ret = PTR_ERR(pins_spi_mode);
+			TPD_DMESG("Cannot find pinctrl ts_i2c_mode / state_spi_mode!\n");
+		}
 	}
+
 	if (tpd_dts_data.tpd_use_ext_gpio == false) {
-		rst_output0 =
-			pinctrl_lookup_state(pinctrl1, "state_rst_output0");
+		rst_output0 = pinctrl_lookup_state(pinctrl1, "ts_reset_suspend");
 		if (IS_ERR(rst_output0)) {
-			ret = PTR_ERR(rst_output0);
-			TPD_DMESG("Cannot find pinctrl state_rst_output0!\n");
-			return ret;
+			rst_output0 = pinctrl_lookup_state(pinctrl1, "state_rst_output0");
+			if (IS_ERR(rst_output0)) {
+				ret = PTR_ERR(rst_output0);
+				TPD_DMESG("Cannot find pinctrl ts_reset_suspend / state_rst_output0!\n");
+				return ret;
+			}
 		}
-		rst_output1 =
-			pinctrl_lookup_state(pinctrl1, "state_rst_output1");
+
+		rst_output1 = pinctrl_lookup_state(pinctrl1, "ts_reset_active");
 		if (IS_ERR(rst_output1)) {
-			ret = PTR_ERR(rst_output1);
-			TPD_DMESG("Cannot find pinctrl state_rst_output1!\n");
-			return ret;
+			rst_output1 = pinctrl_lookup_state(pinctrl1, "state_rst_output1");
+			if (IS_ERR(rst_output1)) {
+				ret = PTR_ERR(rst_output1);
+				TPD_DMESG("Cannot find pinctrl ts_reset_active / state_rst_output1!\n");
+				return ret;
+			}
 		}
 	}
+
+	pwr_output0 = pinctrl_lookup_state(pinctrl1, "state_power_output0");
+	pwr_output1 = pinctrl_lookup_state(pinctrl1, "state_power_output1");
+
 	TPD_DEBUG("[tpd%d] mt_tpd_pinctrl----------\n", pdev->id);
 	return 0;
 }

@@ -287,6 +287,15 @@ void ilitek_plat_irq_unregister(void)
 	devm_free_irq(idev->dev, idev->irq_num, NULL);
 }
 
+static const struct of_device_id tp_match_table[] = {
+	{.compatible = DTS_OF_NAME},
+	{.compatible = "goodix,touch"},
+	{.compatible = "mediatek,touch"},
+	{.compatible = "mediatek,cap_touch3"},
+	{.compatible = "mediatek,cap_touch"},
+	{},
+};
+
 int ilitek_plat_irq_register(int type)
 {
 	int ret = 0;
@@ -296,9 +305,14 @@ int ilitek_plat_irq_register(int type)
 	atomic_set(&idev->irq_stat, DISABLE);
 
 	if (get_irq_pin == false) {
-		node = of_find_matching_node(NULL, touch_of_match);
+		node = of_find_node_by_name(NULL, "touch");
+		if (!node)
+			node = of_find_matching_node(NULL, tp_match_table);
 		if (node)
 			idev->irq_num = irq_of_parse_and_map(node, 0);
+
+		if (idev->irq_num <= 0)
+			idev->irq_num = gpio_to_irq(0);
 
 		ipio_info("idev->irq_num = %d\n", idev->irq_num);
 		get_irq_pin = true;
@@ -390,12 +404,6 @@ static const struct dev_pm_ops tp_pm_ops = {
 	.resume = ilitek_tp_pm_resume,
 };
 
-static const struct of_device_id tp_match_table[] = {
-	{.compatible = DTS_OF_NAME},
-	{.compatible = "mediatek,cap_touch3"},
-	{.compatible = "mediatek,cap_touch"},
-	{},
-};
 
 #ifdef ROI
 struct ts_device_ops ilitek_ops = {

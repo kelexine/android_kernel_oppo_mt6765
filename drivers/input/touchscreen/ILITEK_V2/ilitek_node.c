@@ -1591,7 +1591,9 @@ static ssize_t ilitek_node_ioctl_write(struct file *filp, const char *buff, size
 		ipio_info("debug flag message = %d\n", idev->dnp);
 	} else if (strncmp(cmd, "spiclk", strlen(cmd)) == 0) {
 		ipio_info("spi clk num = %d\n", data[1]);
+#if (TDDI_INTERFACE == BUS_SPI)
 		core_spi_setup(data[1]);
+#endif
 	} else if (strncmp(cmd, "ss", strlen(cmd)) == 0) {
 		ipio_info("sense_stop = %d\n", data[1]);
 		idev->ss_ctrl = data[1];
@@ -2495,9 +2497,73 @@ static int netlink_init(void)
 	return ret;
 }
 
+static ssize_t proc_double_tap_enable_read(struct file *file, char __user *buff, size_t count, loff_t *ppos)
+{
+	char str[16];
+	int len;
+
+	if (!idev)
+		return -ENODEV;
+
+	len = snprintf(str, sizeof(str), "%d\n", idev->gesture ? 1 : 0);
+	return simple_read_from_buffer(buff, count, ppos, str, len);
+}
+
+static ssize_t proc_double_tap_enable_write(struct file *file, const char __user *buff, size_t count, loff_t *ppos)
+{
+	char str[16] = {0};
+	int enable = 0;
+
+	if (!idev)
+		return -ENODEV;
+	if (count >= sizeof(str))
+		return -EINVAL;
+	if (copy_from_user(str, buff, count))
+		return -EFAULT;
+
+	if (kstrtoint(strstrip(str), 10, &enable))
+		return -EINVAL;
+
+	idev->gesture = enable ? ENABLE : DISABLE;
+	ipio_info("DT2W gesture set to: %d\n", idev->gesture);
+	return count;
+}
+
+static const struct file_operations proc_double_tap_enable_fops = {
+	.owner = THIS_MODULE,
+	.read = proc_double_tap_enable_read,
+	.write = proc_double_tap_enable_write,
+};
+
+static ssize_t double_tap_enable_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+{
+	if (!idev)
+		return -ENODEV;
+	return sprintf(buf, "%d\n", idev->gesture ? 1 : 0);
+}
+
+static ssize_t double_tap_enable_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	int enable = 0;
+
+	if (!idev)
+		return -ENODEV;
+	if (kstrtoint(strstrip((char *)buf), 10, &enable))
+		return -EINVAL;
+
+	idev->gesture = enable ? ENABLE : DISABLE;
+	ipio_info("DT2W sysfs set gesture to: %d\n", idev->gesture);
+	return count;
+}
+
+static struct kobj_attribute double_tap_enable_attr =
+	__ATTR(double_tap_enable, 0664, double_tap_enable_show, double_tap_enable_store);
+
 void ilitek_tddi_node_init(void)
 {
 	int i = 0, size;
+	struct proc_dir_entry *proc_touchpanel;
+	struct kobject *android_touch_kobj;
 
 	proc_dir_ilitek = proc_mkdir("ilitek", NULL);
 
@@ -2513,5 +2579,17 @@ void ilitek_tddi_node_init(void)
 			ipio_info("Succeed to create %s under /proc\n", proc_table[i].name);
 		}
 	}
+
+	proc_touchpanel = proc_mkdir("touchpanel", NULL);
+	if (proc_touchpanel)
+		proc_create("double_tap_enable", 0664, proc_touchpanel, &proc_double_tap_enable_fops);
+	if (proc_dir_ilitek)
+		proc_create("double_tap_enable", 0664, proc_dir_ilitek, &proc_double_tap_enable_fops);
+
+	android_touch_kobj = kobject_create_and_add("android_touch", NULL);
+	if (android_touch_kobj)
+		sysfs_create_file(android_touch_kobj, &double_tap_enable_attr.attr);
+
 	netlink_init();
 }
+

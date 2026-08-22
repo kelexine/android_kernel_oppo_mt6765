@@ -998,8 +998,11 @@ int ilitek_tddi_ic_check_busy(int count, int delay)
 	ipio_info("read byte = %x, delay = %d\n", rby, delay);
 
 	do {
-		if (idev->wrapper(&cmd, sizeof(cmd), &busy, sizeof(busy), ON, OFF) < 0)
+		if (idev->wrapper(&cmd, sizeof(cmd), &busy, sizeof(busy), ON, OFF) < 0) {
 			ipio_err("Read check busy failed\n");
+			if (idev->tp_suspend)
+				return -EIO;
+		}
 
 		ipio_debug("busy = 0x%x\n", busy);
 

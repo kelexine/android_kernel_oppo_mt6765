@@ -1,4 +1,4 @@
-BUILD_INFAE := spi
+BUILD_INFAE := i2c
 BUILD_PLATFORM := mtk
 BUILD_MODULE := n
 
