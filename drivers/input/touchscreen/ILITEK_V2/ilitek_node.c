@@ -2564,6 +2564,7 @@ DEFINE_GESTURE_PROC_SYSFS(letter_v_enable, alphabet_V)
 DEFINE_GESTURE_PROC_SYSFS(letter_o_enable, alphabet_O)
 DEFINE_GESTURE_PROC_SYSFS(letter_s_enable, alphabet_S)
 DEFINE_GESTURE_PROC_SYSFS(letter_z_enable, alphabet_Z)
+DEFINE_GESTURE_PROC_SYSFS(letter_f_enable, alphabet_F)
 
 static ssize_t proc_coordinate_read(struct file *file, char __user *buff, size_t count, loff_t *ppos)
 {
@@ -2628,6 +2629,7 @@ void ilitek_tddi_node_init(void)
 		proc_create("letter_o_enable", 0664, proc_touchpanel, &proc_letter_o_enable_fops);
 		proc_create("letter_s_enable", 0664, proc_touchpanel, &proc_letter_s_enable_fops);
 		proc_create("letter_z_enable", 0664, proc_touchpanel, &proc_letter_z_enable_fops);
+		proc_create("letter_f_enable", 0664, proc_touchpanel, &proc_letter_f_enable_fops);
 		proc_create("coordinate", 0444, proc_touchpanel, &proc_coordinate_fops);
 	}
 
@@ -2652,6 +2654,7 @@ void ilitek_tddi_node_init(void)
 		sysfs_create_file(android_touch_kobj, &letter_o_enable_attr.attr);
 		sysfs_create_file(android_touch_kobj, &letter_s_enable_attr.attr);
 		sysfs_create_file(android_touch_kobj, &letter_z_enable_attr.attr);
+		sysfs_create_file(android_touch_kobj, &letter_f_enable_attr.attr);
 	}
 
 	netlink_init();

@@ -169,9 +169,9 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0xF1, 2, {0x5A, 0x59}},
 	{0xF0, 2, {0xA5, 0xA6}},
 	{0x35, 1, {0x00}},
-	{0x11, 1, {0x00}},
+	{0x11, 0, {0x00}}, /* DCS Sleep Out: 0 parameter */
 	{REGFLAG_DELAY, 120, { }},
-	{0x29, 1, {0x00}},
+	{0x29, 0, {0x00}}, /* DCS Display ON: 0 parameter */
 	{REGFLAG_DELAY, 10, { }},
 	{0x26, 1, {0x01}},
 	{REGFLAG_DELAY, 5, { }},
@@ -219,22 +219,26 @@ static void push_table(struct LCM_setting_table *table, unsigned int count,
  * ---------------------------------------------------------------------- */
 static void lcm_init_power(void)
 {
+	pr_info("[LCM] icnl9911_boe621: lcm_init_power (enabling bias)\n");
 	display_bias_enable();
 }
 
 static void lcm_suspend_power(void)
 {
+	pr_info("[LCM] icnl9911_boe621: lcm_suspend_power (disabling bias)\n");
 	display_bias_disable();
 }
 
 static void lcm_resume_power(void)
 {
+	pr_info("[LCM] icnl9911_boe621: lcm_resume_power (enabling bias)\n");
 	display_bias_enable();
 	MDELAY(20);
 }
 
 static void lcm_init(void)
 {
+	pr_info("[LCM] icnl9911_boe621: lcm_init start\n");
 	panel2_gpio_set(GPIO_PANEL2_POWER_EN, 1);
 	MDELAY(20);
 	MDELAY(20);
@@ -249,10 +253,12 @@ static void lcm_init(void)
 	push_table(lcm_initialization_setting,
 		   sizeof(lcm_initialization_setting) / sizeof(struct LCM_setting_table),
 		   1);
+	pr_info("[LCM] icnl9911_boe621: lcm_init complete\n");
 }
 
 static void lcm_suspend(void)
 {
+	pr_info("[LCM] icnl9911_boe621: lcm_suspend\n");
 	push_table(lcm_suspend_setting,
 		   sizeof(lcm_suspend_setting) / sizeof(struct LCM_setting_table),
 		   1);
@@ -261,6 +267,7 @@ static void lcm_suspend(void)
 
 static void lcm_resume(void)
 {
+	pr_info("[LCM] icnl9911_boe621: lcm_resume\n");
 	lcm_init();
 }
 

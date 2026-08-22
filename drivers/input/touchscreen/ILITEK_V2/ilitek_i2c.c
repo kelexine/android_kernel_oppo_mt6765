@@ -123,6 +123,11 @@ static int ilitek_i2c_probe(struct i2c_client *client, const struct i2c_device_i
 {
 	struct touch_bus_info *info;
 
+	if (tpd_load_status || idev != NULL) {
+		ipio_info("Touch driver already initialized, skipping secondary node (addr 0x%02x)\n", client->addr);
+		return -EBUSY;
+	}
+
 	ipio_info("ilitek i2c probe, addr = 0x%02x\n", client->addr);
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {

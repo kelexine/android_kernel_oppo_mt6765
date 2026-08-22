@@ -1063,6 +1063,8 @@ struct disp_lcm_handle *disp_lcm_probe(char *plcm_name,
 	struct disp_lcm_handle *plcm = NULL;
 
 	DISPFUNC();
+	pr_info("[DISP_LCM] disp_lcm_probe: plcm_name=%s, count=%d, is_lcm_inited=%d\n",
+		plcm_name ? plcm_name : "(null)", _lcm_count(), is_lcm_inited);
 	DISPCHECK("plcm_name=%s is_lcm_inited %d\n", plcm_name, is_lcm_inited);
 
 #if defined(MTK_LCM_DEVICE_TREE_SUPPORT)
@@ -1070,8 +1072,8 @@ struct disp_lcm_handle *disp_lcm_probe(char *plcm_name,
 		lcm_drv = &lcm_common_drv;
 		lcm_drv->name = lcm_name_list[0];
 		if (strcmp(lcm_drv->name, plcm_name)) {
-			DISPERR(
-				"FATAL ERROR!!!LCM Driver defined in kernel(%s) is different with LK(%s)\n",
+			pr_err(
+				"[DISP_LCM] FATAL ERROR!!! LCM Driver defined in kernel(%s) is different with LK(%s)\n",
 			     lcm_drv->name, plcm_name);
 			return NULL;
 		}
@@ -1083,14 +1085,14 @@ struct disp_lcm_handle *disp_lcm_probe(char *plcm_name,
 		if (!is_lcm_inited) {
 			isLCMFound = true;
 			isLCMInited = false;
-			DISPCHECK("LCM not init\n");
+			pr_info("[DISP_LCM] LCM not init\n");
 		}
 
 		lcmindex = 0;
 	} else
 #endif
 	if (_lcm_count() == 0) {
-		DISPERR("no lcm driver defined in linux kernel driver\n");
+		pr_err("[DISP_LCM] no lcm driver defined in linux kernel driver\n");
 		return NULL;
 	} else if (_lcm_count() == 1) {
 		if (plcm_name == NULL) {
@@ -1098,12 +1100,12 @@ struct disp_lcm_handle *disp_lcm_probe(char *plcm_name,
 
 			isLCMFound = true;
 			isLCMInited = false;
-			DISPCHECK("LCM Name NULL\n");
+			pr_info("[DISP_LCM] LCM Name NULL, fallback to %s\n", lcm_drv->name);
 		} else {
 			lcm_drv = lcm_driver_list[0];
 			if (strcmp(lcm_drv->name, plcm_name)) {
-				DISPERR(
-					"FATAL ERROR!!!LCM Driver defined in kernel(%s) is different with LK(%s)\n",
+				pr_err(
+					"[DISP_LCM] FATAL ERROR!!! LCM Driver defined in kernel(%s) is different with LK(%s)\n",
 				    lcm_drv->name, plcm_name);
 				return NULL;
 			}
@@ -1115,40 +1117,45 @@ struct disp_lcm_handle *disp_lcm_probe(char *plcm_name,
 		if (!is_lcm_inited) {
 			isLCMFound = true;
 			isLCMInited = false;
-			DISPCHECK("LCM not init\n");
+			pr_info("[DISP_LCM] LCM not init\n");
 		}
 
 		lcmindex = 0;
 	} else {
 		if (plcm_name == NULL) {
-			/* TODO: we need to detect all the lcm driver */
+			/* fallback to first driver if name is null */
+			lcm_drv = lcm_driver_list[0];
+			isLCMFound = true;
+			isLCMInited = false;
+			lcmindex = 0;
+			pr_info("[DISP_LCM] plcm_name is NULL with multiple drivers, defaulting to %s\n", lcm_drv->name);
 		} else {
 			int i = 0;
 
 			for (i = 0; i < _lcm_count(); i++) {
 				lcm_drv = lcm_driver_list[i];
-				DISPERR("lcm driver:%s\n", lcm_drv->name);
+				pr_info("[DISP_LCM] candidate [%d]: %s (target: %s)\n", i, lcm_drv->name, plcm_name);
 				if (!strcmp(lcm_drv->name, plcm_name)) {
 					isLCMFound = true;
 					isLCMInited = true;
 					lcmindex = i;
+					pr_info("[DISP_LCM] matched candidate [%d]: %s\n", i, lcm_drv->name);
 					break;
 				}
 			}
 			if (!isLCMFound) {
-				DISPERR(
-					"FATAL ERROR: can't found lcm driver:%s in linux kernel driver\n",
+				pr_err(
+					"[DISP_LCM] FATAL ERROR: can't found lcm driver:%s in linux kernel driver\n",
 				    plcm_name);
 			} else if (!is_lcm_inited) {
 				isLCMInited = false;
-				DISPCHECK("LCM not init\n");
+				pr_info("[DISP_LCM] LCM not init\n");
 			}
 		}
-		/* TODO: */
 	}
 
 	if (isLCMFound == false) {
-		DISPERR("FATAL ERROR!!!No LCM Driver defined\n");
+		pr_err("[DISP_LCM] FATAL ERROR!!! No LCM Driver found for %s\n", plcm_name ? plcm_name : "(null)");
 		return NULL;
 	}
 
@@ -1313,26 +1320,28 @@ int disp_lcm_init(struct disp_lcm_handle *plcm, int force)
 	DISPFUNC();
 
 	if (!_is_lcm_inited(plcm)) {
-		DISPERR("plcm is null\n");
+		pr_err("[DISP_LCM] disp_lcm_init: plcm is null\n");
 		return -1;
 	}
 
 	lcm_drv = plcm->drv;
+	pr_info("[DISP_LCM] disp_lcm_init: driver=%s, inited=%d, force=%d\n",
+		lcm_drv->name, disp_lcm_is_inited(plcm), force);
 
 	if (lcm_drv->init_power) {
 		if (!disp_lcm_is_inited(plcm) || force) {
-			DISPMSG("lcm init power()\n");
+			pr_info("[DISP_LCM] calling lcm init_power()\n");
 			lcm_drv->init_power();
 		}
 	}
 
 	if (lcm_drv->init) {
 		if (!disp_lcm_is_inited(plcm) || force) {
-			DISPMSG("lcm init()\n");
+			pr_info("[DISP_LCM] calling lcm init()\n");
 			lcm_drv->init();
 		}
 	} else {
-		DISPERR("FATAL ERROR, lcm_drv->init is null\n");
+		pr_err("[DISP_LCM] FATAL ERROR, lcm_drv->init is null\n");
 		return -1;
 	}
 
@@ -1432,10 +1441,11 @@ int disp_lcm_suspend(struct disp_lcm_handle *plcm)
 	DISPFUNC();
 	if (_is_lcm_inited(plcm)) {
 		lcm_drv = plcm->drv;
+		pr_info("[DISP_LCM] disp_lcm_suspend: driver=%s\n", lcm_drv->name);
 		if (lcm_drv->suspend) {
 			lcm_drv->suspend();
 		} else {
-			DISPERR("FATAL ERROR, lcm_drv->suspend is null\n");
+			pr_err("[DISP_LCM] FATAL ERROR, lcm_drv->suspend is null\n");
 			return -1;
 		}
 
@@ -1443,7 +1453,7 @@ int disp_lcm_suspend(struct disp_lcm_handle *plcm)
 			lcm_drv->suspend_power();
 		return 0;
 	}
-	DISPERR("lcm_drv is null\n");
+	pr_err("[DISP_LCM] disp_lcm_suspend: lcm_drv is null\n");
 	return -1;
 }
 
@@ -1453,12 +1463,13 @@ int disp_lcm_shutdown(struct disp_lcm_handle *plcm)
 	DISPFUNC();
 	if (_is_lcm_inited(plcm)) {
 		lcm_drv = plcm->drv;
+		pr_info("[DISP_LCM] disp_lcm_shutdown: driver=%s\n", lcm_drv->name);
 		if (lcm_drv->suspend_power) {
 			lcm_drv->suspend_power();
 		}
 		return 0;
 	}
-	DISPERR("lcm_drv is null\n");
+	pr_err("[DISP_LCM] disp_lcm_shutdown: lcm_drv is null\n");
 	return -1;
 }
 
@@ -1469,6 +1480,7 @@ int disp_lcm_resume(struct disp_lcm_handle *plcm)
 	DISPFUNC();
 	if (_is_lcm_inited(plcm)) {
 		lcm_drv = plcm->drv;
+		pr_info("[DISP_LCM] disp_lcm_resume: driver=%s\n", lcm_drv->name);
 
 		if (lcm_drv->resume_power)
 			lcm_drv->resume_power();
@@ -1477,13 +1489,13 @@ int disp_lcm_resume(struct disp_lcm_handle *plcm)
 		if (lcm_drv->resume) {
 			lcm_drv->resume();
 		} else {
-			DISPERR("FATAL ERROR, lcm_drv->resume is null\n");
+			pr_err("[DISP_LCM] FATAL ERROR, lcm_drv->resume is null\n");
 			return -1;
 		}
 
 		return 0;
 	}
-	DISPERR("lcm_drv is null\n");
+	pr_err("[DISP_LCM] disp_lcm_resume: lcm_drv is null\n");
 	return -1;
 }
 

@@ -36,3 +36,6 @@ __weak void oppo_init_sensor_state(void) {}
 __weak bool oppo_daily_build(void) { return false; }
 __weak void print_utc_time(void) {}
 __weak int sysctl_slide_boost_enabled = 0;
+__weak void mm_keylog_write(const char *logmessage, const char *cause, int id) {}
+__weak void mm_keylog_write_modemdump(unsigned int hashId, const char *cause, int id) {}
+

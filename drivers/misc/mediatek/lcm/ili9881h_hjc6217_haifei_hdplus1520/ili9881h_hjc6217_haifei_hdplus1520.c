@@ -5,7 +5,7 @@
  * Target: Cubot P50 (MT6765, Kernel 4.19.127)
  * Purpose: LCM driver for ILI9881H-based HD+ (720x1520) DSI panel (Source #1).
  *
- * Driver written from stock vmlinux.elf decompilation via Ghidra
+ * Driver decompiled from stock vmlinux.elf via Ghidra / objdump
  * (addresses: 0xffffff8008735234 - 0xffffff80087355bc).
  */
 
@@ -24,7 +24,7 @@
 #endif
 
 /* ------------------------------------------------------------------------
- * Panel Geometry & Identification (Verified via Ghidra from stock vmlinux)
+ * Panel Geometry & Identification (Verified from stock vmlinux)
  * ---------------------------------------------------------------------- */
 #define FRAME_WIDTH             (720)
 #define FRAME_HEIGHT            (1520)
@@ -37,11 +37,6 @@
 
 #define LCM_ID_ILI9881H         (0x98)
 
-/* ------------------------------------------------------------------------
- * Bias rail (5.4V positive & negative DSV rails)
- * ---------------------------------------------------------------------- */
-#define DSV_BIAS_UV             (5400000)
-
 #define REGFLAG_DELAY           0xFFFC
 #define REGFLAG_UDELAY          0xFFFB
 #define REGFLAG_END_OF_TABLE    0xFFFD
@@ -53,8 +48,6 @@ struct LCM_setting_table {
 	unsigned char count;
 	unsigned char para_list[64];
 };
-
-
 
 /* ------------------------------------------------------------------------
  * MediaTek LCM util glue
@@ -119,12 +112,12 @@ static void lcm_get_params(struct LCM_PARAMS *params)
 }
 
 /* ------------------------------------------------------------------------
- * 181-entry register initialization table gotten from stock vmlinux
+ * 181-entry register initialization table directly from stock vmlinux
  * ---------------------------------------------------------------------- */
 static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0xFF, 3, {0x98, 0x81, 0x00}},
 	{0x11, 1, {0x00}},
-	{REGFLAG_DELAY, 120, { }},
+	{REGFLAG_DELAY, 120, {}},
 	{0xFF, 3, {0x98, 0x81, 0x01}},
 	{0x00, 1, {0x46}},
 	{0x01, 1, {0x16}},
@@ -243,7 +236,7 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0xA7, 1, {0x00}},
 	{0xA8, 1, {0x00}},
 	{0xA9, 1, {0x09}},
-	{REGFLAG_END_OF_TABLE, 0x00, { }},
+	{REGFLAG_END_OF_TABLE, 1, {}},
 	{0xB9, 1, {0x40}},
 	{0xD0, 1, {0x01}},
 	{0xD1, 1, {0x00}},
@@ -301,9 +294,10 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0x35, 1, {0x00}},
 	{0x36, 1, {0x00}},
 	{0x29, 1, {0x00}},
-	{REGFLAG_DELAY, 20, { }},
-	{REGFLAG_END_OF_TABLE, 0x00, { }},
+	{REGFLAG_DELAY, 20, {}},
+	{REGFLAG_END_OF_TABLE, 0, {}},
 };
+
 
 static void push_table(struct LCM_setting_table *table, unsigned int count,
 			unsigned char force_update)
@@ -313,26 +307,23 @@ static void push_table(struct LCM_setting_table *table, unsigned int count,
 	for (i = 0; i < count; i++) {
 		unsigned int cmd = table[i].cmd;
 
-		switch (cmd) {
-		case REGFLAG_END_OF_TABLE:
+		if (cmd == REGFLAG_END_OF_TABLE || cmd == 0xAA)
 			continue;
-		case REGFLAG_DELAY:
-			MDELAY(table[i].count);
-			continue;
-		case REGFLAG_UDELAY:
+		else if (cmd == REGFLAG_UDELAY || cmd == 0xFFFB)
 			UDELAY(table[i].count);
-			continue;
-		default:
+		else if (cmd == REGFLAG_DELAY || cmd == 0xAB || cmd == 0xFFFC)
+			MDELAY(table[i].count);
+		else
 			dsi_set_cmdq_V2(cmd, table[i].count, table[i].para_list, force_update);
-		}
 	}
 }
 
 /* ------------------------------------------------------------------------
- * Power & Lifecycle sequencing (from stock vmlinux)
+ * Power & Lifecycle sequencing (matching stock vmlinux)
  * ---------------------------------------------------------------------- */
 static void lcm_init_power(void)
 {
+	pr_info("[LCM] ili9881h_hjc6217: lcm_init_power (enabling bias)\n");
 	SET_RESET_PIN(0);
 	MDELAY(30);
 	display_bias_enable();
@@ -340,11 +331,13 @@ static void lcm_init_power(void)
 
 static void lcm_suspend_power(void)
 {
+	pr_info("[LCM] ili9881h_hjc6217: lcm_suspend_power (disabling bias)\n");
 	display_bias_disable();
 }
 
 static void lcm_resume_power(void)
 {
+	pr_info("[LCM] ili9881h_hjc6217: lcm_resume_power (enabling bias)\n");
 	SET_RESET_PIN(0);
 	MDELAY(30);
 	display_bias_enable();
@@ -353,6 +346,7 @@ static void lcm_resume_power(void)
 
 static void lcm_init(void)
 {
+	pr_info("[LCM] ili9881h_hjc6217: lcm_init start\n");
 	SET_RESET_PIN(1);
 	MDELAY(10);
 	SET_RESET_PIN(0);
@@ -361,22 +355,33 @@ static void lcm_init(void)
 	MDELAY(120);
 
 	push_table(lcm_initialization_setting,
-		   sizeof(lcm_initialization_setting) / sizeof(struct LCM_setting_table),
+		   ARRAY_SIZE(lcm_initialization_setting),
 		   1);
+	pr_info("[LCM] ili9881h_hjc6217: lcm_init complete\n");
 }
 
 static void lcm_suspend(void)
 {
-	SET_RESET_PIN(0);
+	unsigned int cmd_data;
+
+	pr_info("[LCM] ili9881h_hjc6217: lcm_suspend (DCS 0x28 Display OFF -> DCS 0x10 Sleep IN)\n");
+	cmd_data = 0x00280500; /* DCS 0x28 Display OFF */
+	dsi_set_cmdq(&cmd_data, 1, 1);
+	MDELAY(10);
+
+	cmd_data = 0x00100500; /* DCS 0x10 Sleep IN */
+	dsi_set_cmdq(&cmd_data, 1, 1);
+	MDELAY(120);
 }
 
 static void lcm_resume(void)
 {
+	pr_info("[LCM] ili9881h_hjc6217: lcm_resume\n");
 	lcm_init();
 }
 
 /* ------------------------------------------------------------------------
- * ID Compare: Select Page 6, read reg 0xF0 == 0x98
+ * ID Compare: Select Page 6, read reg 0xF0 == 0x98 (stock vmlinux)
  * ---------------------------------------------------------------------- */
 static unsigned int lcm_compare_id(void)
 {
@@ -394,6 +399,9 @@ static unsigned int lcm_compare_id(void)
 	MDELAY(10);
 
 	read_reg_v2(0xF0, id_buf, 1);
+
+	pr_info("[LCM] ili9881h_hjc6217: lcm_compare_id read: 0x%02X (expected: 0x%02X)\n",
+		id_buf[0], LCM_ID_ILI9881H);
 
 	return (id_buf[0] == LCM_ID_ILI9881H) ? 1 : 0;
 }

@@ -1,0 +1,3 @@
+[submodule "MySU"]
+	path = MySU
+	url = https://github.com/kelexine/MySU.git

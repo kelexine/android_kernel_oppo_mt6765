@@ -3,7 +3,7 @@
 #obj-$(CONFIG_OPPO_DEVICE_IFNO)  +=  oppo_devinfo/
 obj-$(CONFIG_OPPO_ALS_CALI)   +=  oppo_als_cali_value/
 
-obj-y += oppo_custom/
+#obj-y += oppo_custom/
 obj-y += oppo_stubs.o
 #obj-$(CONFIG_OPPO_HYPNUS)       +=  oppo_hypnus/
 
@@ -11,7 +11,7 @@ obj-y += oppo_stubs.o
 #endif /* VENDOR_EDIT */
 #ifdef VENDOR_EDIT
 #obj-$(CONFIG_OPPO_CRITICALLOG)  +=  oppo_criticallog/
-obj-y     +=  oppo_criticallog/
+#obj-y     +=  oppo_criticallog/
 
 #obj-$(CONFIG_OPPO_PHOENIX)     +=  oppo_phoenix/
 #endif /* VENDOR_EDIT */

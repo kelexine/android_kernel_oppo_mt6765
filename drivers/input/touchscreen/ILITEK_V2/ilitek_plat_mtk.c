@@ -241,10 +241,22 @@ out:
 
 static irqreturn_t ilitek_plat_isr_top_half(int irq, void *dev_id)
 {
+	if (unlikely(idev->irq_num == 0)) {
+		/*
+		 * irq_of_parse_and_map() failed (no 'interrupts' property in
+		 * the touch DTS node) and gpio_to_irq() somehow returned 0.
+		 * Latch the real IRQ number from the hardware-delivered value
+		 * so subsequent invocations pass the check below.
+		 */
+		idev->irq_num = irq;
+		ipio_info("irq_num was 0; latched to %d from hardware\n", irq);
+	}
+
 	if (irq != idev->irq_num) {
 		ipio_err("Incorrect irq number (%d)\n", irq);
 		return IRQ_NONE;
 	}
+
 
 	if (atomic_read(&idev->cmd_int_check) == ENABLE) {
 		atomic_set(&idev->cmd_int_check, DISABLE);
@@ -320,7 +332,7 @@ int ilitek_plat_irq_register(int type)
 			idev->irq_num = irq_of_parse_and_map(node, 0);
 
 		if (idev->irq_num <= 0)
-			idev->irq_num = gpio_to_irq(0);
+			idev->irq_num = gpio_to_irq(MTK_INT_GPIO); /* GPIO 17 / EINT 17 */
 
 		ipio_info("idev->irq_num = %d\n", idev->irq_num);
 		get_irq_pin = true;
