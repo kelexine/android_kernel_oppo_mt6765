@@ -1966,14 +1966,7 @@ static int mtk_disp_mgr_probe(struct platform_device *pdev)
 	    mtk_disp_mgr_devno, NULL,
 						 DISP_SESSION_DEVICE);
 
-#ifdef OPLUS_BUG_STABILITY
-	if ((oppo_boot_mode == OPPO_SILENCE_BOOT)
-			||(get_boot_mode() == OPPO_SAU_BOOT)) {
-		printk("%s OPLUS_SILENCE_BOOT set silence_mode to 1\n", __func__);
-		silence_mode = 1;
-		fp_silence_mode = 1;
-	}
-#endif /* OPLUS_BUG_STABILITY */
+
 
 	disp_sync_init();
 

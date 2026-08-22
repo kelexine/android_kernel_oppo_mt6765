@@ -605,10 +605,17 @@ struct LCM_DSI_PARAMS {
 	unsigned int horizontal_blanking_pixel;
 	unsigned int horizontal_active_pixel;
 	unsigned int horizontal_bllp;
-//ifdef OPLUS_BUG_STABILITY
+	/*
+	 * Note (Cubot P50 / MTK Stock Alignment):
+	 * Do NOT define CONFIG_OPLUS_BUG_STABILITY here.
+	 * Adding horizontal_sync_active_ext and horizontal_backporch_ext (8 bytes)
+	 * shifts subsequent fields (including PLL_CLOCK at offset 0x29C) by +8 bytes,
+	 * causing ddp_dsi.c to read 0 for PLL_CLOCK and breaking DSI clock generation.
+	 */
+#ifdef CONFIG_OPLUS_BUG_STABILITY
 	unsigned int horizontal_sync_active_ext;
 	unsigned int horizontal_backporch_ext;
-//#endif
+#endif
 
 	unsigned int line_byte;
 	unsigned int horizontal_sync_active_byte;
@@ -783,12 +790,12 @@ struct LCM_PARAMS {
 	unsigned int min_luminance;
 	unsigned int average_luminance;
 	unsigned int max_luminance;
-//ifdef OPLUS_BUG_STABILITY
+#ifdef CONFIG_OPLUS_BUG_STABILITY
 	int *blmap;
 	int blmap_size;
 	int brightness_max;
 	int brightness_min;
-//#endif
+#endif
 
 	unsigned int hbm_en_time;
 	unsigned int hbm_dis_time;
@@ -1011,11 +1018,11 @@ struct LCM_DRIVER {
 	bool (*get_hbm_wait)(void);
 	bool (*set_hbm_wait)(bool wait);
 	bool (*set_hbm_cmdq)(bool en, void *qhandle);
-//ifdef OPLUS_BUG_STABILITY
+#ifdef CONFIG_OPLUS_BUG_STABILITY
 	void (*set_cabc_mode_cmdq)(void *handle, unsigned int level);
-	void(*set_cabc_cmdq)(void *handle, unsigned int level);
+	void (*set_cabc_cmdq)(void *handle, unsigned int level);
 	void (*get_cabc_status)(int *status);
-//#endif
+#endif
 	void (*set_pwm)(unsigned int divider);
 	unsigned int (*get_pwm)(unsigned int divider);
 	void (*set_backlight_mode)(unsigned int mode);

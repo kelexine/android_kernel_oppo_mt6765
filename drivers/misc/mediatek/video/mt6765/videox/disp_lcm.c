@@ -26,20 +26,7 @@
 /* such as DPI0, DSI0/1 */
 /* static struct disp_lcm_handle _disp_lcm_driver[MAX_LCM_NUMBER]; */
 
-#ifdef OPLUS_BUG_STABILITY
-/*
-* add for lcd status flag
-*/
-#include<soc/oppo/oppo_project.h>
-#include <linux/delay.h>
-bool flag_lcd_off = false;
-#endif /* OPLUS_BUG_STABILITY */
 
-#ifdef OPLUS_BUG_STABILITY
-extern unsigned int backlight_twelve_bit_flag;
-extern unsigned int shutdown_flag;
-extern unsigned int custom_lcm_flag;
-#endif
 
 int _lcm_count(void)
 {
@@ -1454,7 +1441,6 @@ int disp_lcm_suspend(struct disp_lcm_handle *plcm)
 
 		if (lcm_drv->suspend_power)
 			lcm_drv->suspend_power();
-		flag_lcd_off = true;
 		return 0;
 	}
 	DISPERR("lcm_drv is null\n");
@@ -1494,9 +1480,6 @@ int disp_lcm_resume(struct disp_lcm_handle *plcm)
 			DISPERR("FATAL ERROR, lcm_drv->resume is null\n");
 			return -1;
 		}
-//ifdef OPLUS_BUG_STABILITY
-		flag_lcd_off = false;
-//#endif
 
 		return 0;
 	}
@@ -1554,40 +1537,13 @@ int disp_lcm_adjust_fps(void *cmdq, struct disp_lcm_handle *plcm, int fps)
 	return -1;
 }
 
-static int backlight_remapping_into_tddic_reg(struct disp_lcm_handle *plcm, int level_brightness)
-{
-	return level_brightness;
-}
 
-int disp_lcm_oppo_set_lcm_gamma_cmd(struct disp_lcm_handle *plcm, void *handle, unsigned int level)
-{
-	struct LCM_DRIVER *lcm_drv = NULL;
 
-	DISPFUNC();
-	pr_err("check disp_lcm_oppo_set_lcm_gamma_cmd in disp_lcm_c\n");
-	if (_is_lcm_inited(plcm)) {
-		lcm_drv = plcm->drv;
-		if (lcm_drv->set_gamma_mode_cmdq) {
-			lcm_drv->set_gamma_mode_cmdq(handle, level);
-		} else {
-			pr_err("FATAL ERROR, lcm_drv->oppo_set_gamma_mode_cmdq is null\n");
-			return -1;
-		}
 
-		return 0;
-	}
-
-	pr_err("lcm_drv is null\n");
-	return -1;
-}
 
 int disp_lcm_set_backlight(struct disp_lcm_handle *plcm,
 	void *handle, int level)
 {
-//ifdef OPLUS_BUG_STABILITY
-	int level_temp;
-	 static unsigned int ls_level;
-//#endif /* ODM_WT_EDIT */
 	struct LCM_DRIVER *lcm_drv = NULL;
 
 	DISPFUNC();
@@ -1598,28 +1554,10 @@ int disp_lcm_set_backlight(struct disp_lcm_handle *plcm,
 
 	lcm_drv = plcm->drv;
 	if (lcm_drv->set_backlight_cmdq) {
-//ifdef OPLUS_BUG_STABILITY
-		//pr_debug("check disp_lcm_set_backlight level ==%d in disp_lcm \n",level);
-		if(!custom_lcm_flag){
-		    if(ls_level == 0){
-			    msleep(31);
-			    pr_debug("when last backlight is 0 sleep 31ms for d0p between leda times\n");
-		    }
-                }
-		level_temp = backlight_remapping_into_tddic_reg(plcm, level);
-#ifdef OPLUS_BUG_STABILITY
-		if(backlight_twelve_bit_flag)
-			lcm_drv->set_backlight_cmdq(handle, level);
-		else
-			lcm_drv->set_backlight_cmdq(handle, level_temp);
-#endif
-//#else
-//		lcm_drv->set_backlight_cmdq(handle, level);
-//#endif
+		lcm_drv->set_backlight_cmdq(handle, level);
 	} else if (lcm_drv->set_backlight) {
 		lcm_drv->set_backlight(level);
 	}
-	ls_level=level;
 	return 0;
 }
 
@@ -1869,29 +1807,7 @@ int disp_lcm_set_lcm_cmd(struct disp_lcm_handle *plcm, void *cmdq_handle,
 	return -1;
 }
 
-//ifdef OPLUS_BUG_STABILITY
-int disp_lcm_oppo_set_lcm_cabc_cmd(struct disp_lcm_handle *plcm, void *handle, unsigned int level)
-{
-	struct LCM_DRIVER *lcm_drv = NULL;
 
-	DISPFUNC();
-	pr_err("check disp_lcm_oppo_set_lcm_cabc_cmd in disp_lcm_c\n");
-	if (_is_lcm_inited(plcm)) {
-		lcm_drv = plcm->drv;
-		if (lcm_drv->set_cabc_mode_cmdq) {
-			lcm_drv->set_cabc_mode_cmdq(handle, level);
-		} else {
-			pr_err("FATAL ERROR, lcm_drv->oppo_set_cabc_mode_cmdq is null\n");
-			return -1;
-		}
-
-		return 0;
-	}
-
-	pr_err("lcm_drv is null\n");
-	return -1;
-}
-//#endif
 
 int disp_lcm_is_partial_support(struct disp_lcm_handle *plcm)
 {

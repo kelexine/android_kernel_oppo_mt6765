@@ -591,13 +591,6 @@ int mt_mt65xx_led_set_cust(struct cust_mt65xx_led *cust, int level)
 	unsigned int BacklightLevelSupport =
 	    Cust_GetBacklightLevelSupport_byPWM();
 
-#ifdef OPLUS_BUG_STABILITY
-	if (silence_mode) {
-		printk("%s silence_mode is %ld, set backlight to 0\n",__func__, silence_mode);
-		level = 0;
-	}
-#endif /* OPLUS_BUG_STABILITY */
-
 	switch (cust->mode) {
 
 	case MT65XX_LED_MODE_PWM:

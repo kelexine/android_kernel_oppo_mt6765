@@ -8153,93 +8153,7 @@ int primary_display_vsync_switch(int method)
 	return ret;
 }
 
-int _set_gamma_mode_by_cmdq(unsigned int level)
-{
-	int ret = 0;
-	struct cmdqRecStruct *cmdq_handle_lcm_cmd = NULL;
 
-	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 1);
-	ret = cmdqRecCreate(CMDQ_SCENARIO_PRIMARY_DISP, &cmdq_handle_lcm_cmd);
-	DISPDBG("_set_gamma_mode_by_cmdq primary set lcm cmd, handle=%p\n", cmdq_handle_lcm_cmd);
-	if (ret) {
-		pr_err("fail to create primary cmdq handle for _set_gamma_mode_by_cmdq\n");
-		return -1;
-	}
-
-	if (primary_display_is_video_mode()) {
-		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 2);
-		cmdqRecReset(cmdq_handle_lcm_cmd);
-
-			disp_lcm_oppo_set_lcm_gamma_cmd(pgc->plcm, cmdq_handle_lcm_cmd, level);
-
-		_cmdq_flush_config_handle_mira(cmdq_handle_lcm_cmd, 1);
-		DISPCHECK("[CMD]_set_gamma_mode_by_cmdq is_video_mode ret=%d\n", ret);
-	} else {
-		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_bl, MMPROFILE_FLAG_PULSE, 1, 3);
-		cmdqRecReset(cmdq_handle_lcm_cmd);
-		_cmdq_handle_clear_dirty(cmdq_handle_lcm_cmd);
-		_cmdq_insert_wait_frame_done_token_mira(cmdq_handle_lcm_cmd);
-
-		disp_lcm_oppo_set_lcm_gamma_cmd(pgc->plcm, cmdq_handle_lcm_cmd, level);
-		cmdqRecSetEventToken(cmdq_handle_lcm_cmd, CMDQ_SYNC_TOKEN_CONFIG_DIRTY);
-		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 4);
-		_cmdq_flush_config_handle_mira(cmdq_handle_lcm_cmd, 1);
-		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 6);
-		DISPCHECK("[CMD]_set_gamma_mode_by_cmdq is_cmd_mode ret=%d\n", ret);
-	}
-	cmdqRecDestroy(cmdq_handle_lcm_cmd);
-	cmdq_handle_lcm_cmd = NULL;
-	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 5);
-	return ret;
-}
-
-int primary_display_set_gamma_mode(unsigned int level)
-{
-	int ret = 0;
-
-	pr_err("%s check primary_display_set_gamma_mode\n", __func__);
-	if (flag_lcd_off)
-	{
-		pr_err("lcd is off,don't allow to set gamma\n");
-		return 0;
-	}
-
-	DISPFUNC();
-	if (disp_helper_get_stage() != DISP_HELPER_STAGE_NORMAL) {
-		DISPMSG("%s skip due to stage %s\n", __func__, disp_helper_stage_spy());
-		return 0;
-	}
-
-	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_START, 0, 0);
-
-	_primary_path_switch_dst_lock();
-	_primary_path_lock(__func__);
-
-
-	if (pgc->state == DISP_SLEPT) {
-		DISPCHECK("Sleep State set backlight invalid\n");
-	} else {
-		primary_display_idlemgr_kick(__func__, 0);
-		if (primary_display_cmdq_enabled()) {
-			if (primary_display_is_video_mode()) {
-				mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd,
-						 MMPROFILE_FLAG_PULSE, 0, 7);
-				_set_gamma_mode_by_cmdq(level);
-			} else {
-				_set_gamma_mode_by_cmdq(level);
-			}
-		} else {
-			/* cpu */
-		}
-	}
-
-	_primary_path_unlock(__func__);
-	_primary_path_switch_dst_unlock();
-
-	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_END, 0, 0);
-
-	return ret;
-}
 
 int _set_backlight_by_cmdq(unsigned int level)
 {
@@ -8384,25 +8298,23 @@ static int _primary_display_set_lcm_hbm(bool en)
 		_cmdq_flush_config_handle_mira(qhandle_hbm, 1);
 	}
 	*/
-	//#else /* OPLUS_FEATURE_RAMLESS_AOD */
 	if (!primary_display_is_video_mode()) {
 		cmdqRecReset(qhandle_hbm);
 		cmdqRecWait(qhandle_hbm, CMDQ_SYNC_TOKEN_CABC_EOF);
 		_cmdq_handle_clear_dirty(qhandle_hbm);
 
 		_cmdq_insert_wait_frame_done_token_mira(qhandle_hbm);
-		mtk_disp_lcm_set_hbm(en, pgc->plcm, qhandle_hbm);
+		disp_lcm_set_hbm(en, pgc->plcm, qhandle_hbm);
 
 		cmdqRecSetEventToken(qhandle_hbm, CMDQ_SYNC_TOKEN_CABC_EOF);
 		_cmdq_flush_config_handle_mira(qhandle_hbm, 1);
 	} else {
 		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_bl, MMPROFILE_FLAG_PULSE, 1, 2);
-		mtk_disp_lcm_set_hbm(en, pgc->plcm, qhandle_hbm);
+		disp_lcm_set_hbm(en, pgc->plcm, qhandle_hbm);
 
 		_cmdq_flush_config_handle_mira(qhandle_hbm, 1);
 		DISPMSG("[BL]qhandle_hbm ret=%d\n", ret);
 	}
-	//#endif /* OPLUS_FEATURE_RAMLESS_AOD */
 
 	cmdqRecDestroy(qhandle_hbm);
 	qhandle_hbm = NULL;
@@ -8423,15 +8335,6 @@ int primary_display_set_lcm_hbm(bool en)
 	else if (state == en)
 		return 0;
 
-	//#ifdef OPLUS_FEATURE_RAMLESS_AOD
-	if ((oplus_display_aod_ramless_support && rlta_enable)) {
-		if (!primary_display_is_video_mode()) {
-			DISPCHECK("%s disp is cmd Ramless set hbm [%d]\n",__func__, en);
-			return 0;
-		}
-	}
-	//#endif /* OPLUS_FEATURE_RAMLESS_AOD */
-
 	if (disp_helper_get_stage() != DISP_HELPER_STAGE_NORMAL) {
 		DISPMSG("%s: skip, stage:%s\n", __func__,
 			disp_helper_stage_spy());
@@ -8450,15 +8353,6 @@ int primary_display_set_lcm_hbm(bool en)
 
 	return 0;
 }
-
-//#ifdef OPLUS_BUG_SATBILITY
-bool primary_display_get_fp_hbm_state(void) {
-	if (oplus_display_fppress_support) {
-		return disp_lcm_get_hbm_state(pgc->plcm);
-	}
-	return false;
-}
-//#endif
 
 int primary_display_setbacklight_nolock(unsigned int level)
 {
@@ -8732,99 +8626,7 @@ int primary_display_set_dimming_mode(unsigned int level)
 }
 #endif /* OPLUS_BUG_STABILITY */
 
-//ifdef OPLUS_BUG_STABILITY
 
-
-int _set_cabc_mode_by_cmdq(unsigned int level)
-{
-	int ret = 0;
-	struct cmdqRecStruct *cmdq_handle_lcm_cmd = NULL;
-
-	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 1);
-	ret = cmdqRecCreate(CMDQ_SCENARIO_PRIMARY_DISP, &cmdq_handle_lcm_cmd);
-	DISPDBG("_set_cabc_mode_by_cmdq primary set lcm cmd, handle=%p\n", cmdq_handle_lcm_cmd);
-	if (ret) {
-		pr_err("fail to create primary cmdq handle for _set_cabc_mode_by_cmdq\n");
-		return -1;
-	}
-
-	if (primary_display_is_video_mode()) {
-		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 2);
-		cmdqRecReset(cmdq_handle_lcm_cmd);
-			_cmdq_insert_wait_frame_done_token_mira(cmdq_handle_lcm_cmd);
-			disp_lcm_oppo_set_lcm_cabc_cmd(pgc->plcm, cmdq_handle_lcm_cmd, level);
-
-		_cmdq_flush_config_handle_mira(cmdq_handle_lcm_cmd, 1);
-		DISPCHECK("[CMD]_set_cabc_mode_by_cmdq is_video_mode ret=%d\n", ret);
-	} else {
-		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_bl, MMPROFILE_FLAG_PULSE, 1, 3);
-		cmdqRecReset(cmdq_handle_lcm_cmd);
-		_cmdq_handle_clear_dirty(cmdq_handle_lcm_cmd);
-		_cmdq_insert_wait_frame_done_token_mira(cmdq_handle_lcm_cmd);
-
-		disp_lcm_oppo_set_lcm_cabc_cmd(pgc->plcm, cmdq_handle_lcm_cmd, level);
-		cmdqRecSetEventToken(cmdq_handle_lcm_cmd, CMDQ_SYNC_TOKEN_CONFIG_DIRTY);
-		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 4);
-		_cmdq_flush_config_handle_mira(cmdq_handle_lcm_cmd, 1);
-		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 6);
-		DISPCHECK("[CMD]_set_cabc_mode_by_cmdq is_cmd_mode ret=%d\n", ret);
-	}
-	cmdqRecDestroy(cmdq_handle_lcm_cmd);
-	cmdq_handle_lcm_cmd = NULL;
-	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_PULSE, 1, 5);
-	return ret;
-}
-
-//extern bool flag_lcd_off;
-
-int primary_display_set_cabc_mode(unsigned int level)
-{
-	int ret = 0;
-
-	pr_err("%s cabc check primary_display_set_cabc_mode\n", __func__);
-	if (flag_lcd_off)
-	{
-		pr_err("lcd is off,don't allow to set cabc\n");
-		return 0;
-	}
-
-	DISPFUNC();
-	if (disp_helper_get_stage() != DISP_HELPER_STAGE_NORMAL) {
-		DISPMSG("%s skip due to stage %s\n", __func__, disp_helper_stage_spy());
-		return 0;
-	}
-
-	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_START, 0, 0);
-
-	_primary_path_switch_dst_lock();
-	_primary_path_lock(__func__);
-
-
-	if (pgc->state == DISP_SLEPT) {
-		DISPCHECK("Sleep State set backlight invalid\n");
-	} else {
-		primary_display_idlemgr_kick(__func__, 0);
-		if (primary_display_cmdq_enabled()) {
-			if (primary_display_is_video_mode()) {
-				mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd,
-						 MMPROFILE_FLAG_PULSE, 0, 7);
-				_set_cabc_mode_by_cmdq(level);
-			} else {
-				_set_cabc_mode_by_cmdq(level);
-			}
-		} else {
-			/* cpu */
-		}
-	}
-
-	_primary_path_unlock(__func__);
-	_primary_path_switch_dst_unlock();
-
-	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_cmd, MMPROFILE_FLAG_END, 0, 0);
-
-	return ret;
-}
-//#endif
 int primary_display_mipi_clk_change(unsigned int clk_value)
 {
 	struct cmdqRecStruct *cmdq_handle = NULL;
@@ -10579,34 +10381,4 @@ void primary_display_dynfps_get_vfp_info(
 /*-----------------DynFPS end-------------------------------*/
 #endif
 
-//#ifdef OPLUS_ARCH_EXTENDS
-void oppo_cmdq_handle_clear_dirty(struct cmdqRecStruct *cmdq_handle)
-{
-	_cmdq_handle_clear_dirty(cmdq_handle);
-}
 
-void oppo_cmdq_flush_config_handle_mira(void *handle, int blocking)
-{
-	_cmdq_flush_config_handle_mira(handle,blocking);
-}
-
-void oppo_delayed_trigger_kick_set(int params)
-{
-	atomic_set(&delayed_trigger_kick, params);
-}
-
-enum DISP_POWER_STATE oppo_primary_set_state(enum DISP_POWER_STATE new_state)
-{
-	return primary_set_state(new_state);
-}
-
-void oppo_cmdq_reset_config_handle(void)
-{
-	_cmdq_reset_config_handle();
-}
-
-void oppo_cmdq_build_trigger_loop(void)
-{
-	_cmdq_build_trigger_loop();
-}
-//#endif

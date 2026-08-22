@@ -87,16 +87,6 @@ void disp_lcm_dynfps_send_cmd(struct disp_lcm_handle *plcm, void *cmdq_handle,
 
 /*-----------------------DynFPS end-----------------------------------*/
 
-//ifdef OPLUS_BUG_STABILITY
-int disp_lcm_set_cabc(struct disp_lcm_handle *plcm, void *handle, int enable);
-int disp_lcm_get_cabc(struct disp_lcm_handle *plcm, int *status);
-int disp_lcm_oppo_set_lcm_cabc_cmd(struct disp_lcm_handle *plcm, void *handle, unsigned int level);
-int disp_lcm_set_lcm_dimming_cmd(struct disp_lcm_handle *plcm, void *handle, unsigned int level);
-//#endif
-int disp_lcm_oppo_set_lcm_gamma_cmd(struct disp_lcm_handle *plcm, void *handle, unsigned int level);
 
-#ifdef OPLUS_BUG_STABILITY
-int disp_lcm_shutdown(struct disp_lcm_handle *plcm);
-#endif
 
 #endif
