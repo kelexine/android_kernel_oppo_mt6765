@@ -30,26 +30,25 @@ struct pcb_match {
 	enum PCB_VERSION version;
 	char *str;
 };
-unsigned int get_cdt_version(void);
-unsigned int get_eng_version(void);
-unsigned int is_new_cdt(void);
+static inline unsigned int get_cdt_version(void) { return 0; }
+static inline unsigned int get_eng_version(void) { return 0; }
+static inline unsigned int is_new_cdt(void) { return 0; }
 
 //cdt interface for Q or R
-unsigned int get_project(void);
-unsigned int is_project(int project);
-unsigned int get_Oppo_Boot_Mode(void);
-unsigned int get_PCB_Version(void);
-unsigned int get_audio(void);
-unsigned int get_dtsiNo(void);
-uint32_t get_oppo_feature(enum F_INDEX index);
+static inline unsigned int get_project(void) { return 0; }
+static inline unsigned int is_project(int project) { return 0; }
+static inline unsigned int get_Oppo_Boot_Mode(void) { return 0; }
+static inline unsigned int get_PCB_Version(void) { return 0; }
+static inline unsigned int get_audio(void) { return 0; }
+static inline unsigned int get_dtsiNo(void) { return 0; }
+static inline uint32_t get_oppo_feature(enum F_INDEX index) { return 0; }
 
 //cdt interface for P->R
-int32_t get_Modem_Version(void);
-int32_t get_Operator_Version(void);
+static inline int32_t get_Modem_Version(void) { return 0; }
+static inline int32_t get_Operator_Version(void) { return 0; }
 
 //eng cdt data for P or Q or R
-bool is_confidential(void);
-bool oppo_daily_build(void);
-
+static inline bool is_confidential(void) { return false; }
+static inline bool oppo_daily_build(void) { return false; }
 
 #endif

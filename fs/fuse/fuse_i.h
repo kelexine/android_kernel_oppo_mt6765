@@ -157,10 +157,8 @@ struct fuse_file {
 	/** Has flock been performed on this file? */
 	bool flock:1;
 
-#ifdef VENDOR_EDIT
 	/* the read write file */
 	struct file *rw_lower_file;
-#endif /* VENDOR_EDIT */
 };
 
 /** One input argument of a request */
@@ -247,10 +245,8 @@ struct fuse_args {
 		/* Path used for completing d_canonical_path */
 		struct path *canonical_path;
 	} out;
-#ifdef VENDOR_EDIT
 	/** fuse shortcircuit file  */
 	struct file *private_lower_rw_file;
-#endif /* VENDOR_EDIT */
 };
 
 #define FUSE_ARGS(args) struct fuse_args args = {}
@@ -398,10 +394,8 @@ struct fuse_req {
 	/** Request is stolen from fuse_file->reserved_req */
 	struct file *stolen_file;
 
-#ifdef VENDOR_EDIT
 	/** fuse shortcircuit file  */
 	struct file *private_lower_rw_file;
-#endif /* VENDOR_EDIT */
 };
 
 struct fuse_iqueue {
@@ -574,10 +568,8 @@ struct fuse_conn {
 	/** handle fs handles killing suid/sgid/cap on write/chown/trunc */
 	unsigned handle_killpriv:1;
 
-#ifdef VENDOR_EDIT
 	/** Shortcircuited IO. */
 	unsigned shortcircuit_io:1;
-#endif /* VENDOR_EDIT */
 	/*
 	 * The following bitfields are only for optimization purposes
 	 * and hence races in setting them will not cause malfunction

@@ -1442,8 +1442,6 @@ slab_flags_t kmem_cache_flags(unsigned int object_size,
 }
 #endif
 #else /* !CONFIG_SLUB_DEBUG */
-#ifdef OPLUS_FEATURE_MEMLEAK_DETECT
-#ifndef CONFIG_KMALLOC_DEBUG
 static inline void setup_object_debug(struct kmem_cache *s,
 			struct page *page, void *object) {}
 static inline void setup_page_debug(struct kmem_cache *s,
@@ -1456,19 +1454,6 @@ static inline int free_debug_processing(
 	struct kmem_cache *s, struct page *page,
 	void *head, void *tail, int bulk_cnt,
 	unsigned long addr) { return 0; }
-#endif
-#else
-static inline void setup_object_debug(struct kmem_cache *s,
-	struct page *page, void *object) {}
-
-static inline int alloc_debug_processing(struct kmem_cache *s,
-	struct page *page, void *object, unsigned long addr) { return 0; }
-
-static inline int free_debug_processing(
-	struct kmem_cache *s, struct page *page,
-	void *head, void *tail, int bulk_cnt,
-	unsigned long addr) { return 0; }
-#endif
 
 static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
 			{ return 1; }
@@ -3794,6 +3779,7 @@ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
 
 	if (!calculate_sizes(s, -1))
 		goto error;
+#ifdef CONFIG_SLUB_DEBUG
 	if (disable_higher_order_debug) {
 		/*
 		 * Disable debugging flags that store metadata if the min slab
@@ -3806,6 +3792,7 @@ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
 				goto error;
 		}
 	}
+#endif
 
 #if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
@@ -5962,9 +5949,11 @@ static int sysfs_slab_add(struct kmem_cache *s)
 		return 0;
 	}
 
+#ifdef CONFIG_SLUB_DEBUG
 	if (!unmergeable && disable_higher_order_debug &&
 			(slub_debug & DEBUG_METADATA_FLAGS))
 		unmergeable = 1;
+#endif
 
 	if (unmergeable) {
 		/*

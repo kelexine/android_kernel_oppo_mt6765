@@ -687,7 +687,6 @@ static int get_hw_btsmdpa_temp(void)
 	mtkts_btsmdpa_dprintk("APtery output mV = %d\n", ret);
 	output = mtk_ts_btsmdpa_volt_to_temp(ret);
 	mtkts_btsmdpa_dprintk("BTSMDPA output temperature = %d\n", output);
-	cached_temp = output;
 	return output;
 }
 

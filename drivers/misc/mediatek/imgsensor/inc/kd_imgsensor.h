@@ -752,10 +752,9 @@
 #define PARKERA_QTECH_MAIN_OV13B2A_SENSOR_ID               0x560D46 /*0x560D43+3*/
 #define SENSOR_DRVNAME_PARKERA_QTECH_MAIN_OV13B2A          "parkera_qtech_main_ov13b2a"
 #define PARKERA_SHINETECH_MONO_GC02M1B_50M_SENSOR_ID           0x02E9  /*0x02E0 + 9*/
-#define SENSOR_DRVNAME_PARKERA_SHINETECH_MONO_GC02M1B_50M      "parkera_shinetech_mono_gc02m1b_50m"
-#define PARKERA_SHINETECH_MONO_OV02B1B_50M_SENSOR_ID           0x0028  /*0x2B - 3*/
-#define SENSOR_DRVNAME_PARKERA_SHINETECH_MONO_OV02B1B_50M      "parkera_shinetech_mono_ov02b1b_50m"
 #define PARKERA_PROJECT                                    4
+#endif //OPLUS_FEATURE_CAMERA_COMMON
+
 /********************** ROI_D **********************/
 #define ROID_HI556_SENSOR_ID                    0x0556
 #define ROID_GC5035_SENSOR_ID                   0x5035
@@ -779,6 +778,8 @@
 #define SENSOR_DRVNAME_GC02M1B_MIPI_RAW         "gc02m1b_mipi_raw"
 #define SENSOR_DRVNAME_OV02B1B_MIPI_RAW         "ov02b1b_mipi_raw"
 #define SENSOR_DRVNAME_GC02M1B_SW_MIPI_RAW      "gc02m1b_sw_mipi_raw"
+
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
 /*Parker-B*/
 #define PARKERB_SHINETECH_MAIN_S5KJN103_SENSOR_ID          0x38E2  /*0x38E1 + 1*/
 #define SENSOR_DRVNAME_PARKERB_SHINETECH_MAIN_S5KJN103     "parkerb_shinetech_main_s5kjn103"

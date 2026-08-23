@@ -289,18 +289,15 @@ void AFRegulatorCtrl(int Stage)
 }
 #endif
 
-#if 0
 static struct regulator *vcamaf_ldo;
 static struct pinctrl *vcamaf_pio;
 static struct pinctrl_state *vcamaf_pio_on;
 static struct pinctrl_state *vcamaf_pio_off;
-#endif
 
 #define CAMAF_PMIC     "camaf_m1_pmic"
 #define CAMAF_GPIO_ON  "camaf_m1_gpio_on"
 #define CAMAF_GPIO_OFF "camaf_m1_gpio_off"
 
-#if 0
 static void camaf_power_init(void)
 {
 	int ret;
@@ -383,7 +380,6 @@ static void camaf_power_off(void)
 		LOG_INF("pinctrl disable (%d)\n", ret);
 	}
 }
-#endif
 
 #ifdef CONFIG_MACH_MT6765
 static int DrvPwrDn1 = 1;

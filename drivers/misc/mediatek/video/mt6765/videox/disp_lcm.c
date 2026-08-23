@@ -12,10 +12,7 @@
 #include "disp_drv_platform.h"
 #include "ddp_manager.h"
 #include "disp_lcm.h"
-
-#ifdef OPLUS_ARCH_EXTENDS
-#include "../../../../oplus/oplus_display_private_api.h"
-#endif
+#include "disp_helper.h"
 
 #if defined(MTK_LCM_DEVICE_TREE_SUPPORT)
 #include <linux/of.h>
@@ -1027,7 +1024,6 @@ void load_lcm_resources_from_DT(struct LCM_DRIVER *lcm_drv)
 #endif
 
 
-//#ifdef OPLUS_BUG_STABILITY
 char Lcm_name[256];
 int tp_gesture = 0;
 EXPORT_SYMBOL(tp_gesture);
@@ -1457,22 +1453,6 @@ int disp_lcm_suspend(struct disp_lcm_handle *plcm)
 	return -1;
 }
 
-int disp_lcm_shutdown(struct disp_lcm_handle *plcm)
-{
-	struct LCM_DRIVER *lcm_drv = NULL;
-	DISPFUNC();
-	if (_is_lcm_inited(plcm)) {
-		lcm_drv = plcm->drv;
-		pr_info("[DISP_LCM] disp_lcm_shutdown: driver=%s\n", lcm_drv->name);
-		if (lcm_drv->suspend_power) {
-			lcm_drv->suspend_power();
-		}
-		return 0;
-	}
-	pr_err("[DISP_LCM] disp_lcm_shutdown: lcm_drv is null\n");
-	return -1;
-}
-
 int disp_lcm_resume(struct disp_lcm_handle *plcm)
 {
 	struct LCM_DRIVER *lcm_drv = NULL;
@@ -1667,29 +1647,6 @@ unsigned int disp_lcm_get_hbm_time(bool en, struct disp_lcm_handle *plcm)
 
 	return time;
 }
-
-#ifdef OPLUS_BUG_STABILITY
-int disp_lcm_set_lcm_dimming_cmd(struct disp_lcm_handle *plcm, void *handle, unsigned int level)
-{
-	struct LCM_DRIVER *lcm_drv = NULL;
-
-	DISPFUNC();
-	if (_is_lcm_inited(plcm)) {
-		lcm_drv = plcm->drv;
-		if (lcm_drv->set_dimming_mode_cmdq) {
-			lcm_drv->set_dimming_mode_cmdq(handle, level);
-		} else {
-			DISPERR("FATAL ERROR, lcm_drv->set_dimming_mode_cmdq is null\n");
-			return -1;
-		}
-
-		return 0;
-	}
-
-	DISPERR("lcm_drv is null\n");
-	return -1;
-}
-#endif /* OPLUS_BUG_STABILITY */
 
 int disp_lcm_ioctl(struct disp_lcm_handle *plcm, enum LCM_IOCTL ioctl,
 	unsigned int arg)

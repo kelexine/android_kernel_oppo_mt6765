@@ -560,5 +560,4 @@ source "drivers/misc/cxl/Kconfig"
 source "drivers/misc/ocxl/Kconfig"
 source "drivers/misc/cardreader/Kconfig"
 source "drivers/misc/mediatek/Kconfig"
-source "drivers/misc/oppo_motor/Kconfig"
 endmenu

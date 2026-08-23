@@ -47,10 +47,6 @@ static unsigned int get_reboot_mode_magic(struct reboot_mode_driver *reboot,
 		}
 	}
 
-	if(magic == 0 && strcmp(cmd, normal) && is_kernel_panic) {
-		magic = BOOT_KERNEL;
-	}
-
 	return magic;
 }
 

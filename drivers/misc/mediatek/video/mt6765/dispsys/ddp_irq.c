@@ -29,17 +29,6 @@
 
 #include <asm/arch_timer.h>
 
-//#ifdef OPLUS_ARCH_EXTENDS
-#include "../../../../oplus/oplus_display_private_api.h"
-#include "../../../../oplus/oplus_display_onscreenfingerprint.h"
-//#endif
-
-//#ifdef OPLUS_FEATURE_ONSCREENFINGERPRINT
-/*
-* add for fingerprint notify frigger
-*/
-int hbm_sof_flag = 0;
-//#endif
 
 /* IRQ log print kthread */
 static struct task_struct *disp_irq_log_task;

@@ -24,9 +24,6 @@
 #include "leds.h"
 
 static struct class *leds_class;
-//#ifdef OPLUS_BUG_STABILITY
-extern unsigned long oppo_display_brightness;
-//#endif/*OPLUS_BUG_DEBUG*/
 
 static ssize_t brightness_show(struct device *dev,
 		struct device_attribute *attr, char *buf)

@@ -78,12 +78,6 @@
 
 #define DDP_OUTPUT_LAYID 4
 
-#ifdef OPLUS_BUG_STABILITY
-#include <mt-plat/mtk_boot_common.h>
-extern unsigned long silence_mode;
-extern unsigned int fp_silence_mode;
-#endif /* OPLUS_BUG_STABILITY */
-
 #if defined MTK_FB_SHARE_WDMA0_SUPPORT
 static int idle_flag = 1;
 static int smartovl_flag;
@@ -1600,13 +1594,6 @@ long mtk_disp_mgr_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		{
 			return _ioctl_get_display_caps(arg);
 		}
-#ifdef VENDOR_EDIT
-	case DISP_IOCTL_GET_LCM_MODULE_INFO:
-	{
-		return _ioctl_get_lcm_module_info(arg);
-	}
-#endif /* VENDOR_EDIT */
-
 	case DISP_IOCTL_GET_VSYNC_FPS:
 		{
 			return _ioctl_get_vsync(arg);

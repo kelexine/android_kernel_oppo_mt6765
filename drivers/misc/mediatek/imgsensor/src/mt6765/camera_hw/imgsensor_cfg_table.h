@@ -170,6 +170,11 @@ extern struct IMGSENSOR_HW_CFG        imgsensor_custom_config_parkerb[];
 int yogurt_project(void);
 int yogurta_project(void);
 int parker_project(void);
+#else
+static inline int pascal_project(void) { return 0; }
+static inline int yogurt_project(void) { return 0; }
+static inline int yogurta_project(void) { return 0; }
+static inline int parker_project(void) { return 0; }
 #endif //OPLUS_FEATURE_CAMERA_COMMON
 
 #endif

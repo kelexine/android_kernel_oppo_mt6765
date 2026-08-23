@@ -184,10 +184,9 @@ static char accdet_log_buf[1280];
 static bool debug_thread_en;
 static bool dump_reg;
 static struct task_struct *thread;
-
 static u32 button_press_debounce = 0x400;
 
-extern void switch_headset_state(int headset_state);
+void __attribute__((weak)) switch_headset_state(int headset_state) {}
 /* local function declaration */
 static void accdet_init_once(void);
 static inline void accdet_init(void);

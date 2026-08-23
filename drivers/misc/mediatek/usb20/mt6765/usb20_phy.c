@@ -25,10 +25,7 @@
 #endif
 
 #include <mt-plat/mtk_boot_common.h>
-
-#ifdef OPLUS_FEATURE_CHG_BASIC
-#include <soc/oplus/system/oplus_project.h>
-#endif /*OPLUS_FEATURE_CHG_BASIC*/
+#include <soc/oppo/oppo_project.h>
 
 #define FRA (48)
 #define PARA (28)

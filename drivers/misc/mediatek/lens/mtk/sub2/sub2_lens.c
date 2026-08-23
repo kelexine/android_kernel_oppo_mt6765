@@ -35,9 +35,6 @@
 
 #include "lens_info.h"
 #include "lens_list.h"
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
-#define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 
 #define AF_DRVNAME "SUB2AF"
 #if defined(CONFIG_MTK_LEGACY)

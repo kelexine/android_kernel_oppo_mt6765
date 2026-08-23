@@ -69,10 +69,6 @@
 #ifdef CONFIG_MTK_SMI_EXT
 #include "smi_public.h"
 #endif
-#ifdef OPLUS_BUG_STABILITY
-#include <soc/oplus/system/oplus_project.h>
-#endif
-
 /* static variable */
 static u32 MTK_FB_XRES;
 static u32 MTK_FB_YRES;
@@ -134,27 +130,6 @@ do {                   \
 
 #define PRNERR(fmt, args...) \
 	DISP_LOG_PRINT(ANDROID_LOG_INFO, "MTKFB", fmt, ## args)
-
-#ifdef OPLUS_BUG_STABILITY
-extern bool oplus_display_elevenbits_support;
-extern bool oplus_display_local_dre_support;
-#endif
-
-#ifdef OPLUS_BUG_STABILITY
-extern bool oplus_display_twelvebits_support;
-unsigned int backlight_twelve_bit_flag = 0;
-unsigned int shutdown_flag = 0;
-unsigned int custom_lcm_flag = 0;
-#endif
-
-#ifdef OPLUS_BUG_STABILITY
-#include <linux/workqueue.h>
-struct workqueue_struct *diming_wq =NULL;
-struct delayed_work diming_delay_wq;
-extern bool oplus_display_lcd_dimming_support;
-extern int __attribute((weak)) primary_display_set_dimming_mode(unsigned int level) { return 0; };
-extern bool oplus_display_dyn_mipi_support;
-#endif /* OPLUS_BUG_STABILITY */
 
 /* ------------------------------------------------------------------------- */
 /* local variables */
@@ -281,10 +256,6 @@ static int mtkfb_blank(int blank_mode, struct fb_info *info)
 {
 	enum mtkfb_power_mode prev_pm = primary_display_get_power_mode();
 
-	#ifdef OPLUS_BUG_STABILITY
- 	int err = 0;
-	#endif /* OPLUS_BUG_STABILITY */
-
 	switch (blank_mode) {
 	case FB_BLANK_UNBLANK:
 	case FB_BLANK_NORMAL:
@@ -314,17 +285,6 @@ static int mtkfb_blank(int blank_mode, struct fb_info *info)
 		primary_display_set_power_mode(FB_SUSPEND);
 		mtkfb_early_suspend();
 
-		#ifdef OPLUS_BUG_STABILITY
-		if (diming_wq != NULL) {
-			err = cancel_delayed_work(&diming_delay_wq);
-			pr_debug("%s cancel delay work,err = %d\n", __func__, err);
-
-			if (0 == err) {
-				pr_debug("%s err = %d,flush delay work\n", __func__, err);
-				flush_workqueue(diming_wq);
-			}
-		}
-		#endif /* OPLUS_BUG_STABILITY */
 		debug_print_power_mode_check(prev_pm, FB_SUSPEND);
 
 		break;
@@ -2620,20 +2580,12 @@ static void mtkfb_shutdown(struct platform_device *pdev)
 	else
 		msleep(2 * 100000 / lcd_fps);	/* Delay 2 frames. */
 
-	shutdown_flag = 1;
-
 	if (primary_display_is_sleepd()) {
 		MTKFB_LOG("mtkfb has been power off\n");
-#ifdef OPLUS_BUG_STABILITY
-		primary_display_shutdown();
-#endif
 		return;
 	}
 	primary_display_set_power_mode(FB_SUSPEND);
 	primary_display_suspend();
-#ifdef OPLUS_BUG_STABILITY
-	primary_display_shutdown();
-#endif
 
 	MTKFB_LOG("[FB Driver] leave mtkfb_shutdown\n");
 }

@@ -23,10 +23,9 @@ struct general_oplus_info {
     char para_array[MAX_PARA_LEN];
 };
 
-extern u32 oplus_foreground_uid;
-extern int oplus_kernel_send_to_user(int msg_type, char *payload, int payload_len);
-extern void oplus_handle_retransmit(const struct sock *sk, int type);
-extern uid_t get_uid_from_sock(const struct sock *sk);
-extern int get_link_index_from_sock(const struct sock *sk);
+static inline int oplus_kernel_send_to_user(int msg_type, char *payload, int payload_len) { return 0; }
+static inline void oplus_handle_retransmit(const struct sock *sk, int type) {}
+static inline uid_t get_uid_from_sock(const struct sock *sk) { return 0; }
+static inline int get_link_index_from_sock(const struct sock *sk) { return 0; }
 
 #endif

@@ -27,7 +27,6 @@
  *  of the License.
  */
 #include "sched.h"
-#include <linux/uifirst/uifirst_sched_common.h>
 
 /* Convert between a 140 based task->prio, and our 102 based cpupri */
 static int convert_prio(int prio)
@@ -99,14 +98,6 @@ static inline int __cpupri_find(struct cpupri *cp, struct task_struct *p,
 	if (lowest_mask) {
 		cpumask_and(lowest_mask, &p->cpus_allowed, vec->mask);
 
-#ifdef OPLUS_FEATURE_UIFIRST
-		if (sysctl_uifirst_enabled)
-			drop_ux_task_cpus(p, lowest_mask);
-#ifdef CONFIG_SCHED_WALT
-		if (sysctl_uifirst_enabled && sysctl_slide_boost_enabled && ux_task_misfit(p, task_cpu(p)))
-			kick_min_cpu_from_mask(lowest_mask);
-#endif
-#endif /* OPLUS_FEATURE_UIFIRST */
 		/*
 		 * We have to ensure that we have at least one bit
 		 * still set in the array, since the map could have

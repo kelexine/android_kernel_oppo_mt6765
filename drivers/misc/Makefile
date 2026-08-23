@@ -66,7 +66,4 @@ obj-$(CONFIG_SIM_DETECT)	+= sim_detect.o
 #endif
 
 #ifdef VENDOR_EDIT
-obj-$(CONFIG_OPPO_MOTOR)		+= motor.o
-obj-$(CONFIG_OPPO_MOTOR)		+= oppo_motor/
-subdir-ccflags-$(CONFIG_OPPO_MOTOR) += -I$(srctree)/drivers/misc/mediatek/include
 #endif

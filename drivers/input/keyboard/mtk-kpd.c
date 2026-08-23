@@ -25,13 +25,9 @@
 #include <linux/pm_wakeup.h>
 #include <linux/regmap.h>
 #include <linux/timer.h>
-#include <linux/workqueue.h>
-#ifdef VENDOR_EDIT
 #include <linux/proc_fs.h>
 #include <asm/uaccess.h>
 #include <linux/of_gpio.h>
-#include <soc/oppo/oppo_project.h>
-#endif /*VENDOR_EDIT*/
 
 #define KPD_NAME	"mtk-kpd"
 
@@ -68,9 +64,7 @@ struct mtk_keypad {
 	unsigned int irqnr;
 	u32 key_debounce;
 	u32 hw_map_num;
-	#ifdef VENDOR_EDIT
 	u32 kpd_sw_rstkey;
-	#endif
 	u32 hw_init_map[KPD_NUM_KEYS];
 	u16 keymap_state[KPD_NUM_MEMS];
 };
@@ -80,7 +74,6 @@ static void kpd_keymap_handler(unsigned long data);
 
 static int kpd_pdrv_probe(struct platform_device *pdev);
 
-#ifdef VENDOR_EDIT
 //#define KPD_HOME_NAME 		"mtk-kpd-home"
 #define KPD_VOL_UP_NAME		"mtk-kpd-vol-up"
 #define KPD_VOL_DOWN_NAME	"mtk-kpd-vol-down"
@@ -243,7 +236,6 @@ static irqreturn_t kpd_volumedown_irq_handler(int irq, void *dev_id)
 	hrtimer_start(&vol_down_timer, ktime_set(0, VOL_DOWN_DELAY_TIME), HRTIMER_MODE_REL);
 	return IRQ_HANDLED;
 }
-#endif /*VENDOR_EDIT*/
 
 /* for AEE manual dump */
 #define AEE_VOLUMEUP_BIT	0
@@ -460,14 +452,9 @@ static int kpd_get_dts_info(struct mtk_keypad *keypad,
 		return ret;
 	}
 
-	#ifdef VENDOR_EDIT
-	ret = of_property_read_u32(node, "mediatek,kpd-sw-rstkey",
-		&keypad->kpd_sw_rstkey);
-	if (ret) {
-		pr_err("kpd-sw-rstkey was not defined in dts.\n");
-		return ret;
-	}
-	#endif
+	if (of_property_read_u32(node, "mediatek,kpd-sw-rstkey",
+		&keypad->kpd_sw_rstkey))
+		keypad->kpd_sw_rstkey = 0;
 
 	pr_debug("deb= %d\n", keypad->key_debounce);
 
@@ -497,7 +484,6 @@ static int kpd_gpio_init(struct device *dev)
 				kpd_default);
 }
 
-#ifdef VENDOR_EDIT
 static int kpd_request_named_gpio(struct vol_info *kpd,
 		const char *label, int *gpio)
 {
@@ -677,7 +663,6 @@ static void init_proc_aee_kpd_enable(void)
 		pr_err("proc_create aee_kpd_enable ops fail!\n");
 
 }
-#endif
 
 static int kpd_pdrv_probe(struct platform_device *pdev)
 {
@@ -685,7 +670,6 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 	struct resource *res;
 	int i;
 	int err;
-	#ifdef VENDOR_EDIT
 	struct device *dev = &pdev->dev;
 	struct vol_info *kpd_oppo;
 
@@ -696,7 +680,6 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 		pr_err("no kpd dev node\n");
 		return -ENODEV;
 	}
-#endif /*VENDOR_EDIT*/
 
 	keypad = devm_kzalloc(&pdev->dev, sizeof(*keypad), GFP_KERNEL);
 	if (!keypad)
@@ -806,7 +789,6 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 	aee_timer_5s.function = aee_timer_5s_func;
 #endif
 
-#ifdef VENDOR_EDIT
 	g_keypad = keypad;
 	kpd_oppo->dev = dev;
 	dev_set_drvdata(dev, kpd_oppo);
@@ -861,13 +843,7 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 	__set_bit(KEY_POWER, keypad->input_dev->keybit);
 
 	init_proc_aee_kpd_enable();
-
-	if(1 == get_eng_version()) {
-		aee_kpd_enable = 1;
-	} else {
-		aee_kpd_enable = 0;
-	}
-#endif /* VENDOR_EDIT */
+	aee_kpd_enable = 0;
 	pr_info("kpd_probe OK.\n");
 
 	return 0;

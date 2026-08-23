@@ -1484,7 +1484,7 @@ reset_enable_gpio:
     nci_init_cmd[1] = 0x01;
     nci_init_cmd[2] = 0x00;
 
-    ret = nqx_standby_write(nqx_dev, nci_init_cmd, NCI_INIT_CMD_LEN);
+    ret = i2c_master_send(client, nci_init_cmd, NCI_INIT_CMD_LEN);
     if (ret < 0) {
         pr_err("%s: - i2c_master_send failed for Core INIT\n", __func__);
         goto err_nfcc_core_init_fail;

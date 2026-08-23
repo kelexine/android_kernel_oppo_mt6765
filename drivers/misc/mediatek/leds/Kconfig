@@ -40,9 +40,3 @@ config LEDS_MT6357
 	  Mediatek MT6357 PMIC.
 	  If you want to use MediaTek(R) LEDs support, say Y or M here.
 	  If unsure, say N.
-
-#ifdef VENDOR_EDIT
-source "drivers/misc/mediatek/leds/mt6779/oppo_ktd2026/Kconfig"
-source "drivers/misc/mediatek/leds/mt6779/oppo_ktd2026b/Kconfig"
-source "drivers/misc/mediatek/leds/mt6779/oppo_aw2026/Kconfig"
-#endif

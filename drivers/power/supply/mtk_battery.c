@@ -42,16 +42,13 @@ static inline unsigned int is_project(int project) { return 0; }
 #ifdef OPLUS_FEATURE_CHG_BASIC
 #include <linux/iio/consumer.h>
 #include <soc/oppo/device_info.h>
-//#include <soc/oppo/oppo_project.h>
-#include <soc/oplus/system/oplus_project.h>
+#include <soc/oppo/oppo_project.h>
 #include <linux/gpio.h>
 #include "../oplus/oplus_gauge.h"
 
 #define ADC_CHANNEL_READ _IOW('k', 4, int)
 
 extern void fg_int_event(struct mtk_battery *gm, enum gauge_event evt);
-
-extern unsigned int is_project(int project);
 
 extern struct iio_channel *iio_channel_get(struct device *dev,const char *channel_name);
 

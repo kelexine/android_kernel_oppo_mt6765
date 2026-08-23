@@ -190,11 +190,13 @@ static enum IMGSENSOR_RETURN imgsensor_hw_power_sequence(
 					    ppwr_info->pin,
 					    ppwr_info->pin_state_off);
 			}
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
 				if (pascal_project() == PARKERA_PROJECT
 				&& !strcmp(ppwr_seq->name, "parkera_shinetech_front_ov08d10")
 				&& ppwr_info->pin == IMGSENSOR_HW_PIN_AVDD) {
 					mdelay(5);
 				}
+#endif
 		}
 	}
 

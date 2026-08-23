@@ -365,9 +365,6 @@ static inline char *power_mode_to_string(enum mtkfb_power_mode pm)
 }
 
 typedef int (*PRIMARY_DISPLAY_CALLBACK) (unsigned int user_data);
-#ifdef OPLUS_BUG_STABILITY
-int primary_display_shutdown(void);
-#endif
 struct display_primary_path_context *_get_context(void);
 void _primary_path_lock(const char *caller);
 void _primary_path_unlock(const char *caller);
@@ -454,9 +451,6 @@ int primary_display_pause(PRIMARY_DISPLAY_CALLBACK callback,
 	unsigned int user_data);
 int primary_display_switch_dst_mode(int mode);
 int primary_display_get_lcm_index(void);
-#ifdef VENDOR_EDIT
-int _ioctl_get_lcm_module_info(unsigned long arg);
-#endif /* VENDOR_EDIT */
 int primary_display_force_set_fps(unsigned int keep, unsigned int skip);
 int primary_display_set_fps(int fps);
 int primary_display_get_lcm_max_refresh_rate(void);

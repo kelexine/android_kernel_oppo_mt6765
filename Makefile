@@ -604,57 +604,6 @@ ifeq ($(MAKECMDGOALS),)
 endif
 
 export KBUILD_MODULES KBUILD_BUILTIN
-#ifdef VENDOR_EDIT
-ifeq ($(OPPO_HIGH_TEMP_VERSION),true)
-KBUILD_CFLAGS += -DCONFIG_HIGH_TEMP_VERSION
-KBUILD_CPPFLAGS += -DCONFIG_HIGH_TEMP_VERSION
-endif
-#endif /* VENDOR_EDIT */
-
-#ifdef VENDOR_EDIT
-ifeq ($(OPPO_TARGET_DEVICE),oppo6765_20271)
-KBUILD_CFLAGS += -DCONFIG_MTK_20271
-KBUILD_CPPFLAGS += -DCONFIG_MTK_20271
-$(warning KERNEL DCONFIG_MTK_20271)
-endif
-#endif /* VENDOR_EDIT */
-
-#ifdef VENDOR_EDIT
-ifeq ($(OPPO_TARGET_DEVICE),oppo6765_21281)
-KBUILD_CFLAGS += -DCONFIG_MTK_21281
-KBUILD_CPPFLAGS += -DCONFIG_MTK_21281
-$(warning KERNEL DCONFIG_MTK_21281)
-endif
-#endif /* VENDOR_EDIT */
-
- #ifdef VENDOR_EDIT
- ifeq ($(OPPO_TARGET_DEVICE),oppo6762_21285)
- KBUILD_CFLAGS += -DCONFIG_MTK_21281
- KBUILD_CPPFLAGS += -DCONFIG_MTK_21281
- $(warning KERNEL DCONFIG_MTK_21281)
- endif
- #endif /* VENDOR_EDIT */
-
-
-#ifdef VENDOR_EDIT
-ifeq ($(OPPO_TARGET_DEVICE),oppo6765_20361)
-KBUILD_CFLAGS += -DCONFIG_MTK_20361
-KBUILD_CPPFLAGS += -DCONFIG_MTK_20361
-$(warning KERNEL DCONFIG_MTK_20361)
-endif
-#endif /* VENDOR_EDIT */
-
-#ifdef  VENDOR_EDIT
-KBUILD_CFLAGS +=   -DVENDOR_EDIT
-KBUILD_CPPFLAGS += -DVENDOR_EDIT
-CFLAGS_KERNEL +=   -DVENDOR_EDIT
-CFLAGS_MODULE +=   -DVENDOR_EDIT
-#endif /* VENDOR_EDIT */
-
-#ifdef OPLUS_ARCH_INJECT
--include OplusKernelEnvConfig.mk
-#endif /* OPLUS_ARCH_INJECT */
-
 ifeq ($(KBUILD_EXTMOD),)
 # Objects we will link into vmlinux / subdirs we need to visit
 init-y		:= init/
@@ -1410,11 +1359,9 @@ modules: $(vmlinux-dirs) $(if $(KBUILD_BUILTIN),vmlinux) modules.builtin
 	$(Q)$(AWK) '!x[$$0]++' $(vmlinux-dirs:%=$(objtree)/%/modules.order) > $(objtree)/modules.order
 	@$(kecho) '  Building modules, stage 2.';
 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modpost
-#ifdef OPLUS_FEATURE_SECURITY_COMMON
 ifeq ($(CONFIG_MODULE_SIG), y)
 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modsign
 endif
-#endif /*OPLUS_FEATURE_SECURITY_COMMON*/
 
 modules.builtin: $(vmlinux-dirs:%=%/modules.builtin)
 	$(Q)$(AWK) '!x[$$0]++' $^ > $(objtree)/modules.builtin

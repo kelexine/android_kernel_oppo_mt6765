@@ -97,12 +97,8 @@ static atomic_t g_pwm_is_change_state[PWM_TOTAL_MODULE_NUM] = {
 #ifndef CONFIG_FPGA_EARLY_PORTING
 static atomic_t g_pwm_backlight[PWM_TOTAL_MODULE_NUM] = { ATOMIC_INIT(-1) };
 static atomic_t g_pwm_en[PWM_TOTAL_MODULE_NUM] = { ATOMIC_INIT(-1) };
-#ifndef OPLUS_BUG_STABILITY
 static atomic_t g_pwm_max_backlight[PWM_TOTAL_MODULE_NUM] = {
 	ATOMIC_INIT(1023) };
-#else
-static atomic_t g_pwm_max_backlight[PWM_TOTAL_MODULE_NUM] = { ATOMIC_INIT(2047) };
-#endif/*OPLUS_BUG_STABILITY*/
 static atomic_t g_pwm_is_power_on[PWM_TOTAL_MODULE_NUM] = { ATOMIC_INIT(0) };
 static atomic_t g_pwm_value_before_power_off[PWM_TOTAL_MODULE_NUM] = {
 	ATOMIC_INIT(0) };

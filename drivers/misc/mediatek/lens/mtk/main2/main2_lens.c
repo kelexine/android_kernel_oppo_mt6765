@@ -20,13 +20,6 @@
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
 #endif
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
-#define OPLUS_FEATURE_CAMERA_COMMON
-#endif
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#include<soc/oppo/oppo_project.h>
-#include <linux/regulator/consumer.h>
-#endif
 
 /* kernel standard */
 #include <linux/regulator/consumer.h>
@@ -130,18 +123,15 @@ static struct cdev *g_pAF_CharDrv;
 static struct class *actuator_class;
 static struct device *lens_device;
 
-#if 0
 static struct regulator *vcamaf_ldo;
 static struct pinctrl *vcamaf_pio;
 static struct pinctrl_state *vcamaf_pio_on;
 static struct pinctrl_state *vcamaf_pio_off;
-#endif
 
 #define CAMAF_PMIC     "camaf_m2_pmic"
 #define CAMAF_GPIO_ON  "camaf_m2_gpio_on"
 #define CAMAF_GPIO_OFF "camaf_m2_gpio_off"
 
-#if 0
 static void camaf_power_init(void)
 {
 	int ret;
@@ -224,7 +214,6 @@ static void camaf_power_off(void)
 		LOG_INF("pinctrl disable (%d)\n", ret);
 	}
 }
-#endif
 
 #ifdef CONFIG_MACH_MT6765
 static int DrvPwrDn1 = 1;

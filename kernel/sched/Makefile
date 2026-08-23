@@ -37,7 +37,3 @@ obj-$(CONFIG_CPU_ISOLATION) += isolation.o
 obj-$(CONFIG_PSI) += psi.o
 
 obj-y += extension/
-
-#ifdef OPLUS_FEATURE_UIFIRST
-obj-$(CONFIG_SCHED_WALT) += walt.o
-#endif /* OPLUS_FEATURE_UIFIRST */

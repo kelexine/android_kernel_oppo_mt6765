@@ -134,10 +134,6 @@ obj-$(CONFIG_HAS_IOMEM) += iomem.o
 obj-$(CONFIG_ZONE_DEVICE) += memremap.o
 obj-$(CONFIG_RSEQ) += rseq.o
 
-#ifdef OPLUS_FEATURE_UIFIRST
-obj-y += uifirst/
-#endif /* OPLUS_FEATURE_UIFIRST */
-
 $(obj)/configs.o: $(obj)/config_data.h
 
 targets += config_data.gz

@@ -763,19 +763,9 @@ static int p61_hw_setup(struct p61_spi_platform_data *platform_data,
 #endif
     ret = 0;
     P61_DBG_MSG("Exit : %s\n", __FUNCTION__);
-#ifndef VENDOR_EDIT
-//Modify for : remove irq & rst
-    return ret;
-
-
     fail_gpio:
     gpio_free(platform_data->rst_gpio);
-
-    fail_irq:
-    gpio_free(platform_data->irq_gpio);
-    fail:
     P61_ERR_MSG("p61_hw_setup failed\n");
-#endif
     return ret;
 }
 

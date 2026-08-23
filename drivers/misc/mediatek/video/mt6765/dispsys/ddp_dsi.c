@@ -2147,11 +2147,7 @@ void DSI_MIPI_clk_change(enum DISP_MODULE_ENUM module, void *cmdq, int clk)
 void DSI_PHY_TIMCONFIG(enum DISP_MODULE_ENUM module,
 	struct cmdqRecStruct *cmdq, struct LCM_DSI_PARAMS *dsi_params);
 
-#ifndef OPLUS_BUG_STABILITY
 int mipi_clk_change(enum DISP_MODULE_ENUM module, int en)
-#else
-int mipi_clk_change(int module, int en)
-#endif
 {
 	int i, ret;
 	struct cmdqRecStruct *handle = NULL;
@@ -2166,15 +2162,6 @@ int mipi_clk_change(int module, int en)
 	/*not consider dual pipe in*/
 	struct dfps_info *dfps_params = NULL;
 #endif
-
-#ifdef OPLUS_BUG_STABILITY
-	int scenario;
-	scenario = dpmgr_get_scenario(pgc->dpmgr_handle);
-	module = ddp_get_dst_module(scenario);
-
-	if (mipi_clk_change_sta == en)
-		return 0;
-#endif /* OPLUS_BUG_STABILITY */
 
 	i = DSI_MODULE_BEGIN(module);
 	dsi_params = &_dsi_context[i].dsi_params;
@@ -5077,7 +5064,6 @@ static void lcm_set_reset_pin(UINT32 value)
 	else
 		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT0);
 }
-//#ifdef OPLUS_BUG_STABILITY
  long lcm_bias_vsp(UINT32 value)
 {
 	pr_err("[lcm]set vsp value is %d\n",value);
@@ -5324,11 +5310,9 @@ int ddp_dsi_set_lcm_utils(enum DISP_MODULE_ENUM module,
 	}
 
 	utils->set_reset_pin = lcm_set_reset_pin;
-//#ifdef OPLUS_BUG_STABILITY
 	utils->set_gpio_lcd_enp_bias = lcm_bias_vsp;
 	utils->set_gpio_lcd_enn_bias = lcm_bias_vsn;
 	utils->set_gpio_lcm_vddio_ctl = lcm_vddio18_enable;
-//#endif
 	utils->udelay = lcm_udelay;
 	utils->mdelay = lcm_mdelay;
 	utils->set_te_pin = NULL;
@@ -5437,9 +5421,6 @@ int ddp_dsi_set_lcm_utils(enum DISP_MODULE_ENUM module,
 	utils->set_gpio_pull_enable =
 		(int (*)(unsigned int, unsigned char))mt_set_gpio_pull_enable;
 #else
-//#ifdef OPLUS_BUG_STABILITY
-	//utils->set_gpio_lcd_enp_bias = lcd_enp_bias_setting;
-//#endif
 #endif
 #endif
 

@@ -188,10 +188,7 @@ static struct task_struct *thread;
 static u32 button_press_debounce = 0x400;
 static u32 button_press_debounce_01 = 0x800;
 
-/* other external function declaration */
-#ifdef OPLUS_FEATURE_TP_BASIC
-void switch_headset_state(int headset_state);
-#endif /* OPLUS_FEATURE_TP_BASIC */
+void __attribute__((weak)) switch_headset_state(int headset_state) {}
 
 /* local function declaration */
 static void accdet_init_once(void);
