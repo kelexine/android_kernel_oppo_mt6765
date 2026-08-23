@@ -89,6 +89,18 @@ static DEFINE_MUTEX(_disp_fence_mutex);
 static DEFINE_MUTEX(fence_buffer_mutex);
 
 struct disp_session_sync_info _disp_fence_context[MAX_SESSION_COUNT];
+static bool _disp_fence_context_inited;
+
+static void _ensure_disp_fence_context_inited(void)
+{
+	int i;
+
+	if (!_disp_fence_context_inited) {
+		for (i = 0; i < ARRAY_SIZE(_disp_fence_context); i++)
+			_disp_fence_context[i].session_id = 0xffffffff;
+		_disp_fence_context_inited = true;
+	}
+}
 
 static struct disp_session_sync_info *_get_session_sync_info(
 	unsigned int session_id)
@@ -108,6 +120,7 @@ static struct disp_session_sync_info *_get_session_sync_info(
 	}
 
 	mutex_lock(&_disp_fence_mutex);
+	_ensure_disp_fence_context_inited();
 	for (i = 0; i < ARRAY_SIZE(_disp_fence_context); i++) {
 		if (session_id == _disp_fence_context[i].session_id) {
 			session_info = &(_disp_fence_context[i]);

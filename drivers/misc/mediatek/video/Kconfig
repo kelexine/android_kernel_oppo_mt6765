@@ -158,3 +158,13 @@ config MTK_DISPLAY_LOW_MEMORY_DEBUG_SUPPORT
 	  If enable this option, display some debug buffer will be reduced or closed.
 	  If you want to use Meditek display low memory debug, please make sure it is Y in xxx_defconfig.mk.
 	  If unsure, set N.
+
+config MTK_DSI_DIAG
+	bool "MediaTek DSI / Panel Live Diagnostics Node"
+	default n
+	help
+	  Say Y here to enable an unconditional live diagnostic node at
+	  /d/disp/dsi_diag (and /proc/disp/dsi_diag) for DISP_MODULE_DSI0.
+	  Bypasses power and ULPS gates to dump hardware registers and
+	  LCM driver status. If unsure, say N.
+

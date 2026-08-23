@@ -28,6 +28,7 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/video/include/ \
              -I$(srctree)/drivers/misc/mediatek/video/common/wdma20/ \
              -I$(srctree)/drivers/misc/mediatek/video/common/layering_rule_base/v1.1/ \
              -I$(srctree)/drivers/misc/mediatek/video/$(MTK_PLATFORM)/videox/ \
+             -I$(srctree)/drivers/misc/mediatek/video/$(MTK_PLATFORM)/dispsys/ \
              -I$(srctree)/drivers/misc/mediatek/base/power/include/ \
              -I$(srctree)/drivers/misc/mediatek/smi/ \
              -I$(srctree)/drivers/misc/mediatek/gpu/ged/include/ \
@@ -100,6 +101,7 @@ obj-y += ddp_irq.o
 obj-y += ddp_info.o
 obj-y += ddp_color_format.o
 obj-y += ddp_pwm_mux.o
+obj-$(CONFIG_MTK_DSI_DIAG) += ddp_dsi_diag.o
 
 
 ifeq ($(CONFIG_MMPROFILE), y)
@@ -128,4 +130,6 @@ ifeq ($(strip $(CONFIG_MTK_PQ_COLOR_MODE)),"DISP")
 else ifeq ($(strip $(CONFIG_MTK_PQ_COLOR_MODE)),"OFF")
     ccflags-y += -DDISP_COLOR_ON
 endif
+
+ccflags-y += -Wno-error
 # EOF

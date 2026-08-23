@@ -50,6 +50,8 @@
 #include "disp_lowpower.h"
 #include "disp_drv_log.h"
 #include "disp_recovery.h"
+#include "ddp_dsi_diag.h"
+
 
 #if IS_ENABLED(CONFIG_DEBUG_FS)
 // file: /d/dispsys
@@ -838,9 +840,23 @@ void ddp_debug_init(void)
 	}
 
 out:
-	return;
 #endif
 
+	/* DSI live diagnostics debugfs/procfs node registration */
+#if IS_ENABLED(CONFIG_MTK_DSI_DIAG)
+	ddp_dsi_diag_init(
+#if IS_ENABLED(CONFIG_DEBUG_FS)
+		debugDir,
+#else
+		NULL,
+#endif
+#if IS_ENABLED(CONFIG_PROC_FS)
+		disp_dir_procfs
+#else
+		NULL
+#endif
+	);
+#endif
 }
 
 unsigned int ddp_debug_analysis_to_buffer(void)
@@ -890,6 +906,10 @@ int ddp_debug_force_roi_h(void)
 
 void ddp_debug_exit(void)
 {
+#if IS_ENABLED(CONFIG_MTK_DSI_DIAG)
+	ddp_dsi_diag_exit();
+#endif
+
 #if IS_ENABLED(CONFIG_DEBUG_FS)
 	debugfs_remove(debugfs);
 	debugfs_remove(debugDir);
