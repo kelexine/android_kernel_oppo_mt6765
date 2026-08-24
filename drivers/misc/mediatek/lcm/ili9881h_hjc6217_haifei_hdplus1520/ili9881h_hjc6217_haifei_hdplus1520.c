@@ -236,7 +236,7 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0xA7, 1, {0x00}},
 	{0xA8, 1, {0x00}},
 	{0xA9, 1, {0x09}},
-	{REGFLAG_END_OF_TABLE, 1, {}},
+	{0xAA, 1, {0x09}},
 	{0xB9, 1, {0x40}},
 	{0xD0, 1, {0x01}},
 	{0xD1, 1, {0x00}},
@@ -307,8 +307,8 @@ static void push_table(struct LCM_setting_table *table, unsigned int count,
 	for (i = 0; i < count; i++) {
 		unsigned int cmd = table[i].cmd;
 
-		if (cmd == REGFLAG_END_OF_TABLE || cmd == 0xAA)
-			continue;
+		if (cmd == REGFLAG_END_OF_TABLE)
+			break;
 		else if (cmd == REGFLAG_UDELAY || cmd == 0xFFFB)
 			UDELAY(table[i].count);
 		else if (cmd == REGFLAG_DELAY || cmd == 0xAB || cmd == 0xFFFC)
