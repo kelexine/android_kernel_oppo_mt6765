@@ -87,6 +87,46 @@ int display_bias_enable(void)
 }
 EXPORT_SYMBOL(display_bias_enable);
 
+/*
+ * Voltage-pinned bias enable, matching the stock kernel's parameterized
+ * display_bias_enable(voltage): both DSV rails are set to exactly
+ * voltage_uv (min == max) before enabling pos -> 10ms -> neg.
+ */
+int display_bias_enable_uv(unsigned int voltage_uv)
+{
+	int ret = 0;
+	int retval = 0;
+
+	display_bias_regulator_init();
+
+	ret = regulator_set_voltage(disp_bias_pos, voltage_uv, voltage_uv);
+	if (ret < 0)
+		pr_info("set voltage disp_bias_pos fail, ret = %d\n", ret);
+	retval |= ret;
+
+	ret = regulator_set_voltage(disp_bias_neg, voltage_uv, voltage_uv);
+	if (ret < 0)
+		pr_info("set voltage disp_bias_neg fail, ret = %d\n", ret);
+	retval |= ret;
+
+	ret = regulator_enable(disp_bias_pos);
+	if (ret < 0)
+		pr_info("enable regulator disp_bias_pos fail, ret = %d\n",
+			ret);
+	retval |= ret;
+
+	mdelay(10);
+
+	ret = regulator_enable(disp_bias_neg);
+	if (ret < 0)
+		pr_info("enable regulator disp_bias_neg fail, ret = %d\n",
+			ret);
+	retval |= ret;
+
+	return retval;
+}
+EXPORT_SYMBOL(display_bias_enable_uv);
+
 int display_bias_disable(void)
 {
 	int ret = 0;
@@ -129,6 +169,12 @@ int display_bias_enable(void)
 	return 0;
 }
 EXPORT_SYMBOL(display_bias_enable);
+
+int display_bias_enable_uv(unsigned int voltage_uv)
+{
+	return 0;
+}
+EXPORT_SYMBOL(display_bias_enable_uv);
 
 int display_bias_disable(void)
 {

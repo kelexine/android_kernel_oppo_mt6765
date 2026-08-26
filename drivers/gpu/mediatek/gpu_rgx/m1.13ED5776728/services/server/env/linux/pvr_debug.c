@@ -199,7 +199,7 @@ void PVRSRVDebugPrintfDumpCCB(void)
 #if !defined(PVR_TESTING_UTILS)
 static
 #endif
-IMG_UINT32 gPVRDebugLevel = (DBGPRIV_FATAL | DBGPRIV_ERROR);
+IMG_UINT32 gPVRDebugLevel = (DBGPRIV_FATAL | DBGPRIV_ERROR | DBGPRIV_WARNING | DBGPRIV_MESSAGE);
 
 module_param(gPVRDebugLevel, uint, 0644);
 MODULE_PARM_DESC(gPVRDebugLevel,

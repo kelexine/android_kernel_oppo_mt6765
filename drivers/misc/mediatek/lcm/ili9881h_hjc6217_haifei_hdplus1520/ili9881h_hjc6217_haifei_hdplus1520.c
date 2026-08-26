@@ -307,8 +307,8 @@ static void push_table(struct LCM_setting_table *table, unsigned int count,
 	for (i = 0; i < count; i++) {
 		unsigned int cmd = table[i].cmd;
 
-		if (cmd == REGFLAG_END_OF_TABLE)
-			break;
+		if (cmd == REGFLAG_END_OF_TABLE || cmd == 0xAA)
+			continue;
 		else if (cmd == REGFLAG_UDELAY || cmd == 0xFFFB)
 			UDELAY(table[i].count);
 		else if (cmd == REGFLAG_DELAY || cmd == 0xAB || cmd == 0xFFFC)
@@ -326,7 +326,7 @@ static void lcm_init_power(void)
 	pr_info("[LCM] ili9881h_hjc6217: lcm_init_power (enabling bias)\n");
 	SET_RESET_PIN(0);
 	MDELAY(30);
-	display_bias_enable();
+	display_bias_enable_uv(5400000);
 }
 
 static void lcm_suspend_power(void)
@@ -340,7 +340,7 @@ static void lcm_resume_power(void)
 	pr_info("[LCM] ili9881h_hjc6217: lcm_resume_power (enabling bias)\n");
 	SET_RESET_PIN(0);
 	MDELAY(30);
-	display_bias_enable();
+	display_bias_enable_uv(5400000);
 	MDELAY(30);
 }
 

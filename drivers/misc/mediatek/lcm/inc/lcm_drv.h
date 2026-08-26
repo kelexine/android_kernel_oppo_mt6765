@@ -1054,6 +1054,7 @@ int lcm_vgp_supply_disable(void);
 extern enum LCM_DSI_MODE_CON lcm_dsi_mode;
 
 extern int display_bias_enable(void);
+extern int display_bias_enable_uv(unsigned int voltage_uv);
 extern int display_bias_disable(void);
 extern int display_bias_regulator_init(void);
 

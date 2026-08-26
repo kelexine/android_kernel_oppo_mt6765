@@ -13,6 +13,7 @@
 
 #include <linux/string.h>
 #include <linux/kernel.h>
+#include <linux/init.h>
 #include <linux/regulator/consumer.h>
 #include <linux/gpio/consumer.h>
 #include <linux/gpio.h>
@@ -66,6 +67,13 @@ static void panel2_gpio_set(unsigned int gpio, int value)
 	struct gpio_desc *desc = gpio_to_desc(gpio);
 	if (desc)
 		gpiod_set_raw_value(desc, value);
+}
+
+static void panel2_gpio_set_cansleep(unsigned int gpio, int value)
+{
+	struct gpio_desc *desc = gpio_to_desc(gpio);
+	if (desc)
+		gpiod_set_raw_value_cansleep(desc, value);
 }
 
 /* ------------------------------------------------------------------------
@@ -169,9 +177,9 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0xF1, 2, {0x5A, 0x59}},
 	{0xF0, 2, {0xA5, 0xA6}},
 	{0x35, 1, {0x00}},
-	{0x11, 0, {0x00}}, /* DCS Sleep Out: 0 parameter */
-	{REGFLAG_DELAY, 120, { }},
-	{0x29, 0, {0x00}}, /* DCS Display ON: 0 parameter */
+	{0x11, 1, {0x00}}, /* DCS Sleep Out */
+	{REGFLAG_DELAY, 120, {}},
+	{0x29, 1, {0x00}}, /* DCS Display ON */
 	{REGFLAG_DELAY, 10, { }},
 	{0x26, 1, {0x01}},
 	{REGFLAG_DELAY, 5, { }},
@@ -220,7 +228,7 @@ static void push_table(struct LCM_setting_table *table, unsigned int count,
 static void lcm_init_power(void)
 {
 	pr_info("[LCM] icnl9911_boe621: lcm_init_power (enabling bias)\n");
-	display_bias_enable();
+	display_bias_enable_uv(DSV_BIAS_UV);
 }
 
 static void lcm_suspend_power(void)
@@ -232,7 +240,7 @@ static void lcm_suspend_power(void)
 static void lcm_resume_power(void)
 {
 	pr_info("[LCM] icnl9911_boe621: lcm_resume_power (enabling bias)\n");
-	display_bias_enable();
+	display_bias_enable_uv(DSV_BIAS_UV);
 	MDELAY(20);
 }
 
@@ -265,9 +273,29 @@ static void lcm_suspend(void)
 	MDELAY(10);
 }
 
+/*
+ * Panel F6 register override from the bootloader cmdline
+ * (androidboot.Temp_F6=0xXY), applied to init table entry 15 before
+ * every re-init, mirroring the stock driver. Default 0x3F.
+ */
+static unsigned char panel_f6_reg_val = 0x3F;
+
 static void lcm_resume(void)
 {
-	pr_info("[LCM] icnl9911_boe621: lcm_resume\n");
+	const char *p = strstr(saved_command_line, "androidboot.Temp_F6=0x");
+
+	if (p) {
+		int hi = hex_to_bin(p[22]);
+		int lo = hex_to_bin(p[23]);
+
+		if (hi >= 0 && lo >= 0) {
+			panel_f6_reg_val = (unsigned char)((hi << 4) | lo);
+			lcm_initialization_setting[15].para_list[0] =
+				panel_f6_reg_val;
+		}
+	}
+	pr_info("[LCM] icnl9911_boe621: lcm_resume (F6=0x%02X)\n",
+		panel_f6_reg_val);
 	lcm_init();
 }
 
@@ -279,15 +307,15 @@ static unsigned int lcm_compare_id(void)
 	unsigned char buffer[4] = { 0 };
 	unsigned int cmd_array[4] = { 0x00023700 };
 
-	panel2_gpio_set(GPIO_PANEL2_POWER_EN, 1);
+	panel2_gpio_set_cansleep(GPIO_PANEL2_POWER_EN, 1);
 	MDELAY(20);
 	MDELAY(20);
 
-	panel2_gpio_set(GPIO_PANEL2_RESET, 1);
+	panel2_gpio_set_cansleep(GPIO_PANEL2_RESET, 1);
 	MDELAY(10);
-	panel2_gpio_set(GPIO_PANEL2_RESET, 0);
+	panel2_gpio_set_cansleep(GPIO_PANEL2_RESET, 0);
 	MDELAY(20);
-	panel2_gpio_set(GPIO_PANEL2_RESET, 1);
+	panel2_gpio_set_cansleep(GPIO_PANEL2_RESET, 1);
 	MDELAY(120);
 
 	dsi_set_cmdq(cmd_array, 1, 1);
