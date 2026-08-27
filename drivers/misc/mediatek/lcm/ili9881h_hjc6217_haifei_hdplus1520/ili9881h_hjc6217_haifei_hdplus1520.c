@@ -1,123 +1,76 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Script: ili9881h_hjc6217_haifei_hdplus1520.c
- * Author: kelexine <https://github.com/kelexine>
- * Target: Cubot P50 (MT6765, Kernel 4.19.127)
- * Purpose: LCM driver for ILI9881H-based HD+ (720x1520) DSI panel (Source #1).
+ * ILI9881H INCELL TDDI LCD Panel Driver
+ * Panel:      ili9881h_hjc6217_haifei_hdplus1520
+ * Resolution: 720 x 1520 (HD+, 20:9)
+ * Interface:  MIPI-DSI, 4-lane, SYNC_PULSE_VDO_MODE, RGB888
+ * IC:         Ilitek ILI9881H (TDDI — Touch & Display Driver Integration)
+ * Module:     HJC6217 / Haifei
+ * Platform:   MediaTek MT6762/MT6765
  *
- * Driver decompiled from stock vmlinux.elf via Ghidra / objdump
- * (addresses: 0xffffff8008735234 - 0xffffff80087355bc).
+ * Author: kelexine <https://github.com/kelexine>
  */
 
-#define LOG_TAG "LCM"
+ #define LOG_TAG "LCM"
 
 #include <linux/string.h>
 #include <linux/kernel.h>
 #include <linux/regulator/consumer.h>
 #include "lcm_drv.h"
 
-#ifdef mdelay
-#undef mdelay
-#endif
-#ifdef udelay
-#undef udelay
-#endif
+/* Pinout */
+#define LCM_GPIO_RST    503
+#define LCM_GPIO_TE     374
 
-/* ------------------------------------------------------------------------
- * Panel Geometry & Identification (Verified from stock vmlinux)
- * ---------------------------------------------------------------------- */
-#define FRAME_WIDTH             (720)
-#define FRAME_HEIGHT            (1520)
+/* Panel geometry */
+#define LCM_WIDTH       720
+#define LCM_HEIGHT      1520
 
-#define PHYSICAL_WIDTH          (67)
-#define PHYSICAL_HEIGHT         (142)
-#define PHYSICAL_WIDTH_UM       (67610)
-#define PHYSICAL_HEIGHT_UM      (142730)
-#define PANEL_DENSITY           (240)
+/* DSI clock / timing (verified against stock vmlinux lcm_get_params) */
+#define LCM_DSI_PLL_MHZ 270
+#define LCM_VSYNC_ACT   4
+#define LCM_VBP         8
+#define LCM_VFP         246
+#define LCM_HSA         8
+#define LCM_HBP         38
+#define LCM_HFP         40
 
-#define LCM_ID_ILI9881H         (0x98)
-
-#define REGFLAG_DELAY           0xFFFC
+/* Stock dispatch semantics (verified in stock vmlinux lcm_init loop):
+ * 0xAA = skip entry, 0xAB = mdelay(count), 0xFFFB = udelay(count) */
+#define REGFLAG_SKIP            0xAA
+#define REGFLAG_DELAY           0xAB
 #define REGFLAG_UDELAY          0xFFFB
-#define REGFLAG_END_OF_TABLE    0xFFFD
-#define REGFLAG_RESET_LOW       0xFFFE
-#define REGFLAG_RESET_HIGH      0xFFFF
+
+/* MTKFB utility vtable */
+static struct LCM_UTIL_FUNCS lcm_util;
+
+#define SET_RESET_PIN(v)    (lcm_util.set_reset_pin((v)))
+#define MDELAY(n)           (lcm_util.mdelay((n)))
+#define UDELAY(n)           (lcm_util.udelay((n)))
+
+#define dsi_set_cmdq_V2(cmd, count, ppara, force_update)        \
+    lcm_util.dsi_set_cmdq_V2(cmd, count, ppara, force_update)
+#define dsi_set_cmdq(pdata, queue_size, force_update)           \
+    lcm_util.dsi_set_cmdq(pdata, queue_size, force_update)
+#define read_reg_v2(cmd, buffer, buffer_size)                   \
+    lcm_util.dsi_dcs_read_lcm_reg_v2(cmd, buffer, buffer_size)
+
 
 struct LCM_setting_table {
-	unsigned int cmd;
+	unsigned int  cmd;
 	unsigned char count;
 	unsigned char para_list[64];
 };
 
-/* ------------------------------------------------------------------------
- * MediaTek LCM util glue
- * ---------------------------------------------------------------------- */
-static struct LCM_UTIL_FUNCS lcm_util;
-
-#define SET_RESET_PIN(v)        (lcm_util.set_reset_pin((v)))
-#define UDELAY(n)               (lcm_util.udelay((n)))
-#define MDELAY(n)               (lcm_util.mdelay((n)))
-#define dsi_set_cmdq_V2(cmd, count, ppara, force_update) \
-	(lcm_util.dsi_set_cmdq_V2((cmd), (count), (ppara), (force_update)))
-#define dsi_set_cmdq(pdata, queue_size, force_update) \
-	(lcm_util.dsi_set_cmdq((pdata), (queue_size), (force_update)))
-#define read_reg_v2(cmd, buffer, buffer_size) \
-	(lcm_util.dsi_dcs_read_lcm_reg_v2((cmd), (buffer), (buffer_size)))
-
-static void lcm_set_util_funcs(const struct LCM_UTIL_FUNCS *util)
-{
-	memcpy(&lcm_util, util, sizeof(struct LCM_UTIL_FUNCS));
-}
-
-static void lcm_get_params(struct LCM_PARAMS *params)
-{
-	memset(params, 0, sizeof(struct LCM_PARAMS));
-
-	params->type = LCM_TYPE_DSI;
-	params->width = FRAME_WIDTH;
-	params->height = FRAME_HEIGHT;
-	params->physical_width = PHYSICAL_WIDTH;
-	params->physical_height = PHYSICAL_HEIGHT;
-	params->physical_width_um = PHYSICAL_WIDTH_UM;
-	params->physical_height_um = PHYSICAL_HEIGHT_UM;
-	params->density = PANEL_DENSITY;
-
-	params->dsi.mode = BURST_VDO_MODE;
-	params->dsi.LANE_NUM = LCM_FOUR_LANE;
-	params->dsi.data_format.color_order = LCM_COLOR_ORDER_RGB;
-	params->dsi.data_format.trans_seq = LCM_DSI_TRANS_SEQ_MSB_FIRST;
-	params->dsi.data_format.padding = LCM_DSI_PADDING_ON_LSB;
-	params->dsi.data_format.format = LCM_DSI_FORMAT_RGB888;
-
-	params->dsi.PS = LCM_PACKED_PS_24BIT_RGB888;
-
-	params->dsi.vertical_sync_active = 4;
-	params->dsi.vertical_backporch = 8;
-	params->dsi.vertical_frontporch = 246;
-	params->dsi.vertical_active_line = FRAME_HEIGHT;
-
-	params->dsi.horizontal_sync_active = 8;
-	params->dsi.horizontal_backporch = 38;
-	params->dsi.horizontal_frontporch = 40;
-	params->dsi.horizontal_active_pixel = FRAME_WIDTH;
-
-	params->dsi.PLL_CLOCK = 270;
-	params->dsi.ssc_disable = 1;
-
-	params->dsi.esd_check_enable = 1;
-	params->dsi.customization_esd_check_enable = 1;
-	params->dsi.lcm_esd_check_table[0].cmd = 0x0A;
-	params->dsi.lcm_esd_check_table[0].count = 1;
-	params->dsi.lcm_esd_check_table[0].para_list[0] = 0x9C;
-}
-
-/* ------------------------------------------------------------------------
- * 181-entry register initialization table directly from stock vmlinux
- * ---------------------------------------------------------------------- */
+/* Init sequence */
 static struct LCM_setting_table lcm_initialization_setting[] = {
+
+	/* Page 0 */
 	{0xFF, 3, {0x98, 0x81, 0x00}},
 	{0x11, 1, {0x00}},
 	{REGFLAG_DELAY, 120, {}},
+
+	/* Page 1 */
 	{0xFF, 3, {0x98, 0x81, 0x01}},
 	{0x00, 1, {0x46}},
 	{0x01, 1, {0x16}},
@@ -236,15 +189,18 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0xA7, 1, {0x00}},
 	{0xA8, 1, {0x00}},
 	{0xA9, 1, {0x09}},
-	{0xAA, 1, {0x09}},
+	/* stock[121]: 0xAA entry — skipped by the dispatch loop, no DSI write */
+	{REGFLAG_SKIP, 1, {0x09}},
 	{0xB9, 1, {0x40}},
-	{0xD0, 1, {0x01}},
-	{0xD1, 1, {0x00}},
-	{0xDC, 1, {0x35}},
-	{0xDD, 1, {0x42}},
+	{0xd0, 1, {0x01}},
+	{0xd1, 1, {0x00}},
+	{0xdC, 1, {0x35}},
+	{0xdD, 1, {0x42}},
 	{0xE2, 1, {0x00}},
 	{0xE6, 1, {0x22}},
 	{0xE7, 1, {0x54}},
+
+	/* Page 5 */
 	{0xFF, 3, {0x98, 0x81, 0x05}},
 	{0x58, 1, {0x62}},
 	{0x63, 1, {0x88}},
@@ -253,6 +209,8 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0x69, 1, {0xB1}},
 	{0x6A, 1, {0x86}},
 	{0x6B, 1, {0x78}},
+
+	/* Page 6 */
 	{0xFF, 3, {0x98, 0x81, 0x06}},
 	{0x0F, 1, {0x40}},
 	{0x11, 1, {0x03}},
@@ -265,22 +223,30 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0x48, 1, {0x0F}},
 	{0x4D, 1, {0x80}},
 	{0x4E, 1, {0x40}},
+
+	/* Page 8 */
 	{0xFF, 3, {0x98, 0x81, 0x08}},
 	{0xE0, 27, {0x40, 0x24, 0x86, 0xC0, 0x05, 0x55, 0x39, 0x60, 0x8D, 0xB1, 0xA9, 0xE6, 0x11, 0x36, 0x5B, 0xEA, 0x83, 0xB7, 0xD9, 0x03, 0xFF, 0x27, 0x54, 0x89, 0xB5, 0x03, 0xFF}},
 	{0xE1, 27, {0x40, 0x24, 0x86, 0xC0, 0x05, 0x55, 0x39, 0x60, 0x8D, 0xB1, 0xA9, 0xE6, 0x11, 0x36, 0x5B, 0xEA, 0x83, 0xB7, 0xD9, 0x03, 0xFF, 0x27, 0x54, 0x89, 0xB5, 0x03, 0xFF}},
+
+	/* Page 6 */
 	{0xFF, 3, {0x98, 0x81, 0x06}},
-	{0xD6, 1, {0x85}},
+	{0xd6, 1, {0x85}},
 	{0x27, 1, {0x20}},
 	{0x28, 1, {0x20}},
 	{0x2E, 1, {0x01}},
 	{0xC0, 1, {0xF7}},
 	{0xC1, 1, {0x02}},
 	{0xC2, 1, {0x04}},
+
+	/* Page 14 */
 	{0xFF, 3, {0x98, 0x81, 0x0E}},
 	{0x00, 1, {0xA0}},
 	{0x01, 1, {0x28}},
 	{0x11, 1, {0x90}},
 	{0x13, 1, {0x14}},
+
+	/* Page 2 */
 	{0xFF, 3, {0x98, 0x81, 0x02}},
 	{0x40, 1, {0x43}},
 	{0x42, 1, {0x00}},
@@ -288,42 +254,116 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0x4D, 1, {0x4E}},
 	{0x4E, 1, {0x00}},
 	{0x1A, 1, {0x48}},
+
+	/* Page 7 */
 	{0xFF, 3, {0x98, 0x81, 0x07}},
 	{0x0F, 1, {0x02}},
+
+	/* Page 0 */
 	{0xFF, 3, {0x98, 0x81, 0x00}},
 	{0x35, 1, {0x00}},
 	{0x36, 1, {0x00}},
 	{0x29, 1, {0x00}},
 	{REGFLAG_DELAY, 20, {}},
-	{REGFLAG_END_OF_TABLE, 0, {}},
+	/* stock[180]: 0xAA terminator — skipped by the dispatch loop */
+	{REGFLAG_SKIP, 0, {}},
 };
 
+/* Sleep-in sequence (stock: DCS 0x28, 10 ms, DCS 0x10, 120 ms) */
+static struct LCM_setting_table lcm_sleep_in_setting[] = {
+	{0x28, 1, {0x00}},
+	{REGFLAG_DELAY, 10, {}},
+	{0x10, 1, {0x00}},
+	{REGFLAG_DELAY, 120, {}},
+	{REGFLAG_SKIP, 0, {}},
+};
 
+/* push_table — inline dispatch replication  */
 static void push_table(struct LCM_setting_table *table, unsigned int count,
-			unsigned char force_update)
+		       unsigned char force_update)
 {
 	unsigned int i;
 
 	for (i = 0; i < count; i++) {
 		unsigned int cmd = table[i].cmd;
 
-		if (cmd == REGFLAG_END_OF_TABLE || cmd == 0xAA)
-			continue;
-		else if (cmd == REGFLAG_UDELAY || cmd == 0xFFFB)
-			UDELAY(table[i].count);
-		else if (cmd == REGFLAG_DELAY || cmd == 0xAB || cmd == 0xFFFC)
+		switch (cmd) {
+		case REGFLAG_SKIP:
+			break;
+		case REGFLAG_DELAY:
 			MDELAY(table[i].count);
-		else
-			dsi_set_cmdq_V2(cmd, table[i].count, table[i].para_list, force_update);
+			break;
+		case REGFLAG_UDELAY:
+			UDELAY(table[i].count);
+			break;
+		default:
+			dsi_set_cmdq_V2(cmd, table[i].count,
+					table[i].para_list, force_update);
+			break;
+		}
 	}
 }
 
-/* ------------------------------------------------------------------------
- * Power & Lifecycle sequencing (matching stock vmlinux)
- * ---------------------------------------------------------------------- */
+static void lcm_set_util_funcs(const struct LCM_UTIL_FUNCS *util)
+{
+	memcpy(&lcm_util, util, sizeof(struct LCM_UTIL_FUNCS));
+}
+
+static void lcm_get_params(struct LCM_PARAMS *params)
+{
+	memset(params, 0, sizeof(struct LCM_PARAMS));
+
+	params->type   = LCM_TYPE_DSI;
+	params->width  = LCM_WIDTH;
+	params->height = LCM_HEIGHT;
+	params->density = 240;
+
+	params->physical_width     = 67;
+	params->physical_height    = 142;
+	params->physical_width_um  = 67610;
+	params->physical_height_um = 142730;
+
+	/* DSI core */
+	params->dsi.mode             = BURST_VDO_MODE;
+	params->dsi.switch_mode      = CMD_MODE;
+	params->dsi.switch_mode_enable = 0;
+
+	params->dsi.LANE_NUM         = LCM_FOUR_LANE;
+
+	params->dsi.data_format.color_order = LCM_COLOR_ORDER_RGB;
+	params->dsi.data_format.trans_seq   = LCM_DSI_TRANS_SEQ_MSB_FIRST;
+	params->dsi.data_format.padding     = LCM_DSI_PADDING_ON_LSB;
+	params->dsi.data_format.format      = LCM_DSI_FORMAT_RGB888;
+
+	params->dsi.PS                      = LCM_PACKED_PS_24BIT_RGB888;
+
+	/* Vertical timing */
+	params->dsi.vertical_sync_active   = LCM_VSYNC_ACT;
+	params->dsi.vertical_backporch     = LCM_VBP;
+	params->dsi.vertical_frontporch    = LCM_VFP;
+	params->dsi.vertical_active_line   = LCM_HEIGHT;
+
+	/* Horizontal timing */
+	params->dsi.horizontal_sync_active  = LCM_HSA;
+	params->dsi.horizontal_backporch    = LCM_HBP;
+	params->dsi.horizontal_frontporch   = LCM_HFP;
+	params->dsi.horizontal_active_pixel = LCM_WIDTH;
+
+	/* Clock */
+	params->dsi.PLL_CLOCK               = LCM_DSI_PLL_MHZ;
+	params->dsi.ssc_disable             = 1;
+
+	/* ESD check */
+	params->dsi.esd_check_enable                       = 1;
+	params->dsi.customization_esd_check_enable         = 1;
+	params->dsi.lcm_esd_check_table[0].cmd            = 0x0A;
+	params->dsi.lcm_esd_check_table[0].count          = 1;
+	params->dsi.lcm_esd_check_table[0].para_list[0]   = 0x9C;
+}
+
 static void lcm_init_power(void)
 {
-	pr_info("[LCM] ili9881h_hjc6217: lcm_init_power (enabling bias)\n");
+	pr_info("[LCM] ili9881h_hjc6217_haifei_hdplus1520: lcm_init_power (enabling bias)\n");
 	SET_RESET_PIN(0);
 	MDELAY(30);
 	display_bias_enable_uv(5400000);
@@ -331,13 +371,13 @@ static void lcm_init_power(void)
 
 static void lcm_suspend_power(void)
 {
-	pr_info("[LCM] ili9881h_hjc6217: lcm_suspend_power (disabling bias)\n");
+	pr_info("[LCM] ili9881h_hjc6217_haifei_hdplus1520 (disabling bias)\n");
 	display_bias_disable();
 }
 
 static void lcm_resume_power(void)
 {
-	pr_info("[LCM] ili9881h_hjc6217: lcm_resume_power (enabling bias)\n");
+	pr_info("[LCM] ili9881h_hjc6217_haifei_hdplus1520 (enabling bias)\n");
 	SET_RESET_PIN(0);
 	MDELAY(30);
 	display_bias_enable_uv(5400000);
@@ -346,7 +386,7 @@ static void lcm_resume_power(void)
 
 static void lcm_init(void)
 {
-	pr_info("[LCM] ili9881h_hjc6217: lcm_init start\n");
+	pr_info("[LCM] ili9881h_hjc6217_haifei_hdplus1520: lcm_init start\n");
 	SET_RESET_PIN(1);
 	MDELAY(10);
 	SET_RESET_PIN(0);
@@ -355,38 +395,28 @@ static void lcm_init(void)
 	MDELAY(120);
 
 	push_table(lcm_initialization_setting,
-		   ARRAY_SIZE(lcm_initialization_setting),
-		   1);
-	pr_info("[LCM] ili9881h_hjc6217: lcm_init complete\n");
+		   ARRAY_SIZE(lcm_initialization_setting), 1);
+	pr_info("[LCM] ili9881h_hjc6217_haifei_hdplus1520: lcm_init complete\n");
 }
 
 static void lcm_suspend(void)
 {
-	unsigned int cmd_data;
-
-	pr_info("[LCM] ili9881h_hjc6217: lcm_suspend (DCS 0x28 Display OFF -> DCS 0x10 Sleep IN)\n");
-	cmd_data = 0x00280500; /* DCS 0x28 Display OFF */
-	dsi_set_cmdq(&cmd_data, 1, 1);
-	MDELAY(10);
-
-	cmd_data = 0x00100500; /* DCS 0x10 Sleep IN */
-	dsi_set_cmdq(&cmd_data, 1, 1);
-	MDELAY(120);
+	pr_info("[LCM] ili9881h_hjc6217_haifei_hdplus1520: lcm_suspend start\n");
+	push_table(lcm_sleep_in_setting,
+		   ARRAY_SIZE(lcm_sleep_in_setting), 1);
+	
 }
 
 static void lcm_resume(void)
 {
-	pr_info("[LCM] ili9881h_hjc6217: lcm_resume\n");
+	pr_info("[LCM] ili9881h_hjc6217_haifei_hdplus1520: lcm_resume start\n");
 	lcm_init();
 }
 
-/* ------------------------------------------------------------------------
- * ID Compare: Select Page 6, read reg 0xF0 == 0x98 (stock vmlinux)
- * ---------------------------------------------------------------------- */
 static unsigned int lcm_compare_id(void)
 {
-	unsigned char id_buf[4] = { 0 };
-	unsigned int cmd_array[2] = { 0x00043902, 0x068198ff };
+	unsigned char buffer[1] = {0};
+	unsigned int  array[4];
 
 	SET_RESET_PIN(1);
 	MDELAY(10);
@@ -395,15 +425,16 @@ static unsigned int lcm_compare_id(void)
 	SET_RESET_PIN(1);
 	MDELAY(120);
 
-	dsi_set_cmdq(cmd_array, 2, 1);
+	/* Switch to ILI9881H page 6 for manufacturer ID register access. */
+	array[0] = 0x00043902;   /* DCS long write, 4 bytes */
+	array[1] = 0x068198FF;   /* {0xFF, 0x98, 0x81, 0x06} in LE wire order */
+	dsi_set_cmdq(array, 2, 1);
 	MDELAY(10);
 
-	read_reg_v2(0xF0, id_buf, 1);
+	/* Read manufacturer ID byte from reg 0xF0 — ILI9881H returns 0x98 */
+	read_reg_v2(0xF0, buffer, 1);
 
-	pr_info("[LCM] ili9881h_hjc6217: lcm_compare_id read: 0x%02X (expected: 0x%02X)\n",
-		id_buf[0], LCM_ID_ILI9881H);
-
-	return (id_buf[0] == LCM_ID_ILI9881H) ? 1 : 0;
+	return (buffer[0] == 0x98) ? 1 : 0;
 }
 
 struct LCM_DRIVER ili9881h_hjc6217_haifei_hdplus1520_lcm_drv = {
@@ -415,6 +446,6 @@ struct LCM_DRIVER ili9881h_hjc6217_haifei_hdplus1520_lcm_drv = {
 	.resume         = lcm_resume,
 	.compare_id     = lcm_compare_id,
 	.init_power     = lcm_init_power,
-	.suspend_power  = lcm_suspend_power,
 	.resume_power   = lcm_resume_power,
+	.suspend_power  = lcm_suspend_power,
 };
