@@ -238,8 +238,13 @@ static void mmstat_trace_buddyinfo(void)
 #endif
 
 			for (order = 0; order < MAX_ORDER; ++order) {
+#if defined(OPLUS_FEATURE_MULTI_FREEAREA) && defined(CONFIG_PHYSICAL_ANTI_FRAGMENTATION)
 				buddyinfo[order + 1] =
 					zone->free_area[flc][order].nr_free;
+#else
+				buddyinfo[order + 1] =
+					zone->free_area[order].nr_free;
+#endif
 			}
 #if defined(OPLUS_FEATURE_MULTI_FREEAREA) && defined(CONFIG_PHYSICAL_ANTI_FRAGMENTATION)
         }
