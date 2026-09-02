@@ -269,15 +269,6 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{REGFLAG_SKIP, 0, {}},
 };
 
-/* Sleep-in sequence (stock: DCS 0x28, 10 ms, DCS 0x10, 120 ms) */
-static struct LCM_setting_table lcm_sleep_in_setting[] = {
-	{0x28, 1, {0x00}},
-	{REGFLAG_DELAY, 10, {}},
-	{0x10, 1, {0x00}},
-	{REGFLAG_DELAY, 120, {}},
-	{REGFLAG_SKIP, 0, {}},
-};
-
 /* push_table — inline dispatch replication  */
 static void push_table(struct LCM_setting_table *table, unsigned int count,
 		       unsigned char force_update)
@@ -401,10 +392,16 @@ static void lcm_init(void)
 
 static void lcm_suspend(void)
 {
+	unsigned int cmd;
+
 	pr_info("[LCM] ili9881h_hjc6217_haifei_hdplus1520: lcm_suspend start\n");
-	push_table(lcm_sleep_in_setting,
-		   ARRAY_SIZE(lcm_sleep_in_setting), 1);
-	
+	cmd = 0x00280500;
+	dsi_set_cmdq(&cmd, 1, 1);
+	MDELAY(10);
+
+	cmd = 0x00100500;
+	dsi_set_cmdq(&cmd, 1, 1);
+	MDELAY(120);
 }
 
 static void lcm_resume(void)

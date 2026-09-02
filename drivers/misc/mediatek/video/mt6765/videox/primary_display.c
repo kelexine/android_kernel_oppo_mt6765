@@ -4045,18 +4045,16 @@ int primary_display_init(char *lcm_name, unsigned int lcm_fps,
 		DDP_OVL_GOLDEN_SETTING, &gset_arg);
 	replace_fb_addr_to_mva();
 
-	if (is_lcm_inited) {
-		/* no need lcm power on, because lk power on lcm */
-	} else {
-		if (use_cmdq) {
-			/* make sure dsi configuration done before lcm init */
-			_cmdq_flush_config_handle(1, NULL, 0);
-			_cmdq_reset_config_handle();
-		}
+	if (use_cmdq) {
+		/* make sure dsi configuration done before lcm init */
+		_cmdq_flush_config_handle(1, NULL, 0);
+		_cmdq_reset_config_handle();
+	}
+
+	if (!is_lcm_inited) {
 		ret = disp_lcm_init(pgc->plcm, 1);
 	}
-	if (!ret)
-		primary_display_set_lcm_power_state_nolock(LCM_ON);
+	primary_display_set_lcm_power_state_nolock(LCM_ON);
 	DISPCHECK("primary_display_init->dpmgr_path_start\n");
 	/* path start must after lcm init for video mode
 	 * because dsi_start will set mode
@@ -4581,7 +4579,7 @@ int primary_display_wait_for_vsync(void *config)
 		DISPWARN("vsync for primary display path not enabled yet\n");
 		goto out;
 	} else if (ret == 0) {
-		primary_display_release_fence_fake();
+		/* primary_display_release_fence_fake(); */
 	}
 
 	if (pgc->vsync_drop) {
@@ -8228,87 +8226,9 @@ int _set_backlight_by_cpu(unsigned int level)
 	return ret;
 }
 
-static int _primary_display_set_lcm_hbm(bool en)
-{
-	int ret = 0;
-	struct cmdqRecStruct *qhandle_hbm = NULL;
-
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	ret = cmdqRecCreate(CMDQ_SCENARIO_PRIMARY_DISP, &qhandle_hbm);
-	if (ret) {
-		DISPMSG("%s:failed to create cmdq handle\n", __func__);
-		return -1;
-	}
-
-	/*
-	if (!primary_display_is_video_mode()) {
-		cmdqRecReset(qhandle_hbm);
-		cmdqRecWait(qhandle_hbm, CMDQ_SYNC_TOKEN_CABC_EOF);
-		_cmdq_handle_clear_dirty(qhandle_hbm);
-
-		_cmdq_insert_wait_frame_done_token_mira(qhandle_hbm);
-		disp_lcm_set_hbm(en, pgc->plcm, qhandle_hbm);
-
-		cmdqRecSetEventToken(qhandle_hbm, CMDQ_SYNC_TOKEN_CABC_EOF);
-		_cmdq_flush_config_handle_mira(qhandle_hbm, 1);
-	}
-	*/
-	if (!primary_display_is_video_mode()) {
-		cmdqRecReset(qhandle_hbm);
-		cmdqRecWait(qhandle_hbm, CMDQ_SYNC_TOKEN_CABC_EOF);
-		_cmdq_handle_clear_dirty(qhandle_hbm);
-
-		_cmdq_insert_wait_frame_done_token_mira(qhandle_hbm);
-		disp_lcm_set_hbm(en, pgc->plcm, qhandle_hbm);
-
-		cmdqRecSetEventToken(qhandle_hbm, CMDQ_SYNC_TOKEN_CABC_EOF);
-		_cmdq_flush_config_handle_mira(qhandle_hbm, 1);
-	} else {
-		mmprofile_log_ex(ddp_mmp_get_events()->primary_set_bl, MMPROFILE_FLAG_PULSE, 1, 2);
-		disp_lcm_set_hbm(en, pgc->plcm, qhandle_hbm);
-
-		_cmdq_flush_config_handle_mira(qhandle_hbm, 1);
-		DISPMSG("[BL]qhandle_hbm ret=%d\n", ret);
-	}
-
-	cmdqRecDestroy(qhandle_hbm);
-	qhandle_hbm = NULL;
-
-	return ret;
-}
-
 int primary_display_set_lcm_hbm(bool en)
 {
-	int state = 0;
-
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	state = disp_lcm_get_hbm_state(pgc->plcm);
-	if (state == -1)
-		return -EINVAL;
-	else if (state == en)
-		return 0;
-
-	if (disp_helper_get_stage() != DISP_HELPER_STAGE_NORMAL) {
-		DISPMSG("%s: skip, stage:%s\n", __func__,
-			disp_helper_stage_spy());
-		return 0;
-	}
-	if (pgc->state == DISP_SLEPT) {
-		DISPMSG("%s: skip, slept\n", __func__);
-		return 0;
-	}
-
-	primary_display_idlemgr_kick(__func__, 0);
-	if (primary_display_cmdq_enabled()) {
-		DISPMSG("set LCM hbm en:%d\n", en);
-		_primary_display_set_lcm_hbm(en);
-	}
-
-	return 0;
+	return -1;
 }
 
 int primary_display_setbacklight_nolock(unsigned int level)
