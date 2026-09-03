@@ -199,11 +199,22 @@ void PVRSRVDebugPrintfDumpCCB(void)
 #if !defined(PVR_TESTING_UTILS)
 static
 #endif
-IMG_UINT32 gPVRDebugLevel = (DBGPRIV_FATAL | DBGPRIV_ERROR | DBGPRIV_WARNING | DBGPRIV_MESSAGE);
+IMG_UINT32 gPVRDebugLevel =
+	(
+	 DBGPRIV_FATAL | DBGPRIV_ERROR | DBGPRIV_WARNING
+
+#if defined(PVRSRV_DEBUG_CCB_MAX)
+	 | DBGPRIV_BUFFERED
+#endif /* defined(PVRSRV_DEBUG_CCB_MAX) */
+
+#if defined(PVR_DPF_ADHOC_DEBUG_ON)
+	 | DBGPRIV_DEBUG
+#endif /* defined(PVR_DPF_ADHOC_DEBUG_ON) */
+	);
 
 module_param(gPVRDebugLevel, uint, 0644);
 MODULE_PARM_DESC(gPVRDebugLevel,
-				 "Sets the level of debug output (default 0x3)");
+				 "Sets the level of debug output (default 0x7)");
 
 #endif /* defined(PVRSRV_NEED_PVR_DPF) || defined(PVRSRV_NEED_PVR_TRACE) */
 
@@ -227,23 +238,15 @@ static IMG_BOOL VBAppend(IMG_CHAR *pszBuf, IMG_UINT32 ui32BufSiz, const IMG_CHAR
 	IMG_UINT32 ui32Space;
 	IMG_INT32 i32Len;
 
-	/* Determine string length */
 	ui32Used = OSStringLength(pszBuf);
-	if (ui32Used >= ui32BufSiz)
-	{
-		return IMG_TRUE;
-	}
-
+	BUG_ON(ui32Used >= ui32BufSiz);
 	ui32Space = ui32BufSiz - ui32Used;
 
-	/* Append string */
-	i32Len = vsnprintf(pszBuf + ui32Used, ui32Space, pszFormat, VArgs);
-	if (i32Len >= (IMG_INT32)ui32Space)
-	{
-		return IMG_TRUE;
-	}
+	i32Len = vsnprintf(&pszBuf[ui32Used], ui32Space, pszFormat, VArgs);
+	pszBuf[ui32BufSiz - 1] = 0;
 
-	return IMG_FALSE;
+	/* Return true if string was truncated */
+	return i32Len < 0 || i32Len >= (IMG_INT32)ui32Space;
 }
 
 /*************************************************************************/ /*!
@@ -259,9 +262,6 @@ void PVRSRVReleasePrintf(const IMG_CHAR *pszFormat, ...)
 	IMG_CHAR *pszBuf = gszBuffer;
 	IMG_UINT32 ui32BufSiz = sizeof(gszBuffer);
 	IMG_INT32  result;
-
-	if (!(gPVRDebugLevel & (DBGPRIV_WARNING | DBGPRIV_MESSAGE | DBGPRIV_VERBOSE | DBGPRIV_DEBUG)))
-		return;
 
 	va_start(vaArgs, pszFormat);
 

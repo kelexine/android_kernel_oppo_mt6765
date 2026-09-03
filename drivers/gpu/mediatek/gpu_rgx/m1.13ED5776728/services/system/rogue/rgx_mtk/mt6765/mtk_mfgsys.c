@@ -94,7 +94,7 @@ static IMG_UINT32 gpu_cust_upbound_freq;
 static IMG_UINT32 gpu_power;
 static IMG_UINT32 gpu_dvfs_enable;
 static IMG_UINT32 boost_gpu_enable;
-static IMG_UINT32 gpu_debug_enable = 1;
+static IMG_UINT32 gpu_debug_enable;
 static IMG_UINT32 gpu_dvfs_force_idle;
 static IMG_UINT32 gpu_dvfs_cb_force_idle;
 
@@ -1224,7 +1224,7 @@ PVRSRV_ERROR MTKMFGSystemInit(void)
 	gpu_cust_upbound_freq =
 	mt_gpufreq_get_frequency_by_level(g_cust_upbound_freq_id);
 
-	gpu_debug_enable = 1;
+	gpu_debug_enable = 0;
 
 	mt_gpufreq_input_boost_notify_registerCB(MTKFreqInputBoostCB);
 	mt_gpufreq_power_limit_notify_registerCB(MTKFreqPowerLimitCB);

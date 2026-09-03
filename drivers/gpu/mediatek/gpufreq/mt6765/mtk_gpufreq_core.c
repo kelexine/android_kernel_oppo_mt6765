@@ -378,12 +378,14 @@ void mt_gpufreq_enable_MTCMOS(bool bEnableHWAPM)
 		gpufreq_perr("@%s: failed when enable mtcmos_mfg\n",
 		__func__);
 
-	if (clk_prepare_enable(g_clk->mtcmos_mfg_core0))
-		gpufreq_perr(
-		"@%s: failed when enable mtcmos_mfg_core0\n",
-		__func__);
+	if (!bEnableHWAPM) {
+		if (clk_prepare_enable(g_clk->mtcmos_mfg_core0))
+			gpufreq_perr(
+			"@%s: failed when enable mtcmos_mfg_core0\n",
+			__func__);
 
-	gpufreq_pr_debug("@%s: enable MTCMOS done\n", __func__);
+		gpufreq_pr_debug("@%s: enable MTCMOS done\n", __func__);
+	}
 }
 EXPORT_SYMBOL(mt_gpufreq_enable_MTCMOS);
 
@@ -392,7 +394,8 @@ EXPORT_SYMBOL(mt_gpufreq_enable_MTCMOS);
  */
 void mt_gpufreq_disable_MTCMOS(bool bEnableHWAPM)
 {
-	clk_disable_unprepare(g_clk->mtcmos_mfg_core0);
+	if (!bEnableHWAPM)
+		clk_disable_unprepare(g_clk->mtcmos_mfg_core0);
 
 	clk_disable_unprepare(g_clk->mtcmos_mfg);
 	clk_disable_unprepare(g_clk->mtcmos_mfg_async);
