@@ -16,9 +16,6 @@ obj-y     = fork.o exec_domain.o panic.o \
 obj-$(CONFIG_MODULES) += kmod.o
 obj-$(CONFIG_MULTIUSER) += groups.o
 
-#ifdef CONFIG_OPLUS_FEATURE_PANIC_FLUSH
-obj-y += panic_flush.o
-#endif
 
 ifdef CONFIG_FUNCTION_TRACER
 # Do not trace internal ftrace files

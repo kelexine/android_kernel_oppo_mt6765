@@ -751,49 +751,20 @@ static int gsensor_set_cali(uint8_t *data, uint8_t count)
 {
 	int32_t *buf = (int32_t *)data;
 	struct accelhub_ipi_data *obj = obj_ipi_data;
-	if(is_support_mtk_cali_func()) {
-		spin_lock(&calibration_lock);
-		obj->dynamic_cali[0] = buf[0];
-		obj->dynamic_cali[1] = buf[1];
-		obj->dynamic_cali[2] = buf[2];
 
-		obj->static_cali[0] = buf[3];
-		obj->static_cali[1] = buf[4];
-		obj->static_cali[2] = buf[5];
+	spin_lock(&calibration_lock);
+	obj->dynamic_cali[0] = buf[0];
+	obj->dynamic_cali[1] = buf[1];
+	obj->dynamic_cali[2] = buf[2];
 
+	obj->static_cali[0] = buf[3];
+	obj->static_cali[1] = buf[4];
+	obj->static_cali[2] = buf[5];
 
-		pr_err("gsensor_set_cali::cali_data::%d %d %d\n",
-				obj->static_cali[0], obj->static_cali[1], obj->static_cali[2]);
-		spin_unlock(&calibration_lock);
-	} else {
-#ifdef OPLUS_FEATURE_SENSOR
-		struct cali_data c_data;
-		get_sensor_parameter(&c_data);
-		pr_err("gsensor_set_cali::cali_data::%d %d %d\n",
-			c_data.acc_data[0],
-			c_data.acc_data[1],
-			c_data.acc_data[2]);
-#endif
+	pr_err("gsensor_set_cali::cali_data::%d %d %d\n",
+			obj->static_cali[0], obj->static_cali[1], obj->static_cali[2]);
+	spin_unlock(&calibration_lock);
 
-		spin_lock(&calibration_lock);
-		obj->dynamic_cali[0] = buf[0];
-		obj->dynamic_cali[1] = buf[1];
-		obj->dynamic_cali[2] = buf[2];
-#ifndef OPLUS_FEATURE_SENSOR
-		obj->static_cali[0] = buf[3];
-		obj->static_cali[1] = buf[4];
-		obj->static_cali[2] = buf[5];
-#else
-		obj->static_cali[0] = c_data.acc_data[0];
-		obj->static_cali[1] = c_data.acc_data[1];
-		obj->static_cali[2] = c_data.acc_data[2];
-
-		buf[3] = c_data.acc_data[0];
-		buf[4] = c_data.acc_data[1];
-		buf[5] = c_data.acc_data[2];
-#endif
-		spin_unlock(&calibration_lock);
-	}
 	return sensor_cfg_to_hub(ID_ACCELEROMETER, data, count);
 }
 

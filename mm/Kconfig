@@ -765,14 +765,6 @@ config PROCESS_RECLAIM
 
 	 Any other value is ignored.
 
-#ifdef OPLUS_FEATURE_VIRTUAL_RESERVE_MEMORY
-config VIRTUAL_RESERVE_MEMORY
-	bool "reserved vma for gpu emergency mmap"
-	default y
-	help
-		support reserved vma for gpu emergency mmap.
-#endif
-
 config ARCH_HAS_PTE_SPECIAL
 	bool
 config FRAME_VECTOR

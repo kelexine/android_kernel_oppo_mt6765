@@ -1,6 +1,6 @@
 config NFC_ST54_SPI
 	tristate "NFC driver solution - SPI Controller Driver"
-	default y
+	default n
 	depends on SPI && ST_NFC_CHIP_SUPPORT
 	help
 	  STMicroelectronics ST54 Secure Element controller SPI interface

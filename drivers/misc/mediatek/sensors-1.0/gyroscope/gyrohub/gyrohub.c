@@ -801,45 +801,17 @@ static int gyrohub_set_cali(uint8_t *data, uint8_t count)
 	int32_t *buf = (int32_t *)data;
 	struct gyrohub_ipi_data *obj = obj_ipi_data;
 
-	if(is_support_mtk_cali_func()) {
-		spin_lock(&calibration_lock);
-		obj->dynamic_cali[0] = buf[0];
-		obj->dynamic_cali[1] = buf[1];
-		obj->dynamic_cali[2] = buf[2];
+	spin_lock(&calibration_lock);
+	obj->dynamic_cali[0] = buf[0];
+	obj->dynamic_cali[1] = buf[1];
+	obj->dynamic_cali[2] = buf[2];
 
-		obj->static_cali[0] = buf[3];
-		obj->static_cali[1] = buf[4];
-		obj->static_cali[2] = buf[5];
+	obj->static_cali[0] = buf[3];
+	obj->static_cali[1] = buf[4];
+	obj->static_cali[2] = buf[5];
 
-		pr_err("gyrohub_set_cali::cali_data::%d %d %d\n",
-				obj->static_cali[0], obj->static_cali[1], obj->static_cali[2]);
-	} else {
-#ifdef OPLUS_FEATURE_SENSOR
-		struct cali_data c_data;
-		get_sensor_parameter(&c_data);
-#endif
-
-
-		spin_lock(&calibration_lock);
-		obj->dynamic_cali[0] = buf[0];
-		obj->dynamic_cali[1] = buf[1];
-		obj->dynamic_cali[2] = buf[2];
-#ifndef OPLUS_FEATURE_SENSOR
-		obj->static_cali[0] = buf[3];
-		obj->static_cali[1] = buf[4];
-		obj->static_cali[2] = buf[5];
-#else
-		obj->static_cali[0] = c_data.gyro_data[0];
-		obj->static_cali[1] = c_data.gyro_data[1];
-		obj->static_cali[2] = c_data.gyro_data[2];
-
-		buf[3] = c_data.gyro_data[0];
-		buf[4] = c_data.gyro_data[1];
-		buf[5] = c_data.gyro_data[2];
-
-		pr_err("gyrohub_set_cali::cali_data::%d %d %d\n",buf[3],buf[4],buf[5]);
-#endif
-	}
+	pr_err("gyrohub_set_cali::cali_data::%d %d %d\n",
+			obj->static_cali[0], obj->static_cali[1], obj->static_cali[2]);
 	obj->temperature_cali[0] = buf[6];
 	obj->temperature_cali[1] = buf[7];
 	obj->temperature_cali[2] = buf[8];
