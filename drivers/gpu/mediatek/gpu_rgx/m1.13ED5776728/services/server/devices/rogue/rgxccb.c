@@ -2294,6 +2294,7 @@ PVRSRV_ERROR CheckForStalledCCB(PVRSRV_DEVICE_NODE *psDevNode, RGX_CLIENT_CCB *p
 					__func__, pszStalledAction, ui32SampledRdOff,
 					ui32SampledDpOff, ui32SampledWrOff,
 					psCurrentClientCCB->szName));
+			PVRSRVDebugRequest(psDevNode, DEBUG_REQUEST_VERBOSITY_MAX, NULL, NULL);
 			eError = PVRSRV_ERROR_CCCB_STALLED;
 
 			{

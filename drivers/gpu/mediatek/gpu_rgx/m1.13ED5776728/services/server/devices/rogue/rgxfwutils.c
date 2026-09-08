@@ -3854,12 +3854,10 @@ PVRSRV_ERROR RGXSendCommandWithPowLockAndGetKCCBSlot(PVRSRV_RGXDEV_INFO	*psDevIn
 		PVR_DPF((PVR_DBG_ERROR, "%s: failed to schedule command (%s)",
 				__func__,
 				PVRSRVGetErrorString(eError)));
-#if defined(DEBUG)
 		/* PVRSRVDebugRequest must be called without powerlock */
 		PVRSRVPowerUnlock(psDeviceNode);
 		PVRSRVDebugRequest(psDeviceNode, DEBUG_REQUEST_VERBOSITY_MAX, NULL, NULL);
 		goto _PVRSRVPowerLock_Exit;
-#endif
 	}
 
 _PVRSRVSetDevicePowerStateKM_Exit:
@@ -4636,10 +4634,8 @@ PVRSRV_ERROR RGXScheduleCleanupCommand(PVRSRV_RGXDEV_INFO	*psDevInfo,
 		         __func__));
 
 		eError = PVRSRV_ERROR_RETRY;
-#if defined(DEBUG)
 		PVRSRVDebugRequest(psDevInfo->psDeviceNode,
 				DEBUG_REQUEST_VERBOSITY_MAX, NULL, NULL);
-#endif
 		goto fail_poll;
 	}
 	else if (eError != PVRSRV_OK)
