@@ -772,9 +772,6 @@ struct LCM_PARAMS {
 	unsigned int min_luminance;
 	unsigned int average_luminance;
 	unsigned int max_luminance;
-	unsigned int hbm_en_time;
-	unsigned int hbm_dis_time;
-	unsigned int PANEL_SERIAL_REG;
 };
 
 
@@ -907,8 +904,6 @@ struct LCM_UTIL_FUNCS {
 	void (*send_data)(unsigned int data);
 	unsigned int (*read_data)(void);
 
-	void (*dsi_set_cmdq_V4)(struct LCM_setting_table_V3 *para_list,
-			unsigned int size,  bool hs);
 	void (*dsi_set_cmdq_V3)(struct LCM_setting_table_V3 *para_list,
 			unsigned int size, unsigned char force_update);
 	void (*dsi_set_cmdq_V2)(unsigned int cmd, unsigned char count,
@@ -932,8 +927,6 @@ struct LCM_UTIL_FUNCS {
 	int (*set_gpio_dir)(unsigned int pin, unsigned int dir);
 	int (*set_gpio_pull_enable)(unsigned int pin, unsigned char pull_en);
 	long (*set_gpio_lcd_enp_bias)(unsigned int value);
-	void (*set_gpio_lcd_enn_bias)(unsigned int value);
-	void (*set_gpio_lcm_vddio_ctl)(unsigned int value);
 	void (*dsi_set_cmdq_V11)(void *cmdq, unsigned int *pdata,
 			unsigned int queue_size, unsigned char force_update);
 	void (*dsi_set_cmdq_V22)(void *cmdq, unsigned int cmd,
@@ -970,7 +963,6 @@ struct LCM_DRIVER {
 	void (*init_power)(void);
 	void (*suspend_power)(void);
 	void (*resume_power)(void);
-	void (*set_gamma_mode_cmdq)(void *handle, unsigned int level);
 	void (*update)(unsigned int x, unsigned int y, unsigned int width,
 			unsigned int height);
 	unsigned int (*compare_id)(void);
@@ -1016,25 +1008,6 @@ struct LCM_DRIVER {
 	void (*set_pwm_for_mix)(int enable);
 
 	void (*aod)(int enter);
-	/*
-	* add power seq api for ulps
-	*/
-	void (*poweron_before_ulps)(void);
-	void (*poweroff_after_ulps)(void);
-
-	void (*set_hbm_mode_cmdq)(void *handle, unsigned int level);
-	bool (*set_hbm_wait_ramless)(bool wait, void *qhandle);
-	void (*set_safe_mode)(void *handle, unsigned int mode);
-
-	/*
-	 * modify for support aod state.
-	 */
-	void (*disp_lcm_aod_from_display_on)(void);
-	void (*set_aod_brightness)(void *handle, unsigned int mode);
-	void (*set_aod_area_cmdq)(void *handle, unsigned char *area);
-	void (*set_aod_cv_mode)(void *qhandle,unsigned int mode);
-	void (*doze_enable)(void *handle);
-	void (*doze_disable)(void *handle);
 
 	/* /////////////DynFPS///////////////////////////// */
 	void (*dfps_send_lcm_cmd)(void *cmdq_handle,

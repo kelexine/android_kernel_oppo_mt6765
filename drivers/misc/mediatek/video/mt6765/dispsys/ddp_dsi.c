@@ -5067,33 +5067,6 @@ static void lcm_set_reset_pin(UINT32 value)
 			disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT0);
 	}
 }
- long lcm_bias_vsp(UINT32 value)
-{
-	pr_err("[lcm]set vsp value is %d\n",value);
-	if (value)
-		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENP1);
-	else
-		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENP0);
-	return 0;
-}
- void lcm_bias_vsn(UINT32 value)
-{
-	 pr_err("[lcm]set vsn value is %d\n",value);
-
-	if (value)
-		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENN1);
-	else
-		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENN0);
-}
-
-static void lcm_vddio18_enable(UINT32 value)
-{
-	if (value)
-		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_VDDIO18_EN1);
-	else
-		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_VDDIO18_EN0);
-}
-//#endif
 
 static void lcm1_set_reset_pin(UINT32 value)
 {
@@ -5313,12 +5286,10 @@ int ddp_dsi_set_lcm_utils(enum DISP_MODULE_ENUM module,
 	}
 
 	utils->set_reset_pin = lcm_set_reset_pin;
-	utils->set_gpio_lcd_enp_bias = lcm_bias_vsp;
-	utils->set_gpio_lcd_enn_bias = lcm_bias_vsn;
-	utils->set_gpio_lcm_vddio_ctl = lcm_vddio18_enable;
 	utils->udelay = lcm_udelay;
 	utils->mdelay = lcm_mdelay;
 	utils->set_te_pin = NULL;
+	utils->set_gpio_lcd_enp_bias = lcd_enp_bias_setting;
 	if (module == DISP_MODULE_DSI0) {
 		utils->dsi_set_cmdq =
 			DSI_set_cmdq_wrapper_DSI0;
