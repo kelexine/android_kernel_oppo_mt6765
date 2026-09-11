@@ -4074,7 +4074,7 @@ int primary_display_init(char *lcm_name, unsigned int lcm_fps,
 	if (use_cmdq)
 		_cmdq_insert_wait_frame_done_token_mira(
 			pgc->cmdq_handle_config);
-	if (primary_display_is_video_mode())
+	if (!is_lcm_inited && primary_display_is_video_mode())
 		dpmgr_path_trigger(pgc->dpmgr_handle, NULL, 0);
 
 	if (disp_helper_get_option(DISP_OPT_MET_LOG))

@@ -813,25 +813,19 @@ static ssize_t mtp_read(struct file *fp, char __user *buf,
 		goto done;
 	}
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
 	spin_lock_irq(&dev->lock);
-#endif
 
 	/* update cdev after online */
 	cdev = dev->cdev;
-#ifdef OPLUS_FEATURE_CHG_BASIC
 	if (dev->state == STATE_OFFLINE) {
 		spin_unlock_irq(&dev->lock);
 		return -ENODEV;
 	}
-#endif
 	if (dev->ep_out->desc) {
-#ifdef OPLUS_FEATURE_CHG_BASIC
 		if (!cdev) {
 			spin_unlock_irq(&dev->lock);
 			return -ENODEV;
 		}
-#endif
 		len = usb_ep_align_maybe(cdev->gadget, dev->ep_out, count);
 		if (len > MTP_BULK_BUFFER_SIZE) {
 			spin_unlock_irq(&dev->lock);
@@ -2255,14 +2249,10 @@ mtp_function_unbind(struct usb_configuration *c, struct usb_function *f)
 		mtp_request_free(dev->rx_req[i], dev->ep_out);
 	while ((req = mtp_req_get(dev, &dev->intr_idle)))
 		mtp_request_free(req, dev->ep_intr);
-#ifdef OPLUS_FEATURE_CHG_BASIC
 	spin_lock_irq(&dev->lock);
-#endif
 	dev->state = STATE_OFFLINE;
-#ifdef OPLUS_FEATURE_CHG_BASIC
 	dev->cdev = NULL;
 	spin_unlock_irq(&dev->lock);
-#endif
 	kfree(f->os_desc_table);
 	f->os_desc_n = 0;
 }
