@@ -3694,34 +3694,6 @@ static void mtk_battery_daemon_handler(struct mtk_battery *gm, void *nl_data,
 	};
 	break;
 
-	case FG_DAEMON_CMD_SET_BATTERY_CAPACITY:
-	{
-		struct fgd_cmd_param_t_8 param;
-		char *rcv;
-		struct fgd_cmd_param_t_4 *prcv;
-
-		rcv = &msg->fgd_data[0];
-		prcv = (struct fgd_cmd_param_t_4 *)rcv;
-		memcpy(&param,prcv->input,sizeof(struct fgd_cmd_param_t_8));
-
-		gm->prev_batt_fcc = param.data[4];
-		gm->prev_batt_remaining_capacity = param.data[4] /10 * param.data[6] / 10000;
-
-		bm_err("[fr] FG_DAEMON_CMD_SET_BATTERY_CAPACITY = %d %d %d %d %d %d %d %d %d %d RM:%d\n",
-				param.data[0],
-				param.data[1],
-				param.data[2],
-				param.data[3],
-				param.data[4],
-				param.data[5],
-				param.data[6],
-				param.data[7],
-				param.data[8],
-				param.data[9],
-				param.data[4] * param.data[6] / 10000);
-	}
-	break;
-
 	default:
 		badcmd++;
 		bm_err("[%s]bad cmd:0x%x times:%d\n", __func__,
