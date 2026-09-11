@@ -1325,7 +1325,11 @@ static int check_version(const struct load_info *info,
 bad_version:
 	pr_warn("%s: disagrees about version of symbol %s\n",
 	       info->name, symname);
+#ifdef CONFIG_MODULE_FORCE_LOAD
+	return try_to_force_load(mod, symname) == 0;
+#else
 	return 0;
+#endif
 }
 
 static inline int check_modstruct_version(const struct load_info *info,
@@ -3048,7 +3052,13 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
 	} else if (!same_magic(modmagic, vermagic, info->index.vers)) {
 		pr_err("%s: version magic '%s' should be '%s'\n",
 		       info->name, modmagic, vermagic);
+#ifdef CONFIG_MODULE_FORCE_LOAD
+		err = try_to_force_load(mod, "bad vermagic");
+		if (err)
+			return err;
+#else
 		return -ENOEXEC;
+#endif
 	}
 
 	if (!get_modinfo(info, "intree")) {
