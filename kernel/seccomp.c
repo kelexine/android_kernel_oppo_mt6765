@@ -61,9 +61,24 @@
  * seccomp_filter objects should never be modified after being attached
  * to a task_struct (other than @usage).
  */
+#ifndef SECCOMP_ARCH_NATIVE_NR
+#define SECCOMP_ARCH_NATIVE_NR 512
+#endif
+#ifndef SECCOMP_ARCH_COMPAT_NR
+#define SECCOMP_ARCH_COMPAT_NR 512
+#endif
+
+struct action_cache {
+	DECLARE_BITMAP(allow_native, SECCOMP_ARCH_NATIVE_NR);
+#ifdef SECCOMP_ARCH_COMPAT
+	DECLARE_BITMAP(allow_compat, SECCOMP_ARCH_COMPAT_NR);
+#endif
+};
+
 struct seccomp_filter {
 	refcount_t usage;
 	bool log;
+	struct action_cache cache;
 	struct seccomp_filter *prev;
 	struct bpf_prog *prog;
 };
@@ -175,6 +190,29 @@ static int seccomp_check_filter(struct sock_filter *filter, unsigned int flen)
 	return 0;
 }
 
+static inline bool seccomp_cache_check_allow(const struct seccomp_filter *sfilter,
+					     const struct seccomp_data *sd)
+{
+	int nr = sd->nr;
+
+	if (nr < 0)
+		return false;
+
+#ifdef SECCOMP_ARCH_COMPAT
+	if (in_compat_syscall()) {
+		if (nr < SECCOMP_ARCH_COMPAT_NR &&
+		    test_bit(nr, sfilter->cache.allow_compat))
+			return true;
+		return false;
+	}
+#endif
+	if (nr < SECCOMP_ARCH_NATIVE_NR &&
+	    test_bit(nr, sfilter->cache.allow_native))
+		return true;
+
+	return false;
+}
+
 /**
  * seccomp_run_filters - evaluates all seccomp filters against @sd
  * @sd: optional seccomp data to be passed to filters
@@ -208,7 +246,12 @@ static u32 seccomp_run_filters(const struct seccomp_data *sd,
 	 * value always takes priority (ignoring the DATA).
 	 */
 	for (; f; f = f->prev) {
-		u32 cur_ret = BPF_PROG_RUN(f->prog, sd);
+		u32 cur_ret;
+
+		if (seccomp_cache_check_allow(f, sd))
+			continue;
+
+		cur_ret = BPF_PROG_RUN(f->prog, sd);
 
 		if (ACTION_ONLY(cur_ret) < ACTION_ONLY(ret)) {
 			ret = cur_ret;
