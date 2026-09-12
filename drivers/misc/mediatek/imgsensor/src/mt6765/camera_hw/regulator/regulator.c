@@ -199,15 +199,6 @@ static enum IMGSENSOR_RETURN regulator_init(void *pinstance)
 	for (j = IMGSENSOR_SENSOR_IDX_MIN_NUM;
 		j < IMGSENSOR_SENSOR_IDX_MAX_NUM;
 		j++) {
-		char str_prop[32];
-		snprintf(str_prop, sizeof(str_prop), "cam%d_enable_sensor", j);
-		if (pdevice->of_node && !of_find_property(pdevice->of_node, str_prop, NULL)) {
-			for (i = 0; i < REGULATOR_TYPE_MAX_NUM; i++) {
-				preg->pregulator[j][i] = NULL;
-				atomic_set(&preg->enable_cnt[j][i], 0);
-			}
-			continue;
-		}
 		for (i = 0; i < REGULATOR_TYPE_MAX_NUM; i++) {
 			snprintf(str_regulator_name,
 					sizeof(str_regulator_name),
@@ -240,24 +231,6 @@ static enum IMGSENSOR_RETURN regulator_release(void *pinstance)
 	struct regulator *pregulator = NULL;
 	atomic_t *enable_cnt = NULL;
 
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	if (pascal_project() == PARKERA_PROJECT || pascal_project() == 6) {
-		for (idx = IMGSENSOR_SENSOR_IDX_MIN_NUM; idx < IMGSENSOR_SENSOR_IDX_MAIN3; idx++) {
-			for (type = 0; type < REGULATOR_TYPE_MAX_NUM; type++) {
-				pregulator = preg->pregulator[idx][type];
-				enable_cnt = &preg->enable_cnt[idx][type];
-				if (pregulator != NULL) {
-					for (; atomic_read(enable_cnt) > 0; ) {
-						regulator_disable(pregulator);
-						atomic_dec(enable_cnt);
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-	#endif
 	for (idx = IMGSENSOR_SENSOR_IDX_MIN_NUM;
 		idx < IMGSENSOR_SENSOR_IDX_MAX_NUM;
 		idx++) {
@@ -273,9 +246,6 @@ static enum IMGSENSOR_RETURN regulator_release(void *pinstance)
 			}
 		}
 	}
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	}
-	#endif
 	return IMGSENSOR_RETURN_SUCCESS;
 }
 

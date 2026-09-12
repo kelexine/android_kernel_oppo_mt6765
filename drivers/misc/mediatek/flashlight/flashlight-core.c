@@ -359,46 +359,6 @@ int flashlight_dev_register(
 	int type_index, ct_index, part_index;
 	int i;
 
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	if (is_project(OPPO_19537) || is_project(OPPO_19538) ||
-		is_project(OPPO_19539) || is_project(OPPO_19536) ||
-		is_project(OPPO_19541) || is_project(OPPO_20291) ||
-		is_project(OPPO_20292) || is_project(OPPO_20293) ||
-		is_project(OPPO_20294) || is_project(OPPO_20295) ||
-		is_project(20361) || is_project(20362) ||
-		is_project(20363) || is_project(20364) ||
-		is_project(20365) || is_project(20366) ||
-		is_project(20271) || is_project(20272) ||
-		is_project(20273) || is_project(20274) || is_project(20091) ||
-		is_project(0x2027A) || is_project(0x2027B) ||
-		is_project(0x2027C) || is_project(0x2027D) ||
-		is_project(0x2027E) || is_project(0x202A1) ||
-		is_project(0x202A2) || is_project(0x202A3)) {
-		flashlight_id = flashlight_id_single;
-		flashlight_device_num = 1;
-	} else {
-		flashlight_id = flashlight_id_dual;
-		flashlight_device_num = 2;
-	}
-	if (is_project(0x206A1)) {
-		flashlight_id = flashlight_id_single;
-		flashlight_device_num = 1;
-	} else if (is_project(20375) || is_project(20376)
-		|| is_project(20377) || is_project(20378)
-		|| is_project(20379) || is_project(0x2037A)) {
-		flashlight_id = flashlight_id_parkera;
-		flashlight_device_num = 1;
-	} else if (is_project(21251) || is_project(21253)
-		|| is_project(21254)) {
-		flashlight_id = flashlight_id_parkerb;
-		flashlight_device_num = 1;
-	} else if (is_project(21281) || is_project(21282)
-		|| is_project(21283) || is_project(21285)) {
-		flashlight_id = flashlight_id_yogurta;
-		flashlight_device_num = 1;
-	}
-	#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
-
 	for (i = 0; i < flashlight_device_num; i++) {
 		if (!strncmp(name, flashlight_id[i].name,
 					FLASHLIGHT_NAME_SIZE)) {
