@@ -487,7 +487,12 @@ CONFIG_DEBUG_INFO=y
 CONFIG_FRAME_WARN=2800
 CONFIG_PANIC_TIMEOUT=1
 CONFIG_SCHEDSTATS=y
-# CONFIG_DEBUG_PREEMPT is not set
+# kelexine: instrument atomic-context sleep bugs (camera i2c "scheduling
+# while atomic" panic) -- turns the leaking spin_lock/preempt_disable
+# into a might_sleep() BUG at the actual acquisition site instead of a
+# generic panic wherever the task next happens to call schedule().
+CONFIG_DEBUG_PREEMPT=y
+CONFIG_DEBUG_ATOMIC_SLEEP=y
 # CONFIG_DEBUG_BUGVERBOSE is not set
 CONFIG_FUNCTION_TRACER=y
 CONFIG_MTK_FTRACER=y
@@ -500,3 +505,8 @@ CONFIG_SECURITY_SELINUX_BOOTPARAM=y
 CONFIG_SECURITY_SELINUX_DEVELOP=y
 CONFIG_CORESIGHT=y
 CONFIG_CORESIGHT_STM=y
+# eBPF — required by Android 4.19 base config (android-base.config)
+# CONFIG_BPF, CONFIG_BPF_SYSCALL, CONFIG_BPF_JIT, CONFIG_CGROUP_BPF,
+# CONFIG_NET_CLS_BPF and CONFIG_NETFILTER_XT_MATCH_BPF are already pulled in
+# by MTK Kconfig auto-selection. Only CONFIG_NET_ACT_BPF is missing.
+CONFIG_NET_ACT_BPF=y
