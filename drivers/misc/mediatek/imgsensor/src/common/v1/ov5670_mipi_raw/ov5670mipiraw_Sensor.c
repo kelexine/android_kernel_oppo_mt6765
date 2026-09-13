@@ -635,6 +635,7 @@ static void write_shutter(kal_uint32 shutter)
 {
 	kal_uint32 min_framelength = imgsensor.min_frame_length;
 
+	spin_lock(&imgsensor_drv_lock);
 	if (shutter > imgsensor.min_frame_length - imgsensor_info.margin)
 		imgsensor.frame_length = shutter + imgsensor_info.margin;
 	else
@@ -642,10 +643,9 @@ static void write_shutter(kal_uint32 shutter)
 
 	if (imgsensor.frame_length > imgsensor_info.max_frame_length)
 		imgsensor.frame_length = imgsensor_info.max_frame_length;
-
-	spin_lock(&imgsensor_drv_lock);
-	set_dummy();
 	spin_unlock(&imgsensor_drv_lock);
+
+	set_dummy();
 
 	if (shutter < 4)
 		shutter = 4;

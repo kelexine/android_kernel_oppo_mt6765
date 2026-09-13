@@ -15,21 +15,6 @@
 #include <linux/notifier.h>
 #include <linux/regulator/consumer.h>
 #include <linux/sched/signal.h>
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#include "kd_imgsensor.h"
-#endif
-
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-static bool regulator_status[IMGSENSOR_SENSOR_IDX_MAX_NUM][REGULATOR_TYPE_MAX_NUM] = {
-	{"false"},
-};
-static void check_for_regulator_get(struct REGULATOR *preg, struct device *pdevice, unsigned int sensor_index, unsigned int regulator_index);
-static void check_for_regulator_put(struct REGULATOR *preg, unsigned int sensor_index, unsigned int regulator_index);
-static struct device_node *of_node_record = NULL;
-static DEFINE_MUTEX(g_regulator_state_mutex);
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
-
-
 static struct REGULATOR *preg_own;
 static bool Is_Notify_call[IMGSENSOR_SENSOR_IDX_MAX_NUM][REGULATOR_TYPE_MAX_NUM];
 
@@ -64,10 +49,7 @@ struct REGULATOR_CTRL regulator_control[REGULATOR_TYPE_MAX_NUM] = {
 	{"vcama"},
 	{"vcamd"},
 	{"vcamio"},
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
 	{"vcamaf"},
-#endif //OPLUS_FEATURE_CAMERA_COMMON
-
 };
 
 static struct REGULATOR reg_instance;
@@ -192,10 +174,6 @@ static enum IMGSENSOR_RETURN regulator_init(void *pinstance)
 		return IMGSENSOR_RETURN_ERROR;
 	}
 
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	of_node_record = pdevice->of_node;
-	#endif
-
 	for (j = IMGSENSOR_SENSOR_IDX_MIN_NUM;
 		j < IMGSENSOR_SENSOR_IDX_MAX_NUM;
 		j++) {
@@ -261,11 +239,7 @@ static enum IMGSENSOR_RETURN regulator_set(
 	atomic_t             *enable_cnt;
 
 
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
 	if (pin > IMGSENSOR_HW_PIN_AFVDD   ||
-#else
-	if (pin > IMGSENSOR_HW_PIN_DOVDD   ||
-#endif //OPLUS_FEATURE_CAMERA_COMMON
 	    pin < IMGSENSOR_HW_PIN_AVDD    ||
 	    pin_state < IMGSENSOR_HW_PIN_STATE_LEVEL_0 ||
 	    pin_state >= IMGSENSOR_HW_PIN_STATE_LEVEL_HIGH ||
@@ -274,10 +248,6 @@ static enum IMGSENSOR_RETURN regulator_set(
 
 	reg_type_offset = REGULATOR_TYPE_VCAMA;
 
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	check_for_regulator_get(preg, gimgsensor_device, sensor_idx,
-		(reg_type_offset + pin - IMGSENSOR_HW_PIN_AVDD));
-	#endif
 	pregulator =
 		preg->pregulator[sensor_idx][
 			reg_type_offset + pin - IMGSENSOR_HW_PIN_AVDD];
@@ -308,10 +278,6 @@ static enum IMGSENSOR_RETURN regulator_set(
 				    pin,
 				    regulator_voltage[
 				   pin_state - IMGSENSOR_HW_PIN_STATE_LEVEL_0]);
-				#ifdef OPLUS_FEATURE_CAMERA_COMMON
-				check_for_regulator_put(preg, sensor_idx,
-				   (reg_type_offset + pin - IMGSENSOR_HW_PIN_AVDD));
-				#endif
 
 				return IMGSENSOR_RETURN_ERROR;
 			}
@@ -324,17 +290,9 @@ static enum IMGSENSOR_RETURN regulator_set(
 					pr_err(
 					    "[regulator]fail to regulator_disable, powertype: %d\n",
 					    pin);
-					#ifdef OPLUS_FEATURE_CAMERA_COMMON
-					check_for_regulator_put(preg, sensor_idx,
-					   (reg_type_offset + pin - IMGSENSOR_HW_PIN_AVDD));
-					#endif
 					return IMGSENSOR_RETURN_ERROR;
 				}
 			}
-			#ifdef OPLUS_FEATURE_CAMERA_COMMON
-			check_for_regulator_put(preg, sensor_idx,
-			   (reg_type_offset + pin - IMGSENSOR_HW_PIN_AVDD));
-			#endif
 			atomic_dec(enable_cnt);
 		}
 	} else {
@@ -346,81 +304,6 @@ static enum IMGSENSOR_RETURN regulator_set(
 
 	return IMGSENSOR_RETURN_SUCCESS;
 }
-
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-static void check_for_regulator_get(struct REGULATOR *preg,
- struct device *pdevice, unsigned int sensor_index,
- unsigned int regulator_index)
-{
-	struct device_node *pof_node = NULL;
-	char str_regulator_name[LENGTH_FOR_SNPRINTF];
-
-	if (!preg || !pdevice) {
-		pr_err("Fatal: Null ptr.preg:%pK,pdevice:%pK\n", preg, pdevice);
-		return;
-	}
-
-	if (sensor_index >= IMGSENSOR_SENSOR_IDX_MAX_NUM ||
-		regulator_index >= REGULATOR_TYPE_MAX_NUM ) {
-		pr_err("[%s]Invalid sensor_idx:%d regulator_idx: %d\n", __func__, sensor_index, regulator_index);
-		return;
-	}
-
-	mutex_lock(&g_regulator_state_mutex);
-
-	if (regulator_status[sensor_index][regulator_index] == false) {
-		pof_node = pdevice->of_node;
-		pdevice->of_node = of_node_record;
-
-		snprintf(str_regulator_name,
-		sizeof(str_regulator_name),
-		"cam%d_%s",
-		sensor_index,
-		regulator_control[regulator_index].pregulator_type);
-		preg->pregulator[sensor_index][regulator_index] =
-			regulator_get(pdevice, str_regulator_name);
-
-		if (preg != NULL) {
-			regulator_status[sensor_index][regulator_index] = true;
-		} else {
-			pr_err("get regulator failed.\n");
-		}
-		pdevice->of_node = pof_node;
-	}
-
-	mutex_unlock(&g_regulator_state_mutex);
-
-	return;
-}
-
-static void check_for_regulator_put(struct REGULATOR *preg,
- unsigned int sensor_index, unsigned int regulator_index)
-{
-	if (!preg) {
-		pr_err("Fatal: Null ptr.\n");
-		return;
-	}
-
-	if (sensor_index >= IMGSENSOR_SENSOR_IDX_MAX_NUM ||
-		regulator_index >= REGULATOR_TYPE_MAX_NUM ) {
-		pr_err("[%s]Invalid sensor_idx:%d regulator_idx: %d\n",
-		__func__, sensor_index, regulator_index);
-		return;
-	}
-
-	mutex_lock(&g_regulator_state_mutex);
-
-	if (regulator_status[sensor_index][regulator_index] == true) {
-		regulator_put(preg->pregulator[sensor_index][regulator_index]);
-		preg->pregulator[sensor_index][regulator_index] = NULL;
-		regulator_status[sensor_index][regulator_index] = false;
-	}
-
-	mutex_unlock(&g_regulator_state_mutex);
-
-	return;
-}
-#endif
 
 static struct IMGSENSOR_HW_DEVICE device = {
 	.pinstance = (void *)&reg_instance,

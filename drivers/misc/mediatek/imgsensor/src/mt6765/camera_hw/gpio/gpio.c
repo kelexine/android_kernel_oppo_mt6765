@@ -4,9 +4,6 @@
  */
 
 #include "gpio.h"
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#include "kd_imgsensor.h"
-#endif
 
 struct GPIO_PINCTRL gpio_pinctrl_list_cam[GPIO_CTRL_STATE_MAX_NUM_CAM] = {
 	/* Main */
@@ -20,12 +17,6 @@ struct GPIO_PINCTRL gpio_pinctrl_list_cam[GPIO_CTRL_STATE_MAX_NUM_CAM] = {
 	{"vcamd_off"},
 	{"vcamio_on"},
 	{"vcamio_off"},
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	{"vcamaf_on"},
-	{"vcamaf_off"},
-	{"mipi_switch_sel_1"},
-	{"mipi_switch_sel_0"},
-	#endif
 };
 
 #ifdef MIPI_SWITCH
@@ -163,11 +154,7 @@ static enum IMGSENSOR_RETURN gpio_set(
 #ifdef MIPI_SWITCH
 	   pin > IMGSENSOR_HW_PIN_MIPI_SWITCH_SEL ||
 #else
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	   pin > IMGSENSOR_HW_PIN_MIPI_SWITCH_SEL ||
-#else
 	   pin > IMGSENSOR_HW_PIN_AFVDD ||
-#endif
 #endif
 	   pin_state < IMGSENSOR_HW_PIN_STATE_LEVEL_0 ||
 	   pin_state > IMGSENSOR_HW_PIN_STATE_LEVEL_HIGH)

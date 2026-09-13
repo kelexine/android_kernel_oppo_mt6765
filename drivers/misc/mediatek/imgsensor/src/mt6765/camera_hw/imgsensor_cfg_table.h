@@ -13,11 +13,7 @@
 #define IMGSENSOR_DEV_NAME "kd_camera_hw"
 
 #define IMGSENSOR_HW_POWER_INFO_MAX	12
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
 #define IMGSENSOR_HW_SENSOR_MAX_NUM	32
-#else
-#define IMGSENSOR_HW_SENSOR_MAX_NUM	8
-#endif
 
 enum IMGSENSOR_HW_PIN {
 	IMGSENSOR_HW_PIN_NONE = 0,
@@ -27,9 +23,6 @@ enum IMGSENSOR_HW_PIN {
 	IMGSENSOR_HW_PIN_DVDD,
 	IMGSENSOR_HW_PIN_DOVDD,
 	IMGSENSOR_HW_PIN_AFVDD,
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	IMGSENSOR_HW_PIN_MIPI_SWITCH_SEL,
-#endif
 #ifdef MIPI_SWITCH
 	IMGSENSOR_HW_PIN_MIPI_SWITCH_EN,
 	IMGSENSOR_HW_PIN_MIPI_SWITCH_SEL,
@@ -62,9 +55,6 @@ enum IMGSENSOR_HW_PIN_STATE {
 #define	AVDD   IMGSENSOR_HW_PIN_AVDD
 #define	DVDD   IMGSENSOR_HW_PIN_DVDD
 #define	DOVDD  IMGSENSOR_HW_PIN_DOVDD
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#define	MIPISEL  IMGSENSOR_HW_PIN_MIPI_SWITCH_SEL
-#endif
 #define	AFVDD  IMGSENSOR_HW_PIN_AFVDD
 #define	VDD_None  IMGSENSOR_HW_PIN_NONE
 
@@ -156,26 +146,5 @@ extern struct IMGSENSOR_HW_POWER_SEQ platform_power_sequence[];
 extern struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[];
 extern enum IMGSENSOR_RETURN
 	(*hw_open[IMGSENSOR_HW_ID_MAX_NUM])(struct IMGSENSOR_HW_DEVICE **);
-
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-extern struct IMGSENSOR_HW_CFG        imgsensor_custom_config_pascald[];
-extern struct IMGSENSOR_HW_CFG        imgsensor_custom_config_pascal[];
-extern struct IMGSENSOR_HW_CFG        imgsensor_custom_config_pascale[];
-int pascal_project(void);
-extern struct IMGSENSOR_HW_CFG        imgsensor_custom_config_parkera[];
-extern struct IMGSENSOR_HW_CFG       imgsensor_custom_config_yogurt[];
-extern struct IMGSENSOR_HW_CFG       imgsensor_custom_config_parker[];
-/*Parker-B*/
-extern struct IMGSENSOR_HW_CFG        imgsensor_custom_config_parkerb[];
-int yogurt_project(void);
-int yogurta_project(void);
-int parker_project(void);
-#else
-static inline int pascal_project(void) { return 0; }
-static inline int yogurt_project(void) { return 0; }
-static inline int yogurta_project(void) { return 0; }
-static inline int parker_project(void) { return 0; }
-#endif //OPLUS_FEATURE_CAMERA_COMMON
-
 #endif
 
