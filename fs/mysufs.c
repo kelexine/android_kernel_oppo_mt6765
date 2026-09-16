@@ -1288,8 +1288,8 @@ void mysufs_get_enabled_features(void __user **user_info) {
 	if (info->err) goto out_copy_to_user;
 	buf_ptr = info->enabled_features + copied_size;
 #endif
-#ifdef CONFIG_MYSU_MYSUFS_HIDE_KSU_MYSUFS_SYMBOLS
-	info->err = copy_config_to_buf("CONFIG_MYSU_MYSUFS_HIDE_KSU_MYSUFS_SYMBOLS\n", buf_ptr, &copied_size, MYSUFS_ENABLED_FEATURES_SIZE);
+#ifdef CONFIG_MYSU_MYSUFS_HIDE_ROOT_SYMBOLS
+	info->err = copy_config_to_buf("CONFIG_MYSU_MYSUFS_HIDE_ROOT_SYMBOLS\n", buf_ptr, &copied_size, MYSUFS_ENABLED_FEATURES_SIZE);
 	if (info->err) goto out_copy_to_user;
 	buf_ptr = info->enabled_features + copied_size;
 #endif

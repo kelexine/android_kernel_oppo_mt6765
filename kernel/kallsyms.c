@@ -24,9 +24,9 @@
 #include <linux/filter.h>
 #include <linux/ftrace.h>
 #include <linux/compiler.h>
-#ifdef CONFIG_MYSU_MYSUFS_HIDE_KSU_MYSUFS_SYMBOLS
+#ifdef CONFIG_MYSU_MYSUFS_HIDE_ROOT_SYMBOLS
 #include <linux/mysufs_def.h>
-#endif // #ifdef CONFIG_MYSU_MYSUFS_HIDE_KSU_MYSUFS_SYMBOLS
+#endif // #ifdef CONFIG_MYSU_MYSUFS_HIDE_ROOT_SYMBOLS
 
 /*
  * These will be re-linked against their real values
@@ -660,7 +660,7 @@ static int s_show(struct seq_file *m, void *p)
 		seq_printf(m, "%px %c %s\t[%s]\n", value,
 			   type, iter->name, iter->module_name);
 	} else
-#ifndef CONFIG_MYSU_MYSUFS_HIDE_KSU_MYSUFS_SYMBOLS
+#ifndef CONFIG_MYSU_MYSUFS_HIDE_ROOT_SYMBOLS
 		seq_printf(m, "%px %c %s\n", value,
 			   iter->type, iter->name);
 #else
