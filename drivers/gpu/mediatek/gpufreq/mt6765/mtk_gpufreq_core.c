@@ -212,21 +212,21 @@ static unsigned int g_vsram_sfchg_frate;
 static unsigned int g_DVFS_off_by_ptpod_idx;
 static unsigned int g_opp_springboard_idx;
 #if IS_ENABLED(CONFIG_MTK_BATTERY_OC_POWER_THROTTLING)
-static bool g_batt_oc_limited_ignore_state;
+static bool g_batt_oc_limited_ignore_state = true;
 static unsigned int g_batt_oc_level;
 static unsigned int g_batt_oc_limited_idx;
 static unsigned int g_batt_oc_limited_idx_lvl_0;
 static unsigned int g_batt_oc_limited_idx_lvl_1;
 #endif /* CONFIG_MTK_BATTERY_OC_POWER_THROTTLING */
 #if IS_ENABLED(CONFIG_MTK_BATTERY_PERCENTAGE_POWER_THROTTLING)
-static bool g_batt_percent_limited_ignore_state;
+static bool g_batt_percent_limited_ignore_state = true;
 static unsigned int g_batt_percent_level;
 static unsigned int g_batt_percent_limited_idx;
 static unsigned int g_batt_percent_limited_idx_lv_0;
 static unsigned int g_batt_percent_limited_idx_lv_1;
 #endif /* CONFIG_MTK_BATTERY_PERCENTAGE_POWER_THROTTLING */
 #if IS_ENABLED(CONFIG_MTK_LOW_BATTERY_POWER_THROTTLING)
-static bool g_low_batt_limited_ignore_state;
+static bool g_low_batt_limited_ignore_state = true;
 static unsigned int g_low_battery_level;
 static unsigned int g_low_batt_limited_idx;
 static unsigned int g_low_batt_limited_idx_lvl_0;
@@ -236,7 +236,7 @@ static enum g_post_divider_power_enum g_cur_post_divider_power;
 static DEFINE_MUTEX(mt_gpufreq_lock);
 static DEFINE_MUTEX(mt_gpufreq_power_lock);
 static unsigned int g_limited_idx_array[NUMBER_OF_LIMITED_IDX] = { 0 };
-static bool g_limited_ignore_array[NUMBER_OF_LIMITED_IDX] = { false };
+static bool g_limited_ignore_array[NUMBER_OF_LIMITED_IDX] = { [0 ... NUMBER_OF_LIMITED_IDX - 1] = true };
 static void __iomem *g_apmixed_base;
 static void __iomem *g_efuse_base;
 phys_addr_t gpu_fdvfs_virt_addr; /* for GED, legacy ?! */

@@ -184,7 +184,7 @@ struct GpuUtilization_Ex g_Util_Ex;
 static int ged_get_dvfs_loading_mode(void);
 #endif
 
-#define GED_DVFS_TIMER_BASED_DVFS_MARGIN 30
+#define GED_DVFS_TIMER_BASED_DVFS_MARGIN 45
 static int gx_tb_dvfs_margin = GED_DVFS_TIMER_BASED_DVFS_MARGIN;
 static int gx_tb_dvfs_margin_cur = GED_DVFS_TIMER_BASED_DVFS_MARGIN;
 #ifdef GED_ENABLE_TIMER_BASED_DVFS_MARGIN
@@ -910,8 +910,8 @@ GED_ERROR ged_dvfs_um_commit(unsigned long gpu_tar_freq, bool bFallback)
 }
 
 #ifdef GED_ENABLE_FB_DVFS
-#define DEFAULT_DVFS_MARGIN 100 /* 10% margin */
-#define FIXED_FPS_MARGIN 3 /* Fixed FPS margin: 3fps */
+#define DEFAULT_DVFS_MARGIN 200 /* 20% margin */
+#define FIXED_FPS_MARGIN 5 /* Fixed FPS margin: 5fps */
 
 int gx_fb_dvfs_margin = DEFAULT_DVFS_MARGIN;/* 10-bias */
 
@@ -943,7 +943,7 @@ int gx_fb_dvfs_margin = DEFAULT_DVFS_MARGIN;/* 10-bias */
 #define MIN_MARGIN_INC_STEP 1 /* 1% headroom */
 
 static int dvfs_margin_value = DEFAULT_DVFS_MARGIN/10;
-unsigned int dvfs_margin_mode = CONFIGURE_MARGIN_MODE;
+unsigned int dvfs_margin_mode = DYNAMIC_MARGIN_MODE_PERF;
 
 static int dvfs_min_margin_inc_step = MIN_MARGIN_INC_STEP;
 static int dvfs_margin_low_bound = 1; /* 1% headroom */
