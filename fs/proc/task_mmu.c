@@ -20,6 +20,9 @@
 #include <linux/uaccess.h>
 #include <linux/mm_inline.h>
 #include <linux/pkeys.h>
+#if defined(CONFIG_MYSU_MYSUFS_SUS_KSTAT) || defined(CONFIG_MYSU_MYSUFS_SUS_MAP) || defined(CONFIG_MYSU_MYSUFS_OPEN_REDIRECT)
+#include <linux/mysufs_def.h>
+#endif // #if defined(CONFIG_MYSU_MYSUFS_SUS_KSTAT) || defined(CONFIG_MYSU_MYSUFS_SUS_MAP) || defined(CONFIG_MYSU_MYSUFS_OPEN_REDIRECT)
 
 #include <asm/elf.h>
 #include <asm/tlb.h>
@@ -347,6 +350,14 @@ static void show_vma_header_prefix(struct seq_file *m,
 	seq_putc(m, ' ');
 }
 
+#ifdef CONFIG_MYSU_MYSUFS_SUS_KSTAT
+extern void mysufs_sus_kstat_spoof_show_map_vma(struct inode *inode, dev_t *out_dev, unsigned long *out_ino);
+#endif // #ifdef CONFIG_MYSU_MYSUFS_SUS_KSTAT
+#ifdef CONFIG_MYSU_MYSUFS_OPEN_REDIRECT
+extern struct srcu_struct mysufs_srcu_open_redirect;
+extern int mysufs_open_redirect_spoof_show_map_vma_srcu(struct inode *inode, unsigned long *out_ino, dev_t *out_dev, char **out_spoofed_name);
+#endif // #ifdef CONFIG_MYSU_MYSUFS_OPEN_REDIRECT
+
 static void
 show_map_vma(struct seq_file *m, struct vm_area_struct *vma)
 {
@@ -361,9 +372,36 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma)
 
 	if (file) {
 		struct inode *inode = file_inode(vma->vm_file);
+#ifdef CONFIG_MYSU_MYSUFS_OPEN_REDIRECT
+		if (MYSUFS_IS_INODE_OPEN_REDIRECT(inode)) {
+			char *spoofed_redirected_name = NULL;
+			int srcu_idx = srcu_read_lock(&mysufs_srcu_open_redirect);
+			int ret = mysufs_open_redirect_spoof_show_map_vma_srcu(inode, &ino, &dev, &spoofed_redirected_name);
+			if (!ret) {
+				pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
+				start = vma->vm_start;
+				end = vma->vm_end;
+				show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
+				seq_pad(m, ' ');
+				if (spoofed_redirected_name)
+					seq_puts(m, spoofed_redirected_name);
+				seq_putc(m, '\n');
+				srcu_read_unlock(&mysufs_srcu_open_redirect, srcu_idx);
+				return;
+			}
+			srcu_read_unlock(&mysufs_srcu_open_redirect, srcu_idx);
+		}
+#endif // #ifdef CONFIG_MYSU_MYSUFS_OPEN_REDIRECT
+#ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
+		if (MYSUFS_IS_INODE_SUS_MAP(inode))
+			return;
+#endif // #ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
 		dev = inode->i_sb->s_dev;
 		ino = inode->i_ino;
 		pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
+#ifdef CONFIG_MYSU_MYSUFS_SUS_KSTAT
+		mysufs_sus_kstat_spoof_show_map_vma(inode, &dev, &ino);
+#endif // #ifdef CONFIG_MYSU_MYSUFS_SUS_KSTAT
 	}
 
 	start = vma->vm_start;
@@ -845,6 +883,13 @@ static int show_smap(struct seq_file *m, void *v)
 	struct vm_area_struct *vma = v;
 	struct mem_size_stats mss;
 
+#ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
+	if (vma->vm_file) {
+		if (MYSUFS_IS_INODE_SUS_MAP(file_inode(vma->vm_file)))
+			return 0;
+	}
+#endif // #ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
+
 	memset(&mss, 0, sizeof(mss));
 
 	smap_gather_stats(vma, &mss);
@@ -920,7 +965,16 @@ static int show_smaps_rollup(struct seq_file *m, void *v)
 	hold_task_mempolicy(priv);
 
 	for (vma = priv->mm->mmap; vma;) {
+#ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
+		if (vma->vm_file) {
+			if (MYSUFS_IS_INODE_SUS_MAP(file_inode(vma->vm_file)))
+				goto bypass_orig_flow;
+		}
+#endif
 		smap_gather_stats(vma, &mss);
+#ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
+bypass_orig_flow:
+#endif
 		last_vma_end = vma->vm_end;
 
 		/*
@@ -1632,6 +1686,9 @@ static ssize_t pagemap_read(struct file *file, char __user *buf,
 	unsigned long start_vaddr;
 	unsigned long end_vaddr;
 	int ret = 0, copied = 0;
+#ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
+	struct vm_area_struct *vma;
+#endif
 
 	if (!mm || !mmget_not_zero(mm))
 		goto out;
@@ -1690,7 +1747,15 @@ static ssize_t pagemap_read(struct file *file, char __user *buf,
 		ret = down_read_killable(&mm->mmap_sem);
 		if (ret)
 			goto out_free;
+#ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
+		vma = find_vma(mm, start_vaddr);
+		if (vma && vma->vm_file && MYSUFS_IS_INODE_SUS_MAP(file_inode(vma->vm_file)))
+			goto bypass_orig_flow;
+#endif // #ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
 		ret = walk_page_range(start_vaddr, end, &pagemap_walk);
+#ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
+bypass_orig_flow:
+#endif // #ifdef CONFIG_MYSU_MYSUFS_SUS_MAP
 		up_read(&mm->mmap_sem);
 		start_vaddr = end;
 

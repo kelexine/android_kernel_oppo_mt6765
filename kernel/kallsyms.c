@@ -24,6 +24,9 @@
 #include <linux/filter.h>
 #include <linux/ftrace.h>
 #include <linux/compiler.h>
+#ifdef CONFIG_MYSU_MYSUFS_HIDE_KSU_MYSUFS_SYMBOLS
+#include <linux/mysufs_def.h>
+#endif // #ifdef CONFIG_MYSU_MYSUFS_HIDE_KSU_MYSUFS_SYMBOLS
 
 /*
  * These will be re-linked against their real values
@@ -657,8 +660,40 @@ static int s_show(struct seq_file *m, void *p)
 		seq_printf(m, "%px %c %s\t[%s]\n", value,
 			   type, iter->name, iter->module_name);
 	} else
+#ifndef CONFIG_MYSU_MYSUFS_HIDE_KSU_MYSUFS_SYMBOLS
 		seq_printf(m, "%px %c %s\n", value,
 			   iter->type, iter->name);
+#else
+	{
+		if (mysufs_starts_with(iter->name, "ksu_") ||
+			mysufs_starts_with(iter->name, "__ksu_") ||
+			mysufs_starts_with(iter->name, "mysu_") ||
+			mysufs_starts_with(iter->name, "__mysu_") ||
+			mysufs_starts_with(iter->name, "mysufs_") ||
+			mysufs_starts_with(iter->name, "ksud") ||
+			mysufs_starts_with(iter->name, "mysud") ||
+			mysufs_starts_with(iter->name, "is_ksu_") ||
+			mysufs_starts_with(iter->name, "is_mysu_") ||
+			mysufs_starts_with(iter->name, "is_manager_") ||
+			mysufs_starts_with(iter->name, "escape_to_") ||
+			mysufs_starts_with(iter->name, "setup_selinux") ||
+			mysufs_starts_with(iter->name, "track_throne") ||
+			mysufs_starts_with(iter->name, "on_post_fs_data") ||
+			mysufs_starts_with(iter->name, "try_umount") ||
+			mysufs_starts_with(iter->name, "kernelsu") ||
+			mysufs_starts_with(iter->name, "__initcall__kmod_kernelsu") ||
+			mysufs_starts_with(iter->name, "apply_kernelsu") ||
+			mysufs_starts_with(iter->name, "handle_sepolicy") ||
+			mysufs_starts_with(iter->name, "getenforce") ||
+			mysufs_starts_with(iter->name, "setenforce") ||
+			mysufs_starts_with(iter->name, "is_zygote"))
+		{
+			return 0;
+		}
+		seq_printf(m, "%px %c %s\n", value,
+			   iter->type, iter->name);
+	}
+#endif
 	return 0;
 }
 
