@@ -579,6 +579,9 @@ cp_statx(const struct kstat *stat, struct statx __user *buffer)
 	memset(&tmp, 0, sizeof(tmp));
 
 	tmp.stx_mask = stat->result_mask;
+#ifdef CONFIG_MYSU_MYSUFS_SUS_KSTAT
+	tmp.stx_mask &= ~(STATX_SUS_KSTAT | STATX_SUS_KSTAT_FUSE);
+#endif
 	tmp.stx_blksize = stat->blksize;
 	tmp.stx_attributes = stat->attributes;
 	tmp.stx_nlink = stat->nlink;
