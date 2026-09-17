@@ -18,7 +18,7 @@
 
 #include "cpuidle.h"
 
-static unsigned int sysfs_switch;
+static unsigned int sysfs_switch = 1;
 static int __init cpuidle_sysfs_setup(char *unused)
 {
 	sysfs_switch = 1;

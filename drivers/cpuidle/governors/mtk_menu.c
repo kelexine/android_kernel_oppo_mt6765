@@ -696,7 +696,7 @@ unsigned int get_menu_next_timer_us(void)
 
 static struct cpuidle_governor menu_governor = {
 	.name =		"mtk_menu",
-	.rating =	100,
+	.rating =	15,
 	.enable =	menu_enable_device,
 	.select =	menu_select,
 	.reflect =	menu_reflect,
