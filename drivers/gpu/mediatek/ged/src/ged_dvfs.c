@@ -38,7 +38,7 @@
 #include "ged_global.h"
 
 #define MTK_DEFER_DVFS_WORK_MS          10000
-#define MTK_DVFS_SWITCH_INTERVAL_MS     50
+#define MTK_DVFS_SWITCH_INTERVAL_MS     20
 
 /* Definition of GED_DVFS_SKIP_ROUNDS is to skip DVFS when boost raised
  *  the value stands for counting down rounds of DVFS period
@@ -184,7 +184,7 @@ struct GpuUtilization_Ex g_Util_Ex;
 static int ged_get_dvfs_loading_mode(void);
 #endif
 
-#define GED_DVFS_TIMER_BASED_DVFS_MARGIN 45
+#define GED_DVFS_TIMER_BASED_DVFS_MARGIN 55
 static int gx_tb_dvfs_margin = GED_DVFS_TIMER_BASED_DVFS_MARGIN;
 static int gx_tb_dvfs_margin_cur = GED_DVFS_TIMER_BASED_DVFS_MARGIN;
 #ifdef GED_ENABLE_TIMER_BASED_DVFS_MARGIN

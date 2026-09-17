@@ -67,7 +67,7 @@
 #define TIME_MS_TO_NS  1000000ULL
 #define MAX_DEP_NUM 30
 #define LOADING_WEIGHT 50
-#define DEF_RESCUE_PERCENT 33
+#define DEF_RESCUE_PERCENT 50
 #define DEF_RESCUE_NS_TH 0
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
