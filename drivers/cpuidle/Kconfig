@@ -24,6 +24,14 @@ config CPU_IDLE_GOV_LADDER
 config CPU_IDLE_GOV_MENU
 	bool "Menu governor (for tickless system)"
 
+config CPU_IDLE_GOV_TEO
+	bool "Timer Events Oriented (TEO) governor (for tickless systems)"
+	help
+	  This governor implements a CPU idle state selection algorithm leaning
+	  towards timer events and predicting idle duration on the basis of
+	  observed wakeup events.
+
+
 config CPU_IDLE_GOV_MTK
         bool "MTK governor (for MediaTek SoCs)"
         help

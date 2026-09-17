@@ -524,3 +524,9 @@ CONFIG_CORESIGHT_STM=y
 # CONFIG_NET_CLS_BPF and CONFIG_NETFILTER_XT_MATCH_BPF are already pulled in
 # by MTK Kconfig auto-selection. Only CONFIG_NET_ACT_BPF is missing.
 CONFIG_NET_ACT_BPF=y
+
+# CPUIdle: Timer Events Oriented (TEO) governor
+CONFIG_CPU_IDLE_GOV_TEO=y
+
+
+
