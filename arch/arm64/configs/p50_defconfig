@@ -525,8 +525,19 @@ CONFIG_CORESIGHT_STM=y
 # by MTK Kconfig auto-selection. Only CONFIG_NET_ACT_BPF is missing.
 CONFIG_NET_ACT_BPF=y
 
+# I/O Scheduler: BFQ for low-latency interactive responsiveness under storage contention
+CONFIG_IOSCHED_BFQ=y
+CONFIG_BFQ_GROUP_IOSCHED=y
+
+# TCP Congestion Control: BBR + FQ pacing
+CONFIG_TCP_CONG_BBR=y
+CONFIG_DEFAULT_BBR=y
+CONFIG_DEFAULT_TCP_CONG="bbr"
+CONFIG_NET_SCH_FQ=y
+
 # CPUIdle: Timer Events Oriented (TEO) governor
 CONFIG_CPU_IDLE_GOV_TEO=y
+
 
 
 
