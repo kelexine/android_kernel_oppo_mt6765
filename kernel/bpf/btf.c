@@ -488,7 +488,7 @@ static bool btf_type_is_void_or_null(const struct btf_type *t)
 	return !t || btf_type_is_void(t);
 }
 
-static bool btf_name_offset_valid(const struct btf *btf, u32 offset)
+bool btf_name_offset_valid(const struct btf *btf, u32 offset)
 {
 	return BTF_STR_OFFSET_VALID(offset) &&
 		offset < btf->hdr.str_len;
@@ -539,7 +539,7 @@ static bool btf_name_valid_section(const struct btf *btf, u32 offset)
 	return __btf_name_valid(btf, offset, true);
 }
 
-static const char *btf_name_by_offset(const struct btf *btf, u32 offset)
+const char *btf_name_by_offset(const struct btf *btf, u32 offset)
 {
 	if (!offset)
 		return "(anon)";
@@ -549,7 +549,7 @@ static const char *btf_name_by_offset(const struct btf *btf, u32 offset)
 		return "(invalid-name-offset)";
 }
 
-static const struct btf_type *btf_type_by_id(const struct btf *btf, u32 type_id)
+const struct btf_type *btf_type_by_id(const struct btf *btf, u32 type_id)
 {
 	if (type_id > btf->nr_types)
 		return NULL;
