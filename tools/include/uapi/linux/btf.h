@@ -115,9 +115,25 @@ struct btf_member {
 	__u32	offset;	/* offset in bits */
 };
 
+/* BTF_KIND_FUNC_PROTO is followed by multiple "struct btf_param".
+ * The exact number of btf_param is stored in the vlen (of the
+ * info in "struct btf_type").
+ */
+struct btf_param {
+	__u32	name_off;
+	__u32	type;
+};
+
 enum {
 	BTF_VAR_STATIC = 0,
 	BTF_VAR_GLOBAL_ALLOCATED = 1,
+	BTF_VAR_GLOBAL_EXTERN = 2,
+};
+
+enum btf_func_linkage {
+	BTF_FUNC_STATIC = 0,
+	BTF_FUNC_GLOBAL = 1,
+	BTF_FUNC_EXTERN = 2,
 };
 
 /* BTF_KIND_VAR is followed by a single "struct btf_var" to describe

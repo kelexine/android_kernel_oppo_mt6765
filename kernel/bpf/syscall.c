@@ -442,9 +442,10 @@ static int bpf_obj_name_cpy(char *dst, const char *src)
 
 	memset(dst, 0, BPF_OBJ_NAME_LEN);
 
-	/* Copy all isalnum() and '_' char */
+	/* Copy all isalnum(), '_' and '.' chars. */
 	while (src < end && *src) {
-		if (!isalnum(*src) && *src != '_')
+		if (!isalnum(*src) &&
+		    *src != '_' && *src != '.')
 			return -EINVAL;
 		*dst++ = *src++;
 	}
