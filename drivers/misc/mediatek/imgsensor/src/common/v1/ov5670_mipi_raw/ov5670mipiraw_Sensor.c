@@ -536,8 +536,8 @@ static struct imgsensor_info_struct imgsensor_info = {
 	.margin = 4,
 	.min_shutter = 4,
 	.max_frame_length = 0x7fff,
-	.ae_shut_delay_frame = 2,
-	.ae_sensor_gain_delay_frame = 2,
+	.ae_shut_delay_frame = 0,
+	.ae_sensor_gain_delay_frame = 0,
 	.ae_ispGain_delay_frame = 2,
 	.ihdr_support = 0,
 	.ihdr_le_firstline = 0,
@@ -550,7 +550,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 	.isp_driving_current = ISP_DRIVING_6MA,
 	.sensor_interface_type = SENSOR_INTERFACE_TYPE_MIPI,
 	.mipi_sensor_type = MIPI_OPHY_NCSI2,
-	.mipi_settle_delay_mode = MIPI_SETTLEDELAY_MANUAL,
+	.mipi_settle_delay_mode = MIPI_SETTLEDELAY_AUTO,
 	.sensor_output_dataformat = SENSOR_OUTPUT_FORMAT_RAW_B,
 	.mclk = 24,
 	.mipi_lane_num = SENSOR_MIPI_2_LANE,
@@ -645,7 +645,8 @@ static void write_shutter(kal_uint32 shutter)
 		imgsensor.frame_length = imgsensor_info.max_frame_length;
 	spin_unlock(&imgsensor_drv_lock);
 
-	set_dummy();
+	write_cmos_sensor(0x380e, (imgsensor.frame_length >> 8) & 0xff);
+	write_cmos_sensor(0x380f, imgsensor.frame_length & 0xff);
 
 	if (shutter < 4)
 		shutter = 4;
@@ -702,13 +703,6 @@ static kal_uint16 set_gain(kal_uint16 gain)
 	return gain;
 }
 
-static void streaming_control(kal_bool enable)
-{
-	if (enable)
-		write_cmos_sensor(0x0100, 0x01);
-	else
-		write_cmos_sensor(0x0100, 0x00);
-}
 
 static void sensor_init(void)
 {
@@ -799,7 +793,6 @@ static kal_uint32 open(void)
 
 static kal_uint32 close(void)
 {
-	streaming_control(KAL_FALSE);
 	return ERROR_NONE;
 }
 
@@ -1114,12 +1107,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 		get_imgsensor_id(feature_return_para_32);
 		break;
 	case SENSOR_FEATURE_SET_STREAMING_SUSPEND:
-		streaming_control(KAL_FALSE);
-		break;
 	case SENSOR_FEATURE_SET_STREAMING_RESUME:
-		if (*feature_data != 0)
-			set_shutter((kal_uint32)*feature_data);
-		streaming_control(KAL_TRUE);
 		break;
 	default:
 		break;

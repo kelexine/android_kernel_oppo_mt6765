@@ -2151,7 +2151,7 @@ static void binder_free_transaction(struct binder_transaction *t)
 		binder_inner_proc_lock(target_proc);
 		target_proc->outstanding_txns--;
 		if (target_proc->outstanding_txns < 0)
-			pr_warn("%s: Unexpected outstanding_txns %d\n",
+			pr_debug("%s: Unexpected outstanding_txns %d\n",
 				__func__, target_proc->outstanding_txns);
 		if (!target_proc->outstanding_txns && target_proc->is_frozen)
 			wake_up_interruptible_all(&target_proc->freeze_wait);
@@ -4875,7 +4875,7 @@ static void binder_free_proc(struct binder_proc *proc)
 	BUG_ON(!list_empty(&proc->todo));
 	BUG_ON(!list_empty(&proc->delivered_death));
 	if (proc->outstanding_txns)
-		pr_warn("%s: Unexpected outstanding_txns %d\n",
+		pr_debug("%s: Unexpected outstanding_txns %d\n",
 			__func__, proc->outstanding_txns);
 	device = container_of(proc->context, struct binder_device, context);
 	if (refcount_dec_and_test(&device->ref)) {
@@ -4940,7 +4940,7 @@ static int binder_thread_release(struct binder_proc *proc,
 		if (t->to_thread == thread) {
 			thread->proc->outstanding_txns--;
 			if (thread->proc->outstanding_txns < 0)
-				pr_warn("%s: Unexpected outstanding_txns %d\n",
+				pr_debug("%s: Unexpected outstanding_txns %d\n",
 					__func__, thread->proc->outstanding_txns);
 			if (!thread->proc->outstanding_txns && thread->proc->is_frozen)
 				wake_up_interruptible_all(&thread->proc->freeze_wait);
