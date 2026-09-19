@@ -69,6 +69,7 @@ struct bpf_dtab_netdev {
         struct xdp_bulk_queue __percpu *bulkq;
         struct rcu_head rcu;
         struct hlist_node index_hlist; /* DEVMAP_HASH only */
+        struct bpf_devmap_val val;
 };
 
 struct bpf_dtab {
@@ -129,6 +130,8 @@ static struct bpf_dtab_netdev *__dev_map_alloc_node(struct net *net,
         dst->dev = netdev;
         dst->dtab = dtab;
         dst->bit = 0;
+        dst->val.ifindex = netdev->ifindex;
+        dst->val.bpf_prog.id = 0;
         INIT_HLIST_NODE(&dst->index_hlist);
         return dst;
 }
@@ -149,7 +152,8 @@ static struct bpf_map *dev_map_alloc(union bpf_attr *attr)
 
         /* check sanity of attributes */
         if (attr->max_entries == 0 || attr->key_size != 4 ||
-            attr->value_size != 4 || attr->map_flags & ~DEV_CREATE_FLAG_MASK)
+            (attr->value_size != 4 && attr->value_size != 8) ||
+            attr->map_flags & ~DEV_CREATE_FLAG_MASK)
                 return ERR_PTR(-EINVAL);
 
         dtab = kzalloc(sizeof(*dtab), GFP_USER);
@@ -303,8 +307,14 @@ static int dev_map_get_next_key(struct bpf_map *map, void *key, void *next_key)
 
 void __dev_map_insert_ctx(struct bpf_map *map, u32 bit)
 {
-        struct bpf_dtab *dtab = container_of(map, struct bpf_dtab, map);
-        unsigned long *bitmap = this_cpu_ptr(dtab->flush_needed);
+        struct bpf_dtab *dtab;
+        unsigned long *bitmap;
+
+        if (map->map_type == BPF_MAP_TYPE_DEVMAP_HASH)
+                return;
+
+        dtab = container_of(map, struct bpf_dtab, map);
+        bitmap = this_cpu_ptr(dtab->flush_needed);
 
         __set_bit(bit, bitmap);
 }
@@ -366,9 +376,15 @@ error:
  */
 void __dev_map_flush(struct bpf_map *map)
 {
-        struct bpf_dtab *dtab = container_of(map, struct bpf_dtab, map);
-        unsigned long *bitmap = this_cpu_ptr(dtab->flush_needed);
+        struct bpf_dtab *dtab;
+        unsigned long *bitmap;
         u32 bit;
+
+        if (map->map_type == BPF_MAP_TYPE_DEVMAP_HASH)
+                return;
+
+        dtab = container_of(map, struct bpf_dtab, map);
+        bitmap = this_cpu_ptr(dtab->flush_needed);
 
         rcu_read_lock();
         for_each_set_bit(bit, bitmap, map->max_entries) {
@@ -469,9 +485,8 @@ int dev_map_generic_redirect(struct bpf_dtab_netdev *dst, struct sk_buff *skb,
 static void *dev_map_lookup_elem(struct bpf_map *map, void *key)
 {
         struct bpf_dtab_netdev *obj = __dev_map_lookup_elem(map, *(u32 *)key);
-        struct net_device *dev = obj ? obj->dev : NULL;
 
-        return dev ? &dev->ifindex : NULL;
+        return obj ? &obj->val : NULL;
 }
 
 static void dev_map_flush_old(struct bpf_dtab_netdev *dev)
@@ -755,9 +770,7 @@ static void *dev_map_hash_lookup_elem(struct bpf_map *map, void *key)
 {
         struct bpf_dtab_netdev *obj = __dev_map_hash_lookup_elem(map,
                                                                 *(u32 *)key);
-        struct net_device *dev = obj ? obj->dev : NULL;
-
-        return dev ? &dev->ifindex : NULL;
+        return obj ? &obj->val : NULL;
 }
 
 static void dev_map_hash_remove_netdev(struct bpf_dtab *dtab,
