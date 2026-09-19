@@ -12,7 +12,7 @@ obj-y += adsp_reserved_mem.o
 
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/adsp/common
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/audio_ipi/common/framework
-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(CONFIG_MTK_PLATFORM)/include/mach
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/mach
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/emi/submodule
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/emi/$(CONFIG_MTK_PLATFORM)

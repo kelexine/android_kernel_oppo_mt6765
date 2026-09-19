@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2017 MediaTek Inc.
 #
-#-I$(srctree)/drivers/misc/mediatek/base/power/eem_v2/$(CONFIG_MTK_PLATFORM)/inc/	\
+#-I$(srctree)/drivers/misc/mediatek/base/power/eem_v2/$(MTK_PLATFORM)/inc/	\
 #-I$(srctree)/drivers/misc/mediatek/pmic/include/	\
 #
 
@@ -13,14 +13,14 @@ ccflags-y += \
     -I$(srctree)/drivers/misc/mediatek/base/power/cpufreq_v1/src/mach/$(CONFIG_MTK_PLATFORM)\
 	-I$(srctree)/drivers/misc/mediatek/base/power/gpufreq_mt3967/ \
 	-I$(srctree)/drivers/misc/mediatek/include/mt-plat/	\
-	-I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(CONFIG_MTK_PLATFORM)/include/mach	\
+	-I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/mach	\
 	-I$(srctree)/drivers/misc/mediatek/pmic/	\
 	-I$(srctree)/drivers/misc/mediatek/pmic/include	\
 	-I$(srctree)/drivers/misc/mediatek/pmic/extbuck \
 	-I$(srctree)/drivers/misc/mediatek/pmic/include/mt6356	\
 	-I$(srctree)/drivers/misc/mediatek/pmic/include/mt6358	\
 	-I$(srctree)/drivers/misc/mediatek/pmic/include/mt6355	\
-	-I$(srctree)/drivers/misc/mediatek/thermal/$(CONFIG_MTK_PLATFORM)/inc/mach	\
+	-I$(srctree)/drivers/misc/mediatek/thermal/$(MTK_PLATFORM)/inc/mach	\
 	-I$(srctree)/include/linux/	\
 	-I$(srctree)/drivers/misc/mediatek/dramc/$(MTK_PLATFORM)	\
 	-I$(srctree)/drivers/misc/mediatek/vpu/$(MTK_PLATFORM)	\

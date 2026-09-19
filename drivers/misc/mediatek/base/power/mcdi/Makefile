@@ -12,7 +12,7 @@
 #
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/mcdi/include/
-ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/mcdi/$(CONFIG_MTK_PLATFORM)/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/mcdi/$(MTK_PLATFORM)/
 
 obj-y += mtk_mcdi_governor.o
 obj-y += mtk_mcdi_governor_lib.o

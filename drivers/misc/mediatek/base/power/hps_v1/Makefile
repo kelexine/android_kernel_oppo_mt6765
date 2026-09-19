@@ -3,7 +3,7 @@
 # Copyright (C) 2015 MediaTek Inc.
 #
 
-ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(CONFIG_MTK_PLATFORM)/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
 
 obj-y += mt_hotplug_strategy_main.o
 obj-y += mt_hotplug_strategy_core.o

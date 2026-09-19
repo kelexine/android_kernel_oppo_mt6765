@@ -1,3 +1,6 @@
+CFLAGS_mtk_sleep.o := -I$(src)
+CFLAGS_mtk_spm_resource_req.o := -I$(src)
+
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/spm/$(MTK_PLATFORM)/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/

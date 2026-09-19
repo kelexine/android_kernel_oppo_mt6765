@@ -9,7 +9,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#-I$(srctree)/drivers/misc/mediatek/base/power/eem_v2/$(CONFIG_MTK_PLATFORM)/inc/	\
+#-I$(srctree)/drivers/misc/mediatek/base/power/eem_v2/$(MTK_PLATFORM)/inc/	\
 #-I$(srctree)/drivers/misc/mediatek/pmic/include/	\
 #
 
@@ -18,8 +18,8 @@ ccflags-y += \
 	-I$(srctree)/drivers/misc/mediatek/base/power/include/spm_v3/	\
 	-I$(srctree)/drivers/misc/mediatek/base/power/$(CONFIG_MTK_PLATFORM)\
 	-I$(srctree)/drivers/misc/mediatek/include/mt-plat/	\
-	-I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(CONFIG_MTK_PLATFORM)/include/mach	\
-	-I$(srctree)/drivers/misc/mediatek/thermal/$(CONFIG_MTK_PLATFORM)/inc/mach	\
+	-I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/mach	\
+	-I$(srctree)/drivers/misc/mediatek/thermal/$(MTK_PLATFORM)/inc/mach	\
 	-I$(srctree)/drivers/misc/mediatek/pmic/	\
 	-I$(srctree)/drivers/misc/mediatek/pmic/include	\
 	-I$(srctree)/drivers/misc/mediatek/pmic/extbuck \

@@ -14,7 +14,7 @@ ifeq (y, $(filter y, $(CONFIG_MACH_MT6765) $(CONFIG_MACH_MT6761)))
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/pwm/mt6765/include
 obj-y += $(subst ",,mt6765)/
 else
-ccflags-y += -I$(srctree)/drivers/misc/mediatek/pwm/$(CONFIG_MTK_PLATFORM)/include
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/pwm/$(MTK_PLATFORM)/include
 obj-y += $(subst ",,$(CONFIG_MTK_PLATFORM))/
 endif
 

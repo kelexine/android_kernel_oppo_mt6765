@@ -87,4 +87,5 @@ obj-$(CONFIG_MMSTAT_TRACER) += trace_mmstat.o
 
 libftrace-y := ftrace.o
 
+CFLAGS_mtk_trace.o := -I$(src)
 obj-$(CONFIG_TRACING) += mtk_trace.o

@@ -14,7 +14,7 @@
 ccflags-y += \
 	-I$(PPM_ROOT_DIR)/inc \
 	-I$(PPM_ROOT_DIR)/src/mach/mt6779 \
-	-I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(CONFIG_MTK_PLATFORM)/include	\
+	-I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include	\
 	-I$(srctree)/drivers/misc/mediatek/include/mt-plat	\
 	-I$(srctree)/drivers/misc/mediatek/base/power/$(CONFIG_MTK_PLATFORM)	\
 	-I$(srctree)/drivers/misc/mediatek/power_throttling	\
