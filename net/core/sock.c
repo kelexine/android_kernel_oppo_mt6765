@@ -1908,6 +1908,18 @@ void sock_efree(struct sk_buff *skb)
 }
 EXPORT_SYMBOL(sock_efree);
 
+void sock_pfree(struct sk_buff *skb)
+{
+	struct sock *sk = skb->sk;
+
+	if (!sk || skb->destructor != sock_pfree)
+		return;
+
+	skb->sk = NULL;
+	sock_put(sk);
+}
+EXPORT_SYMBOL(sock_pfree);
+
 kuid_t sock_i_uid(struct sock *sk)
 {
 	kuid_t uid;

@@ -140,6 +140,11 @@ int map_check_no_btf(const struct bpf_map *map,
 
 extern const struct bpf_map_ops bpf_map_offload_ops;
 extern const struct bpf_map_ops ringbuf_map_ops;
+extern const struct bpf_func_proto bpf_ringbuf_output_proto;
+extern const struct bpf_func_proto bpf_ringbuf_reserve_proto;
+extern const struct bpf_func_proto bpf_ringbuf_submit_proto;
+extern const struct bpf_func_proto bpf_ringbuf_discard_proto;
+extern const struct bpf_func_proto bpf_ringbuf_query_proto;
 
 bool bpf_map_meta_equal(const struct bpf_map *meta1,
 			const struct bpf_map *meta2);
@@ -173,6 +178,7 @@ enum bpf_arg_type {
 
         ARG_PTR_TO_CTX,         /* pointer to context */
         ARG_ANYTHING,           /* any (initialized) argument is ok */
+        ARG_PTR_TO_SOCK_COMMON, /* pointer to sock_common (sock, request_sock, etc.) */
 };
 
 /* type of values returned from helper functions */
