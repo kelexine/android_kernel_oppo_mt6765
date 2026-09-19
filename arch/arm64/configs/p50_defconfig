@@ -528,6 +528,14 @@ CONFIG_CORESIGHT_STM=y
 # by MTK Kconfig auto-selection. Only CONFIG_NET_ACT_BPF is missing.
 CONFIG_NET_ACT_BPF=y
 
+# BTF - required by AOSP 14+ bpfloader/CO-RE programs (per-UID traffic
+# stats, tether accounting, cgroup firewall). Without this, /sys/kernel/btf/vmlinux
+# is absent and bpfloader aborts partway through its boot sequence, leaving
+# per-UID traffic maps empty. NetworkStatsService then reports 0 bytes for all apps.
+CONFIG_DEBUG_INFO_BTF=y
+CONFIG_XDP_SOCKETS=y
+CONFIG_BPF_PRELOAD=y
+
 # I/O Scheduler: BFQ for low-latency interactive responsiveness under storage contention
 CONFIG_IOSCHED_BFQ=y
 CONFIG_BFQ_GROUP_IOSCHED=y

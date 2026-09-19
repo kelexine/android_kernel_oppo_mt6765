@@ -173,6 +173,18 @@ config DEBUG_INFO
 
 	  If unsure, say N.
 
+config DEBUG_INFO_BTF
+	bool "Generate BTF typeinfo"
+	depends on DEBUG_INFO
+	help
+	  Generate deduplicated BTF type information from DWARF debug info.
+	  Turning this on expects presence of pahole tool, which will convert
+	  DWARF type info into equivalent deduplicated BTF type information.
+	  This is required by Android 14+ libbpf/CO-RE programs (per-UID
+	  traffic stats, tether accounting, cgroup firewall) - without it
+	  /sys/kernel/btf/vmlinux is absent and bpfloader aborts partway
+	  through its boot sequence, leaving per-UID traffic maps empty.
+
 config DEBUG_INFO_REDUCED
 	bool "Reduce debugging information"
 	depends on DEBUG_INFO
