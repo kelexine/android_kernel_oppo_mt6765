@@ -122,6 +122,7 @@ enum bpf_map_type {
 	BPF_MAP_TYPE_ARRAY_OF_MAPS,
 	BPF_MAP_TYPE_HASH_OF_MAPS,
 	BPF_MAP_TYPE_DEVMAP,
+	BPF_MAP_TYPE_DEVMAP_HASH,
 	BPF_MAP_TYPE_SOCKMAP,
 	BPF_MAP_TYPE_CPUMAP,
 	BPF_MAP_TYPE_XSKMAP,
@@ -129,6 +130,22 @@ enum bpf_map_type {
 	BPF_MAP_TYPE_CGROUP_STORAGE,
 	BPF_MAP_TYPE_REUSEPORT_SOCKARRAY,
 	BPF_MAP_TYPE_RINGBUF,
+};
+
+/* BPF_MAP_TYPE_DEVMAP_HASH + BPF_MAP_TYPE_DEVMAP map-value layout
+ *
+ * The struct data-layout of map-value is a configuration interface.
+ * For the array-of-maps type (BPF_MAP_TYPE_DEVMAP), new members must be added
+ * after the ifindex member as the kernel only size-checks the ifindex field
+ * when populating it. For hash-of-maps (BPF_MAP_TYPE_DEVMAP_HASH), the layout
+ * is fixed: it must contain exactly ifindex + prog fd.
+ */
+struct bpf_devmap_val {
+	__u32 ifindex;   /* device index */
+	union {
+		int   fd;  /* prog fd on map write */
+		__u32 id;  /* prog id on map read */
+	} bpf_prog;
 };
 
 /* Ringbuffer flags */
