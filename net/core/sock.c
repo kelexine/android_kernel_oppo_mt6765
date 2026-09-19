@@ -1910,13 +1910,8 @@ EXPORT_SYMBOL(sock_efree);
 
 void sock_pfree(struct sk_buff *skb)
 {
-	struct sock *sk = skb->sk;
-
-	if (!sk || skb->destructor != sock_pfree)
-		return;
-
-	skb->sk = NULL;
-	sock_put(sk);
+	if (sk_is_refcounted(skb->sk))
+		sock_gen_put(skb->sk);
 }
 EXPORT_SYMBOL(sock_pfree);
 
