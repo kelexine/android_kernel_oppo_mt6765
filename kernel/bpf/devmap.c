@@ -173,7 +173,12 @@ static struct bpf_map *dev_map_alloc(union bpf_attr *attr)
                 spin_lock_init(&dtab->index_lock);
                 /* items starts at 0 — increments on each successful update_elem */
                 dtab->items = 0;
-                goto skip_array_init;
+
+                spin_lock(&dev_map_lock);
+                list_add_tail_rcu(&dtab->list, &dev_map_list);
+                spin_unlock(&dev_map_lock);
+
+                return &dtab->map;
         }
 
         /* DEVMAP (array): allocate the array of netdev pointers + per-cpu bitmap */
@@ -199,7 +204,6 @@ static struct bpf_map *dev_map_alloc(union bpf_attr *attr)
         if (!dtab->flush_needed)
                 goto free_dtab;
 
-skip_array_init:
         dtab->netdev_map = bpf_map_area_alloc(dtab->map.max_entries *
                                               sizeof(struct bpf_dtab_netdev *),
                                               dtab->map.numa_node);
@@ -242,11 +246,12 @@ static void dev_map_free(struct bpf_map *map)
          */
         if (dtab->map.map_type == BPF_MAP_TYPE_DEVMAP_HASH) {
                 dev_map_hash_remove_netdev(dtab, NULL);
+                rcu_barrier();
                 bpf_map_area_free(dtab->dev_index_head);
-                goto skip_array_free;
+                kfree(dtab);
+                return;
         }
 
-skip_array_free:
         /* Make sure prior __dev_map_entry_free() have completed. */
         rcu_barrier();
 
@@ -392,6 +397,9 @@ struct bpf_dtab_netdev *__dev_map_lookup_elem(struct bpf_map *map, u32 key)
 {
         struct bpf_dtab *dtab = container_of(map, struct bpf_dtab, map);
         struct bpf_dtab_netdev *obj;
+
+        if (map->map_type == BPF_MAP_TYPE_DEVMAP_HASH)
+                return __dev_map_hash_lookup_elem(map, key);
 
         if (key >= map->max_entries)
                 return NULL;
@@ -599,6 +607,10 @@ static int dev_map_notification(struct notifier_block *notifier,
                  */
                 rcu_read_lock();
                 list_for_each_entry_rcu(dtab, &dev_map_list, list) {
+                        if (dtab->map.map_type == BPF_MAP_TYPE_DEVMAP_HASH) {
+                                dev_map_hash_remove_netdev(dtab, netdev);
+                                continue;
+                        }
                         for (i = 0; i < dtab->map.max_entries; i++) {
                                 struct bpf_dtab_netdev *dev, *odev;
 
@@ -743,7 +755,9 @@ static void *dev_map_hash_lookup_elem(struct bpf_map *map, void *key)
 {
         struct bpf_dtab_netdev *obj = __dev_map_hash_lookup_elem(map,
                                                                 *(u32 *)key);
-        return obj ? obj : NULL;
+        struct net_device *dev = obj ? obj->dev : NULL;
+
+        return dev ? &dev->ifindex : NULL;
 }
 
 static void dev_map_hash_remove_netdev(struct bpf_dtab *dtab,
@@ -815,7 +829,7 @@ static int __dev_map_hash_update_elem(struct net *net, struct bpf_map *map,
         if (old_dev && (map_flags & BPF_EXIST))
                 goto out;
 
-        dev = __dev_map_alloc_node(net, dtab, idx, value, NULL);
+        dev = __dev_map_alloc_node(net, dtab, val, value, NULL);
         if (!dev) {
                 err = -ENOMEM;
                 goto out_err;
