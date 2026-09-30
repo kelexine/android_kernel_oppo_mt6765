@@ -342,6 +342,9 @@ int ilitek_plat_irq_register(int type)
 				ilitek_plat_isr_top_half,
 				ilitek_plat_isr_bottom_half,
 				type | IRQF_ONESHOT, "ilitek", NULL);
+	if (!ret)
+		/* Sync software IRQ tracking: kernel enables IRQ on successful request */
+		atomic_set(&idev->irq_stat, ENABLE);
 
 	if (type == IRQF_TRIGGER_FALLING)
 		ipio_info("IRQ TYPE = IRQF_TRIGGER_FALLING\n");

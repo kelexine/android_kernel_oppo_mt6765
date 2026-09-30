@@ -444,6 +444,14 @@ int ilitek_tddi_sleep_handler(int mode)
 	ilitek_tddi_wq_ctrl(WQ_ESD, DISABLE);
 	ilitek_tddi_wq_ctrl(WQ_BAT, DISABLE);
 
+	/*
+	 * Disable IRQ before any mode-switch I2C traffic so the INT line
+	 * cannot fire into the ISR while touch_mutex is still held here.
+	 * Gesture mode will re-enable with enable_irq_wake + irq_enable;
+	 * sleep mode stays disabled until resume.
+	 */
+	ilitek_plat_irq_disable();
+
 	ipio_debug("Sleep Mode = %d\n", mode);
 
 	if (idev->ss_ctrl)
@@ -468,8 +476,9 @@ int ilitek_tddi_sleep_handler(int mode)
 		if (idev->gesture) {
 			ilitek_tddi_switch_tp_mode(P5_X_FW_GESTURE_MODE);
 			enable_irq_wake(idev->irq_num);
+			/* Re-arm IRQ so the chip can signal gesture events */
+			ilitek_plat_irq_enable();
 		} else {
-			ilitek_plat_irq_disable();
 			if (ilitek_tddi_ic_func_ctrl("sleep", SLEEP_IN, NULL, 0) < 0)
 				ipio_err("Write sleep in cmd failed\n");
 		}
@@ -489,8 +498,9 @@ int ilitek_tddi_sleep_handler(int mode)
 		if (idev->gesture) {
 			ilitek_tddi_switch_tp_mode(P5_X_FW_GESTURE_MODE);
 			enable_irq_wake(idev->irq_num);
+			/* Re-arm IRQ so the chip can signal gesture events */
+			ilitek_plat_irq_enable();
 		} else {
-			ilitek_plat_irq_disable();
 			if (ilitek_tddi_ic_func_ctrl("sleep", DEEP_SLEEP_IN, NULL, 0) < 0)
 				ipio_err("Write deep sleep in cmd failed\n");
 		}
@@ -714,6 +724,13 @@ int ilitek_tddi_report_handler(void)
 	if (idev->actual_tp_mode == P5_X_FW_GESTURE_MODE) {
 		__pm_stay_awake(idev->ws);
 
+		/*
+		 * Give MTK I2C DMA / clock time to stabilize after wakeup.
+		 * Without this, the first I2C read after AP resume returns 0x00
+		 * ("Unknown packet id, 0") losing the gesture event entirely.
+		 */
+		msleep(30);
+
 		if (idev->pm_suspend) {
 			/* Waiting for pm resume completed */
 			ret = wait_for_completion_timeout(&idev->pm_completion, msecs_to_jiffies(700));
@@ -833,7 +850,12 @@ out:
 	}
 
 	if (idev->actual_tp_mode == P5_X_FW_GESTURE_MODE)
-		__pm_relax(idev->ws);
+		/*
+		 * Hold a 2-second wakeup event so Android has time to acquire
+		 * the display wakelock and turn on the LCM before the SoC
+		 * drops back into deep sleep.
+		 */
+		__pm_wakeup_event(idev->ws, 2000);
 	return ret;
 }
 
