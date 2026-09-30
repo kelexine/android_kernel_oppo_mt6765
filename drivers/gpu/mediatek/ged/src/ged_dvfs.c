@@ -1726,6 +1726,9 @@ static void ged_dvfs_margin_value(int i32MarginValue)
 	else
 		dvfs_margin_value = i32MarginValue;
 
+	if (dvfs_margin_value < 20)
+		dvfs_margin_value = 20;
+
 	mutex_unlock(&gsDVFSLock);
 }
 

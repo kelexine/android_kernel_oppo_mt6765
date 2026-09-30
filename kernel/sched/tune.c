@@ -504,6 +504,11 @@ int schedtune_task_boost(struct task_struct *p)
 	rcu_read_lock();
 	st = task_schedtune(p);
 	task_boost = st->boost;
+	if (st->css.cgroup && st->css.cgroup->kn && st->css.cgroup->kn->name &&
+	    strcmp(st->css.cgroup->kn->name, "top-app") == 0) {
+		if (task_boost < 15)
+			task_boost = 15;
+	}
 #ifdef OPLUS_FEATURE_UIFIRST
 	if (sysctl_uifirst_enabled && sysctl_launcher_boost_enabled && p->static_ux == 2) {
 		task_boost = 60;
@@ -526,6 +531,10 @@ int schedtune_prefer_idle(struct task_struct *p)
 	rcu_read_lock();
 	st = task_schedtune(p);
 	prefer_idle = st->prefer_idle;
+	if (st->css.cgroup && st->css.cgroup->kn && st->css.cgroup->kn->name &&
+	    strcmp(st->css.cgroup->kn->name, "top-app") == 0) {
+		prefer_idle = 1;
+	}
 #ifdef OPLUS_FEATURE_UIFIRST
 	if (sysctl_uifirst_enabled && sysctl_launcher_boost_enabled && test_task_ux(p)) {
 		prefer_idle = 1;

@@ -180,7 +180,7 @@ static int sync_flag;
 static int fbt_sync_flag_enable;
 static int set_cap_margin;
 static int fbt_cap_margin_enable;
-static int ultra_rescue;
+static int ultra_rescue = 1;
 static int loading_policy;
 static int llf_task_policy;
 
