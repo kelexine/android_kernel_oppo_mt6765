@@ -2090,15 +2090,6 @@ brd_input:
 	RT_CACHE_STAT_INC(in_brd);
 
 local_input:
-<<<<<<< HEAD
-	do_cache &= res->fi && !itag;
-	if (do_cache) {
-		rth = rcu_dereference(FIB_RES_NH(*res).nh_rth_input);
-		if (rt_cache_valid(rth)) {
-			skb_dst_set_noref(skb, &rth->dst);
-			err = 0;
-			goto out;
-=======
 	do_cache = false;
 	if (res->fi) {
 		if (!itag) {
@@ -2113,7 +2104,6 @@ local_input:
 				goto out;
 			}
 			do_cache = true;
->>>>>>> 2ce338048cd4 (UPSTREAM: ipv4: Add fib_nh_common to fib_result)
 		}
 	}
 
