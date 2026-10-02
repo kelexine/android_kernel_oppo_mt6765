@@ -55,6 +55,7 @@
 #include <linux/android_kabi.h>
 
 struct netpoll_info;
+struct ip_tunnel_parm;
 struct device;
 struct phy_device;
 struct dsa_port;
