@@ -302,4 +302,18 @@ struct ftrace_likely_data {
  */
 #define noinline_for_stack noinline
 
+/*
+ * Annotating intentional fall-through in switch statements.
+ * Backported from include/linux/compiler_attributes.h (upstream v5.5).
+ */
+#if defined(__has_attribute)
+# if __has_attribute(__fallthrough__)
+#  define fallthrough                    __attribute__((__fallthrough__))
+# else
+#  define fallthrough                    do {} while (0)
+# endif
+#else
+# define fallthrough                     do {} while (0)
+#endif
+
 #endif /* __LINUX_COMPILER_TYPES_H */
