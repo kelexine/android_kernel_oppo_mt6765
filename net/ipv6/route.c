@@ -2097,7 +2097,7 @@ u32 rt6_multipath_hash(const struct net *net, const struct flowi6 *fl6,
 	return mhash >> 1;
 }
 
-void ip6_route_input(struct sk_buff *skb)
+int ip6_route_input(struct sk_buff *skb)
 {
 	const struct ipv6hdr *iph = ipv6_hdr(skb);
 	struct net *net = dev_net(skb->dev);
@@ -2112,6 +2112,7 @@ void ip6_route_input(struct sk_buff *skb)
 		.flowi6_proto = iph->nexthdr,
 	};
 	struct flow_keys *flkeys = NULL, _flkeys;
+	struct dst_entry *dst;
 
 	tun_info = skb_tunnel_info(skb);
 	if (tun_info && !(tun_info->mode & IP_TUNNEL_INFO_TX))
@@ -2122,9 +2123,10 @@ void ip6_route_input(struct sk_buff *skb)
 
 	if (unlikely(fl6.flowi6_proto == IPPROTO_ICMPV6))
 		fl6.mp_hash = rt6_multipath_hash(net, &fl6, skb, flkeys);
+	dst = ip6_route_input_lookup(net, skb->dev, &fl6, skb, flags);
 	skb_dst_drop(skb);
-	skb_dst_set(skb,
-		    ip6_route_input_lookup(net, skb->dev, &fl6, skb, flags));
+	skb_dst_set(skb, dst);
+	return dst->error;
 }
 
 static struct rt6_info *ip6_pol_route_output(struct net *net,
