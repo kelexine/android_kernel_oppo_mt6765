@@ -1207,7 +1207,7 @@ struct fib_info *fib_create_info(struct fib_config *cfg,
 		goto failure;
 
 	if (fib_props[cfg->fc_type].error) {
-		if (cfg->fc_gw || cfg->fc_oif || cfg->fc_mp) {
+		if (cfg->fc_gw_family || cfg->fc_oif || cfg->fc_mp) {
 			NL_SET_ERR_MSG(extack,
 				       "Gateway, device and multipath can not be specified for this route type");
 			goto err_inval;
