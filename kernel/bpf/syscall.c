@@ -607,7 +607,7 @@ static void bpf_map_mmap_open(struct vm_area_struct *vma)
 
 	if (vma->vm_flags & VM_MAYWRITE) {
 		mutex_lock(&map->freeze_mutex);
-		map->writecnt++;
+		atomic64_inc(&map->writecnt);
 		mutex_unlock(&map->freeze_mutex);
 	}
 }
@@ -619,7 +619,7 @@ static void bpf_map_mmap_close(struct vm_area_struct *vma)
 
 	if (vma->vm_flags & VM_MAYWRITE) {
 		mutex_lock(&map->freeze_mutex);
-		map->writecnt--;
+		atomic64_dec(&map->writecnt);
 		mutex_unlock(&map->freeze_mutex);
 	}
 }
@@ -671,7 +671,7 @@ static int bpf_map_mmap(struct file *filp, struct vm_area_struct *vma)
 		goto out;
 
 	if (vma->vm_flags & VM_MAYWRITE)
-		map->writecnt++;
+		atomic64_inc(&map->writecnt);
 out:
 	mutex_unlock(&map->freeze_mutex);
 	return err;
@@ -1567,7 +1567,7 @@ static int map_freeze(const union bpf_attr *attr)
 
 	mutex_lock(&map->freeze_mutex);
 
-	if (map->writecnt) {
+	if (atomic64_read(&map->writecnt)) {
 		err = -EBUSY;
 		goto err_put;
 	}
