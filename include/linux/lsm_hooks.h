@@ -2058,6 +2058,8 @@ struct lsm_blob_sizes {
  * LSM hooks (in include/linux/lsm_hook_defs.h).
  */
 #define LSM_RET_VOID ((void) 0)
+
+/*
  * Initializing a security_hook_list structure takes
  * up a lot of space in a source file. This macro takes
  * care of the common case and reduces the amount of
