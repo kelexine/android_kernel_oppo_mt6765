@@ -165,6 +165,15 @@ unmap_kernel_range(unsigned long addr, unsigned long size)
 }
 #endif
 
+/*
+ * Backport stub: the VM_FLUSH_RESET_PERMS-on-free machinery is not part
+ * of this tree; permission resets are handled explicitly by the
+ * bpf_jit/module free paths instead.
+ */
+static inline void set_vm_flush_reset_perms(void *addr)
+{
+}
+
 /* Allocate/destroy a 'vmalloc' VM area. */
 extern struct vm_struct *alloc_vm_area(size_t size, pte_t **ptes);
 extern void free_vm_area(struct vm_struct *area);
