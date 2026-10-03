@@ -10426,7 +10426,9 @@ const struct bpf_func_proto bpf_skc_to_udp6_sock_proto = {
 
 BPF_CALL_1(bpf_sock_from_file, struct file *, file)
 {
-	return (unsigned long)sock_from_file(file);
+	int err = 0;
+
+	return (unsigned long)sock_from_file(file, &err);
 }
 
 BTF_ID_LIST(bpf_sock_from_file_btf_ids)
