@@ -82,7 +82,7 @@ static inline bool rt6_qualify_for_ecmp(const struct fib6_info *f6i)
 		f6i->fib6_nh.fib_nh_gw_family;
 }
 
-int ip6_route_input(struct sk_buff *skb);
+void ip6_route_input(struct sk_buff *skb);
 struct dst_entry *ip6_route_input_lookup(struct net *net,
 					 struct net_device *dev,
 					 struct flowi6 *fl6,
