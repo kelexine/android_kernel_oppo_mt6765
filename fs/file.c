@@ -677,14 +677,15 @@ void do_close_on_exec(struct files_struct *files)
 	spin_unlock(&files->file_lock);
 }
 
-static struct file *__fget(unsigned int fd, fmode_t mask)
+static struct file *__fget_files(struct files_struct *files,
+				 unsigned int fd, fmode_t mask,
+				 unsigned int refs)
 {
-	struct files_struct *files = current->files;
 	struct file *file;
 
 	rcu_read_lock();
 loop:
-	file = fcheck_files(files, fd);
+	file = files_lookup_fd_rcu(files, fd);
 	if (file) {
 		/* File object ref couldn't be taken.
 		 * dup2() atomicity guarantee is the reason
@@ -698,6 +699,11 @@ loop:
 	rcu_read_unlock();
 
 	return file;
+}
+
+static struct file *__fget(unsigned int fd, fmode_t mask)
+{
+	return __fget_files(current->files, fd, mask, 1);
 }
 
 struct file *fget(unsigned int fd)

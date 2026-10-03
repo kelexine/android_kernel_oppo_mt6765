@@ -642,6 +642,18 @@ static bool __btf_name_char_ok(char c, bool first, bool dot_ok)
 	return true;
 }
 
+static const char *btf_str_by_offset(const struct btf *btf, u32 offset)
+{
+	while (offset < btf->start_str_off)
+		btf = btf->base_btf;
+
+	offset -= btf->start_str_off;
+	if (offset < btf->hdr.str_len)
+		return &btf->strings[offset];
+
+	return NULL;
+}
+
 static bool __btf_name_valid(const struct btf *btf, u32 offset, bool dot_ok)
 {
 	/* offset must be valid */

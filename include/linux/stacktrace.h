@@ -19,6 +19,10 @@ extern void save_stack_trace_regs(struct pt_regs *regs,
 				  struct stack_trace *trace);
 extern void save_stack_trace_tsk(struct task_struct *tsk,
 				struct stack_trace *trace);
+extern unsigned int stack_trace_save_tsk(struct task_struct *task,
+					 unsigned long *store,
+					 unsigned int size,
+					 unsigned int skipnr);
 extern int save_stack_trace_tsk_reliable(struct task_struct *tsk,
 					 struct stack_trace *trace);
 

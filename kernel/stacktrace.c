@@ -64,6 +64,30 @@ save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
 	WARN_ONCE(1, KERN_INFO "save_stack_trace_tsk() not implemented yet.\n");
 }
 
+/**
+ * stack_trace_save_tsk - Save a task stack trace into a trace array
+ * @task:	The task to examine
+ * @store:	Pointer to storage array
+ * @size:	Size of the storage array
+ * @skipnr:	Number of frames to skip at the start
+ *
+ * Return: Number of trace entries stored
+ */
+unsigned int stack_trace_save_tsk(struct task_struct *task,
+				  unsigned long *store, unsigned int size,
+				  unsigned int skipnr)
+{
+	struct stack_trace trace = {
+		.entries	= store,
+		.max_entries	= size,
+		.skip		= skipnr,
+	};
+
+	save_stack_trace_tsk(task, &trace);
+	return trace.nr_entries;
+}
+EXPORT_SYMBOL_GPL(stack_trace_save_tsk);
+
 __weak void
 save_stack_trace_regs(struct pt_regs *regs, struct stack_trace *trace)
 {

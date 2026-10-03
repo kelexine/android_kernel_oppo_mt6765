@@ -420,6 +420,24 @@ static inline void rcu_preempt_sleep_check(void) { }
  * @c is the argument that is passed to the rcu_dereference_protected() call
  * used to read that pointer.
  */
+/**
+ * rcu_replace_pointer() - replace an RCU pointer, returning its old value
+ * @rcu_ptr: RCU-annotated pointer to be replaced
+ * @ptr: the new value to assign
+ * @c: the lockdep argument that is passed to the rcu_dereference_protected() call used to read that pointer
+ *
+ * Perform a replacement, where @rcu_ptr is an RCU-annotated
+ * pointer and @c is the lockdep argument that is passed to the
+ * rcu_dereference_protected() call used to read that pointer.  The old
+ * value of @rcu_ptr is returned, and @rcu_ptr is set to @ptr.
+ */
+#define rcu_replace_pointer(rcu_ptr, ptr, c)				\
+({									\
+	typeof(ptr) __tmp = rcu_dereference_protected((rcu_ptr), (c));	\
+	rcu_assign_pointer((rcu_ptr), (ptr));				\
+	__tmp;								\
+})
+
 #define rcu_swap_protected(rcu_ptr, ptr, c) do {			\
 	typeof(ptr) __tmp = rcu_dereference_protected((rcu_ptr), (c));	\
 	rcu_assign_pointer((rcu_ptr), (ptr));				\
