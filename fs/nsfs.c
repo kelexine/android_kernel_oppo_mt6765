@@ -269,6 +269,20 @@ static struct file_system_type nsfs = {
 	.kill_sb = kill_anon_super,
 };
 
+/**
+ * ns_match() - Returns true if current namespace matches dev/ino provided.
+ * @ns_common: current ns
+ * @dev: dev_t from nsfs that will be matched against current nsfs
+ * @ino: ino_t from nsfs that will be matched against current nsfs
+ *
+ * Return: true if dev and ino matches the current nsfs.
+ */
+bool ns_match(const struct ns_common *ns, dev_t dev, ino_t ino)
+{
+	return (ns->inum == ino) && (nsfs_mnt->mnt_sb->s_dev == dev);
+}
+EXPORT_SYMBOL_GPL(ns_match);
+
 void __init nsfs_init(void)
 {
 	nsfs_mnt = kern_mount(&nsfs);

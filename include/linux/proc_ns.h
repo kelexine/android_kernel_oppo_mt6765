@@ -84,6 +84,7 @@ extern int ns_get_path_cb(struct path *path, ns_get_path_helper_t ns_get_cb,
 
 extern int ns_get_name(char *buf, size_t size, struct task_struct *task,
 			const struct proc_ns_operations *ns_ops);
+extern bool ns_match(const struct ns_common *ns, dev_t dev, ino_t ino);
 extern void nsfs_init(void);
 
 #endif /* _LINUX_PROC_NS_H */
