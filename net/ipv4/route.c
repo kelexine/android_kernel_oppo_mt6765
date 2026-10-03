@@ -437,6 +437,7 @@ static struct neighbour *ipv4_neigh_lookup(const struct dst_entry *dst,
 					   struct sk_buff *skb,
 					   const void *daddr)
 {
+	const struct rtable *rt = container_of(dst, struct rtable, dst);
 	struct net_device *dev = dst->dev;
 	struct neighbour *n;
 
