@@ -67,6 +67,16 @@
 #else
 #define BUILD_BUG_ON(condition) \
 	BUILD_BUG_ON_MSG(condition, "BUILD_BUG_ON failed: " #condition)
+/*
+ * static_assert - check integer constant expression at build time
+ *
+ * Backport of the upstream C11 _Static_assert wrapper used by newer
+ * BPF code (e.g. skmsg.h size checks).
+ */
+#define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
+#define __static_assert(expr, msg...) _Static_assert(expr, msg)
+
+
 #endif
 
 /**

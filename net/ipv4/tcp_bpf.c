@@ -256,7 +256,7 @@ static int tcp_bpf_wait_data(struct sock *sk, struct sk_psock *psock,
 	return ret;
 }
 
-static int tcp_bpf_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
+int tcp_bpf_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
 		    int nonblock, int flags, int *addr_len)
 {
 	struct sk_psock *psock;
