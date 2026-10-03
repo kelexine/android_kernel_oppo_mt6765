@@ -2,8 +2,15 @@
 #ifndef _BPF_PRELOAD_H
 #define _BPF_PRELOAD_H
 
-#include <linux/usermode_driver.h>
+#include <linux/pid.h>
 #include "iterators/bpf_preload_common.h"
+
+/* Minimal stand-in for the UMD infrastructure (linux/usermode_driver.h),
+ * which is not part of this port. The bpffs preloader plumbing only
+ * needs tgid to detect whether the UMD process was started. */
+struct umd_info {
+	struct pid *tgid;
+};
 
 struct bpf_preload_ops {
         struct umd_info info;
