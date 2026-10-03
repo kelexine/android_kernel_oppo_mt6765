@@ -252,6 +252,10 @@ static inline unsigned long __copy_from_user_inatomic_nocache(void *to,
  * happens, handle that and return -EFAULT.
  */
 extern long probe_kernel_read(void *dst, const void *src, size_t size);
+extern int __must_check check_zeroed_user(const void __user *from, size_t size);
+/* 4.19 probe_kernel_read() already has strict semantics. */
+#define probe_kernel_read_strict(dst, src, size) \
+	probe_kernel_read(dst, src, size)
 extern long __probe_kernel_read(void *dst, const void *src, size_t size);
 
 /*
