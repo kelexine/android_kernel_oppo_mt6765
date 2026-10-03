@@ -870,20 +870,14 @@ static int inet_dump_fib(struct sk_buff *skb, struct netlink_callback *cb)
 	struct hlist_head *head;
 	int dumped = 0, err;
 
-	if (cb->strict_check) {
-		err = ip_valid_fib_dump_req(net, nlh, &filter, cb->extack);
-		if (err < 0)
-			return err;
-	}
-
-	if (nlmsg_len(nlh) >= sizeof(struct rtmsg) &&
-	    ((struct rtmsg *)nlmsg_data(nlh))->rtm_flags & RTM_F_CLONED)
+	if (nlmsg_len(cb->nlh) >= sizeof(struct rtmsg) &&
+	    ((struct rtmsg *)nlmsg_data(cb->nlh))->rtm_flags & RTM_F_CLONED)
 		return skb->len;
 
 	if (filter.table_id) {
 		tb = fib_get_table(net, filter.table_id);
 		if (!tb) {
-			NL_SET_ERR_MSG(cb->extack, "ipv4: FIB table does not exist");
+			NL_SET_ERR_MSG(NULL, "ipv4: FIB table does not exist");
 			return -ENOENT;
 		}
 
