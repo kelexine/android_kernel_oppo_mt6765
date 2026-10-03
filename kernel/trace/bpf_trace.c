@@ -26,6 +26,7 @@
 
 #include "trace_probe.h"
 #include "trace.h"
+#include "bpf_trace.h"
 
 #define bpf_event_rcu_dereference(p)					\
 	rcu_dereference_protected(p, lockdep_is_held(&bpf_event_mutex))

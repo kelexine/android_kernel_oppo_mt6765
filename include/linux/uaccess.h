@@ -11,6 +11,18 @@
 
 #define uaccess_kernel() segment_eq(get_fs(), KERNEL_DS)
 
+/*
+ * Architectures that support uaccess from NMI context may override this.
+ * Used by the BPF probe_read helpers; arm64 is always fine here.
+ */
+#ifndef nmi_uaccess_okay
+static inline bool nmi_uaccess_okay(void)
+{
+	return true;
+}
+#define nmi_uaccess_okay() nmi_uaccess_okay()
+#endif
+
 #include <asm/uaccess.h>
 
 /*
