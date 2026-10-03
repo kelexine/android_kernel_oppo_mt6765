@@ -440,6 +440,34 @@ static inline int nlmsg_parse(const struct nlmsghdr *nlh, int hdrlen,
 			 nlmsg_attrlen(nlh, hdrlen), policy, extack);
 }
 
+/*
+ * Backport shims for the netlink validation rework. This tree has no
+ * configurable validation and no strict doit checks, so both variants
+ * parse liberally and netlink_strict_get_check() always reports
+ * non-strict.
+ */
+static inline int nlmsg_parse_deprecated(const struct nlmsghdr *nlh, int hdrlen,
+					 struct nlattr *tb[], int maxtype,
+					 const struct nla_policy *policy,
+					 struct netlink_ext_ack *extack)
+{
+	return nlmsg_parse(nlh, hdrlen, tb, maxtype, policy, extack);
+}
+
+static inline int
+nlmsg_parse_deprecated_strict(const struct nlmsghdr *nlh, int hdrlen,
+			      struct nlattr *tb[], int maxtype,
+			      const struct nla_policy *policy,
+			      struct netlink_ext_ack *extack)
+{
+	return nlmsg_parse(nlh, hdrlen, tb, maxtype, policy, extack);
+}
+
+static inline bool netlink_strict_get_check(struct sk_buff *skb)
+{
+	return false;
+}
+
 /**
  * nlmsg_find_attr - find a specific attribute in a netlink message
  * @nlh: netlink message header
