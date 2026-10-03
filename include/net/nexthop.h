@@ -45,4 +45,5 @@ static inline struct fib_nh_common *fib_info_nhc(struct fib_info *fi, int nhsel)
 static inline struct fib_nh *fib_info_nh(struct fib_info *fi, int nhsel)
 {
 	return &fi->fib_nh[nhsel];
+}
 #endif

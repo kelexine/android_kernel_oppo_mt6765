@@ -155,7 +155,6 @@ again:
 		curr_task = task_seq_get_next(ns, &curr_tid, true);
 		if (!curr_task) {
 			info->task = NULL;
-			info->files = NULL;
 			return NULL;
 		}
 
