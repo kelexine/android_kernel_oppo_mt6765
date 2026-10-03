@@ -472,7 +472,8 @@ static int fib_detect_death(struct fib_info *fi, int order,
 	struct neighbour *n;
 	int state = NUD_NONE;
 
-	n = neigh_lookup(&arp_tbl, &fi->fib_nh[0].fib_nh_gw4, fi->fib_dev);
+	n = neigh_lookup(&arp_tbl, &fi->fib_nh[0].fib_nh_gw4,
+			 fi->fib_nh[0].fib_nh_dev);
 	if (n) {
 		state = n->nud_state;
 		neigh_release(n);
@@ -538,8 +539,7 @@ int fib_nh_init(struct net *net, struct fib_nh *nh,
 		nh->fib_nh_gw4 = cfg->fc_gw4;
 	else if (cfg->fc_gw_family == AF_INET6)
 		nh->fib_nh_gw6 = cfg->fc_gw6;
-		nh->fib_nh_gw_family = AF_INET;
-	}
+
 	nh->fib_nh_flags = cfg->fc_flags;
 
 #ifdef CONFIG_IP_ROUTE_CLASSID

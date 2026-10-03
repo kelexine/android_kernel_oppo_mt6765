@@ -29,7 +29,7 @@ struct ipv6_stub {
 						  struct flowi6 *fl6,
 						  const struct in6_addr *final_dst);
 
-	int (*ipv6_route_input)(struct sk_buff *skb);
+	void (*ipv6_route_input)(struct sk_buff *skb);
 
 	struct fib6_table *(*fib6_get_table)(struct net *net, u32 id);
 	int (*fib6_lookup)(struct net *net, int oif, struct flowi6 *fl6,
