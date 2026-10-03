@@ -11539,6 +11539,7 @@ static int check_attach_modify_return(unsigned long addr, const char *func_name)
 	return -EINVAL;
 }
 
+#ifdef CONFIG_FUNCTION_ERROR_INJECTION
 /* list of non-sleepable functions that are otherwise on
  * ALLOW_ERROR_INJECTION list
  */
@@ -11555,6 +11556,15 @@ static int check_non_sleepable_error_inject(u32 btf_id)
 {
 	return btf_id_set_contains(&btf_non_sleepable_error_inject, btf_id);
 }
+#else
+/* This tree does not build the non-static error injection wrappers the
+ * list above references; without FUNCTION_ERROR_INJECTION no sleepable
+ * fentry can target the injection list anyway. */
+static inline int check_non_sleepable_error_inject(u32 btf_id)
+{
+	return 1;
+}
+#endif
 
 int bpf_check_attach_target(struct bpf_verifier_log *log,
 			    const struct bpf_prog *prog,
