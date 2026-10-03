@@ -1376,7 +1376,7 @@ static void extract_buf(struct entropy_store *r, __u8 *out)
 	 * If we have an architectural hardware random number
 	 * generator, use it for SHA's initial vector
 	 */
-	sha_init(hash.w);
+	sha1_init(hash.w);
 	for (i = 0; i < LONGS(20); i++) {
 		unsigned long v;
 		if (!arch_get_random_long(&v))

@@ -1378,8 +1378,8 @@ failure:
 	return ERR_PTR(err);
 }
 
-static int fib_nexthop_info(struct sk_buff *skb, const struct fib_nh_common *nhc,
-			    unsigned char *flags, bool skip_oif)
+int fib_nexthop_info(struct sk_buff *skb, const struct fib_nh_common *nhc,
+		     unsigned char *flags, bool skip_oif)
 {
 	if (nhc->nhc_flags & RTNH_F_DEAD)
 		*flags |= RTNH_F_DEAD;
@@ -1391,6 +1391,10 @@ static int fib_nexthop_info(struct sk_buff *skb, const struct fib_nh_common *nhc
 		switch (nhc->nhc_family) {
 		case AF_INET:
 			if (ip_ignore_linkdown(nhc->nhc_dev))
+				*flags |= RTNH_F_DEAD;
+			break;
+		case AF_INET6:
+			if (ip6_ignore_linkdown(nhc->nhc_dev))
 				*flags |= RTNH_F_DEAD;
 			break;
 		}
@@ -1425,14 +1429,14 @@ static int fib_nexthop_info(struct sk_buff *skb, const struct fib_nh_common *nhc
 nla_put_failure:
 	return -EMSGSIZE;
 }
+EXPORT_SYMBOL_GPL(fib_nexthop_info);
 
-#ifdef CONFIG_IP_ROUTE_MULTIPATH
-static int fib_add_nexthop(struct sk_buff *skb, const struct fib_nh_common *nhc,
-			   int nh_weight)
+int fib_add_nexthop(struct sk_buff *skb, const struct fib_nh_common *nhc,
+		    int nh_weight)
 {
 	const struct net_device *dev = nhc->nhc_dev;
 	struct rtnexthop *rtnh;
-	unsigned int flags = 0;
+	unsigned char flags = 0;
 
 	rtnh = nla_reserve_nohdr(skb, sizeof(*rtnh));
 	if (!rtnh)
@@ -1454,7 +1458,7 @@ static int fib_add_nexthop(struct sk_buff *skb, const struct fib_nh_common *nhc,
 nla_put_failure:
 	return -EMSGSIZE;
 }
-#endif
+EXPORT_SYMBOL_GPL(fib_add_nexthop);
 
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 static int fib_add_multipath(struct sk_buff *skb, struct fib_info *fi)
