@@ -26,6 +26,8 @@
 
 #include "trace_probe.h"
 #include "trace.h"
+
+#define CREATE_TRACE_POINTS
 #include "bpf_trace.h"
 
 #define bpf_event_rcu_dereference(p)					\

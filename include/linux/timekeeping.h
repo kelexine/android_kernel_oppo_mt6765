@@ -126,6 +126,11 @@ static inline u64 ktime_get_ns(void)
 	return ktime_to_ns(ktime_get());
 }
 
+static inline u64 ktime_get_coarse_ns(void)
+{
+	return ktime_to_ns(ktime_get_coarse());
+}
+
 static inline u64 ktime_get_real_ns(void)
 {
 	return ktime_to_ns(ktime_get_real());
