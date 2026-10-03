@@ -126,6 +126,15 @@ static inline u64 ktime_get_ns(void)
 	return ktime_to_ns(ktime_get());
 }
 
+static inline ktime_t ktime_get_coarse(void)
+{
+	struct timespec64 ts;
+
+	ktime_get_coarse_ts64(&ts);
+
+	return timespec64_to_ktime(ts);
+}
+
 static inline u64 ktime_get_coarse_ns(void)
 {
 	return ktime_to_ns(ktime_get_coarse());
