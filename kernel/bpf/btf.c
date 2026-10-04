@@ -4452,11 +4452,8 @@ struct btf *btf_parse_vmlinux(void)
 		goto errout;
 
 	err = btf_check_all_metas(env);
-	if (err) {
-		pr_warn("BTF: vmlinux meta walk failed err=%d near type %u\n",
-			err, env->log_type_id);
+	if (err)
 		goto errout;
-	}
 
 	/* btf_parse_vmlinux() runs under bpf_verifier_lock */
 	bpf_ctx_convert.t = btf_type_by_id(btf, bpf_ctx_convert_btf_id[0]);
@@ -4478,8 +4475,6 @@ struct btf *btf_parse_vmlinux(void)
 	return btf;
 
 errout:
-	pr_warn("BTF: vmlinux parse failed err=%d near type %u (blob size %u)\n",
-		err, env ? env->log_type_id : 0, btf ? btf->data_size : 0);
 	btf_verifier_env_free(env);
 	if (btf) {
 		kvfree(btf->types);
