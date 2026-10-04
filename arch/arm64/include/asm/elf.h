@@ -38,6 +38,7 @@
 #define R_AARCH64_ABS16			259
 #define R_AARCH64_PREL64		260
 #define R_AARCH64_PREL32		261
+#define R_AARCH64_PLT32			311
 #define R_AARCH64_PREL16		262
 
 /* Instructions. */
