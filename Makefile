@@ -540,8 +540,13 @@ RETPOLINE_VDSO_CFLAGS := $(call cc-option,$(RETPOLINE_VDSO_CFLAGS_GCC),$(call cc
 export RETPOLINE_CFLAGS
 export RETPOLINE_VDSO_CFLAGS
 
-KBUILD_CFLAGS	+= $(call cc-option,-fno-PIE)
-KBUILD_AFLAGS	+= $(call cc-option,-fno-PIE)
+# Unconditional: the cc-option probe fails here because -fuse-ld=lld (in
+# KBUILD_CFLAGS via CLANG_FLAGS) is flagged "argument unused" under -Werror
+# during the -c /dev/null probe, which silently drops the flag. Without it
+# clang's Android-default PIC codegen puts GOT relocations into modules that
+# the in-kernel module loader cannot process.
+KBUILD_CFLAGS	+= -fno-PIE
+KBUILD_AFLAGS	+= -fno-PIE
 
 # The expansion should be delayed until arch/$(SRCARCH)/Makefile is included.
 # Some architectures define CROSS_COMPILE in arch/$(SRCARCH)/Makefile.

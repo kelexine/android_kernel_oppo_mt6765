@@ -283,11 +283,6 @@ int apply_relocate_add(Elf64_Shdr *sechdrs,
 			ovf = reloc_data(RELOC_OP_PREL, loc, val, 64);
 			break;
 		case R_AARCH64_PREL32:
-		/* Modern toolchains emit R_AARCH64_PLT32 for references to
-		 * exported symbols (e.g. tracepoint registration); in the
-		 * kernel there is no PLT to consult, so it resolves exactly
-		 * like a 32-bit PC-relative value. */
-		case R_AARCH64_PLT32:
 			ovf = reloc_data(RELOC_OP_PREL, loc, val, 32);
 			break;
 		case R_AARCH64_PREL16:
