@@ -714,6 +714,14 @@ u32 aarch64_insn_gen_load_store_ex(enum aarch64_insn_register reg,
 	case AARCH64_INSN_LDST_STORE_EX:
 		insn = aarch64_insn_get_store_ex_value();
 		break;
+	case AARCH64_INSN_LDST_LOAD_ACQ_EX:
+		insn = aarch64_insn_get_load_ex_value();
+		insn |= BIT(15);
+		break;
+	case AARCH64_INSN_LDST_STORE_REL_EX:
+		insn = aarch64_insn_get_store_ex_value();
+		insn |= BIT(15);
+		break;
 	default:
 		pr_err("%s: unknown load/store exclusive encoding %d\n", __func__, type);
 		return AARCH64_BREAK_FAULT;
@@ -732,6 +740,60 @@ u32 aarch64_insn_gen_load_store_ex(enum aarch64_insn_register reg,
 
 	return aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RS, insn,
 					    state);
+}
+
+u32 aarch64_insn_gen_dmb(enum aarch64_insn_mb_type type)
+{
+	u32 opt;
+	u32 insn;
+
+	switch (type) {
+	case AARCH64_INSN_MB_SY:
+		opt = 0xf;
+		break;
+	case AARCH64_INSN_MB_ST:
+		opt = 0xe;
+		break;
+	case AARCH64_INSN_MB_LD:
+		opt = 0xd;
+		break;
+	case AARCH64_INSN_MB_ISH:
+		opt = 0xb;
+		break;
+	case AARCH64_INSN_MB_ISHST:
+		opt = 0xa;
+		break;
+	case AARCH64_INSN_MB_ISHLD:
+		opt = 0x9;
+		break;
+	case AARCH64_INSN_MB_NSH:
+		opt = 0x7;
+		break;
+	case AARCH64_INSN_MB_NSHST:
+		opt = 0x6;
+		break;
+	case AARCH64_INSN_MB_NSHLD:
+		opt = 0x5;
+		break;
+	case AARCH64_INSN_MB_OSH:
+		opt = 0x3;
+		break;
+	case AARCH64_INSN_MB_OSHST:
+		opt = 0x2;
+		break;
+	case AARCH64_INSN_MB_OSHLD:
+		opt = 0x1;
+		break;
+	default:
+		pr_err("%s: unknown dmb type %d\n", __func__, type);
+		return AARCH64_BREAK_FAULT;
+	}
+
+	insn = aarch64_insn_get_dmb_value();
+	insn &= ~GENMASK(11, 8);
+	insn |= (opt << 8);
+
+	return insn;
 }
 
 u32 aarch64_insn_gen_ldadd(enum aarch64_insn_register result,
