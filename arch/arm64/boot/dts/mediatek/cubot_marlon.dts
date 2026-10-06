@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Script: cubot_p50.dts
+ * Script: cubot_marlon.dts
  * Author: kelexine <https://github.com/kelexine>
  * Date: 2026-08-13
  * Purpose: Device Tree Overlay for Cubot P50 (MT6762R / MT6765)
@@ -16,7 +16,7 @@
 
 &{/} {
 	model = "Cubot P50";
-	compatible = "cubot,p50", "mediatek,mt6765";
+	compatible = "cubot,marlon", "mediatek,mt6765";
 };
 
 /* chosen */
