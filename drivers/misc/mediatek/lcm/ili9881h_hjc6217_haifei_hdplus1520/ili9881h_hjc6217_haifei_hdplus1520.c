@@ -3,7 +3,7 @@
  * ILI9881H INCELL TDDI LCD Panel Driver
  * Panel:      ili9881h_hjc6217_haifei_hdplus1520
  * Resolution: 720 x 1520 (HD+, 20:9)
- * Interface:  MIPI-DSI, 4-lane, SYNC_PULSE_VDO_MODE, RGB888
+ * Interface:  MIPI-DSI, 4-lane, BURST_VDO_MODE, RGB888
  * IC:         Ilitek ILI9881H (TDDI — Touch & Display Driver Integration)
  * Module:     HJC6217 / Haifei
  * Platform:   MediaTek MT6762/MT6765
@@ -345,8 +345,8 @@ static void lcm_get_params(struct LCM_PARAMS *params)
 	params->dsi.ssc_disable             = 1;
 
 	/* ESD check */
-	params->dsi.esd_check_enable                       = 0;
-	params->dsi.customization_esd_check_enable         = 0;
+	params->dsi.esd_check_enable                       = 1;
+	params->dsi.customization_esd_check_enable         = 1;
 	params->dsi.lcm_esd_check_table[0].cmd            = 0x0A;
 	params->dsi.lcm_esd_check_table[0].count          = 1;
 	params->dsi.lcm_esd_check_table[0].para_list[0]   = 0x9C;

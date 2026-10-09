@@ -112,18 +112,6 @@ firmware_class.path=/vendor/firmware";
 		};
 	};
 
-    shell_front {
-        compatible = "oppo,shell-temp";
-    };
-
-    shell_frame {
-        compatible = "oppo,shell-temp";
-    };
-
-    shell_back {
-        compatible = "oppo,shell-temp";
-    };
-
 	cluster1_opp: opp_table1 {
 		compatible = "operating-points-v2";
 		opp-shared;
@@ -1059,11 +1047,9 @@ firmware_class.path=/vendor/firmware";
 		status = "okay";
 	};
 
-//#ifdef OPLUS_BUG_COMPATIBILITY
 	swtp:swtp {
 		compatible = "mediatek, swtp-eint";
 	};
-//#endif /*OPLUS_BUG_COMPATIBILITY*/
 
 	touch: touch {
 		compatible = "goodix,touch";
@@ -1073,32 +1059,47 @@ firmware_class.path=/vendor/firmware";
 		compatible = "mediatek,pmic-accdet";
 	};
 
-//#ifdef OPLUS_FEATURE_FINGERPRINT
 
-	goodix_fp: goodix_fp {
-        compatible = "goodix,goodix_fp";
-        };
-
-	fpc_interrupt: fpc_interrupt {
-        compatible = "fpc,fpc_irq";
-        };
-	egis_fp: egis_fp {
-        compatible = "mediatek,finger-fp";
-        };
-
-	fpsensor_finger:fpsensor_finger{
-		compatible = "mediatek,fingerprint";
+	micswitch: micswitch {
+		compatible = "mediatek,audio_switch";
 	};
 
-	oplus_fp_common:oplus_fp_common {
-		compatible = "oplus,fp_common";
-	};
-	silead_fp: silead_fp {
-		status        = "ok";
-		compatible = "sil,silead_fp-pins";
+	sos_key: sos_key {
+		compatible = "mediatek, sos_key";
 	};
 
-//#endif /*OPLUS_FEATURE_FINGERPRINT*/
+	cdfinger: cdfinger {
+		compatible = "mediatek,fps1098";
+	};
+
+	fpsensor_finger: fpsensor_finger {
+		compatible = "mediatek,fpsensor";
+	};
+
+	microarray_finger: microarray_finger {
+		compatible = "mediatek,microarray_finger";
+	};
+
+	goodix_fp: fingerprint {
+		compatible = "mediatek,goodix-fp";
+	};
+
+	fpc_finger: fpc_finger {
+		compatible = "mediatek,fpc_finger";
+	};
+
+	sunwave_finger: sunwave_finger {
+		compatible = "mediatek,sunwave_finger";
+	};
+
+	fortsense_finger: fortsense_finger {
+		compatible = "mediatek,fortsense_finger";
+	};
+
+	fpsensor_fp_eint: fpsensor_fp_eint {
+		compatible = "mediatek,fpsensor_fp_eint";
+		int-gpios = <&pio 22 0x00>;
+	};
 
 	topmisc@10011000 {
 		compatible = "mediatek,topmisc";
@@ -2651,7 +2652,6 @@ firmware_class.path=/vendor/firmware";
 		/*cvsd_mcu_read, write, packet_indicator*/
 		mediatek,offset =<0xf00 0x800 0x140 0x144 0x148>;
 	/*btfw should support bt sleep mode control*/
-	//#ifdef OPLUS_ARCH_ECTENDS
 		disable_write_silence = <1>;/*value 1, audio wouldnt write silence to BT SRAM*/
 	//#else
 		//disable_write_silence = <0>;/*value 0, audio would write silence to BT SRAM*/
@@ -2788,7 +2788,6 @@ firmware_class.path=/vendor/firmware";
 		clock-names = "CAM_MDP", "IMG_DL_RELAY", "IMG_DL_ASYNC_TOP";
 	};
 
-	//#ifdef OPLUS_FEATURE_NFC_CONSOFT
 	/*nfc:nfc {
 			compatible = "mediatek,nfc-gpio-v2";
 			gpio-rst = <172>;
@@ -2796,7 +2795,6 @@ firmware_class.path=/vendor/firmware";
 			gpio-irq = <10>;
 			gpio-irq-std = <&pio 10 0x0>;
 		};*/
-	//#endif /* OPLUS_FEATURE_NFC_CONSOFT */
 
 	irq_nfc: irq_nfc {
 		compatible = "mediatek,irq_nfc-eint";
@@ -3582,26 +3580,6 @@ firmware_class.path=/vendor/firmware";
 		max_dmivr_charger_current = <1800000>;
 	};
 
-	//#ifdef OPLUS_CHARGER_BASIC
-	oplus_fast_charger: oplus_fast_charger {
-		compatible = "mediatek,oplus-fastcharger";
-	};
-	//#endif
-
-	pd_adapter: pd_adapter {
-		compatible = "mediatek,pd_adapter";
-		adapter_name = "pd_adapter";
-	};
-
-	rt9465_slave_chr: rt9465_slave_chr {
-		compatible = "richtek,rt9465";
-		status = "disabled";
-	};
-
-	rt-pd-manager {
-		compatible = "mediatek,rt-pd-manager";
-	};
-
 	subpmic_pmu_eint: mt6370_pmu_eint {
 	};
 
@@ -3618,12 +3596,6 @@ firmware_class.path=/vendor/firmware";
 		compatible = "simple-bus";
 		/* reserved for overlay by odm */
 	};
-
-	//#ifdef OPLUS_FEATURE_SENSOR
-	oplus_sensorhub:oplus_sensorhub {
-		compatible = "sensorhub,sensor_ldo_vio";
-	};
-	//#endif //OPLUS_FEATURE_SENSOR
 
 	memory_ssmr_features: memory-ssmr-features {
 		compatible = "mediatek,memory-ssmr-features";
@@ -3831,13 +3803,6 @@ firmware_class.path=/vendor/firmware";
 		sleep = <&sleep>;
 	};
 
-//#ifdef OPLUS_FEATURE_BOOT_SECURITY
-	oplus_secure_common:oplus_secure_common 
-	{
-		compatible = "oplus,secure_common";
-	};
-//#endif /* OPLUS_FEATURE_BOOT_SECURITY */
-
 	eas {
 		eff_turn_point = <467>;
 		tiny = <50>;
@@ -3898,7 +3863,6 @@ firmware_class.path=/vendor/firmware";
 #include "mediatek/rt9471.dtsi"
 #endif
 #include "mediatek/trusty.dtsi"
-//#ifdef OPLUS_ARCH_EXTENDS
 #ifdef CONFIG_SIA_PA_ALGO
 #include "mediatek/mt6765-sia81xx.dtsi"
 #endif
