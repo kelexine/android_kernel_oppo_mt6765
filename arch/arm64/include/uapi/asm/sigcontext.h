@@ -21,6 +21,15 @@
 
 #include <linux/types.h>
 
+#ifndef __SIZEOF_INT128__
+#ifndef __uint128_t_defined
+#define __uint128_t_defined
+typedef struct {
+	__u64 __val[2];
+} __attribute__((aligned(16))) __uint128_t;
+#endif
+#endif
+
 /*
  * Signal context structure - contains all info to do with the state
  * before the signal handler was invoked.
